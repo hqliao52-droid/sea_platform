@@ -7,24 +7,21 @@ logger = Logger.setup_logger(Logger.set_file_date())
 
 
 async def run_single_rss_task(name, url):
-    """执行单个RSS爬取 → 写MySQL → 写Qdrant"""
     logger.info(f"开始爬取：{name}")
 
     try:
-        # 1. 爬取解析
         news_list = await crawl_all_rss_sources(url)
 
-        # 2. 写入MySQL
+        # 数据库 insert 必须 await！
         for news in news_list:
-            news_crud.insert(news)
+            await news_crud.insert(news)  # 这里加 await！
 
-        logger.info(f"✅ {name} 爬取完成：{len(news_list)} 条")
+        logger.info(f"{name} 爬取完成：{len(news_list)} 条")
 
     except Exception as e:
-        logger.error(f"❌ {name} 爬取失败：{str(e)}")
+        logger.error(f"{name} 爬取失败：{str(e)}")
 
 async def crawl_all_rss_sources(url):
-    """爬取RSS源"""
     feed = feedparser.parse(url)
     entries = feed.entries
     news_list = []
@@ -32,24 +29,21 @@ async def crawl_all_rss_sources(url):
     for entry in entries:
         title = entry.get("title", "")
         content = entry.get("summary", "")
-        result = llm_check_outreach_news(title,content)
+        result = llm_check_outreach_news(title, content)
+
         news = {
-            "title": entry.get("title", ""),
+            "title": title,
             "url": entry.get("link", ""),
             "published_at": entry.get("published"),
-            "content": entry.get("summary", ""),
+            "content": content,
             "origin_msg": str(entry),
             "source": url,
             "authors": "",
             "keywords": "",
             "category": "",
-            "ai_summary": ""
+            "ai_summary": "",
+            "is_policy": 1 if result == "1" else 0
         }
-        if result == "1":
-            news.update({"is_policy":1})
-        else:
-            news.update({"is_policy":0})
-        
         news_list.append(news)
-    
+
     return news_list
