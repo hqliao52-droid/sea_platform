@@ -82,4 +82,4 @@ class NewsOperator:
             db.close()
 
 
-news_oerator = NewsOperator()
+news_operator = NewsOperator()

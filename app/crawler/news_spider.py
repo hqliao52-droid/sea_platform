@@ -23,7 +23,7 @@ async def run_single_rss_task(name, url):
     except Exception as e:
         logger.error(f"❌ {name} 爬取失败：{str(e)}")
 
-def crawl_all_rss_sources(url):
+async def crawl_all_rss_sources(url):
     """爬取RSS源"""
     feed = feedparser.parse(url)
     entries = feed.entries

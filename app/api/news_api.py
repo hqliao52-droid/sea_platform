@@ -21,7 +21,8 @@ async def startup():
     """启动时执行"""
     from app.core.scheduler import scheduler
     from app.tasks.crwal_task import spider_rss
-    scheduler.start()
+    if not scheduler.running:
+        scheduler.start()
     await spider_rss()
     logger.info("定时任务启动成功！")
     
