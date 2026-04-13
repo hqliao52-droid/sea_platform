@@ -47,7 +47,8 @@ requests==2.32.3
 # =========================
 # AI API Clients
 # =========================
-openai==1.51.0
+langchain
+langchain-openai
 
 # =========================
 # Web Crawling

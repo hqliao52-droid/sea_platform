@@ -1,95 +1,66 @@
-# app/utils/logger.py
-
 import logging
-import logging.config
 import os
-from config.settings import settings
+import signal
+import sys
+
+class Logger:
+
+    @staticmethod
+    def logs_path():
+        # 获取当前文件所在目录
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # 向上两级到达 项目 目录
+        pro_root = os.path.dirname(os.path.dirname(current_dir))
+        # 拼接 logs 目录
+        logs_dir = os.path.join(pro_root, 'logs')
+        return logs_dir
 
 
-def setup_logging():
-    """初始化日志系统（全局只调用一次）"""
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    # utils/logger.py → app/utils/logger.py → 回到项目根目录
+    def set_file_date(logName):
+        from datetime import date
+        today = date.today()
+        str_date = f"{today.year}_{today.month:02d}_{today.day:02d}_log"
+        return str_date
+    def setup_logger(name: str, log_file: str = None):
+        logs_path = Logger.logs_path()
+        os.makedirs(logs_path, exist_ok=True)
 
-    log_dir = os.path.join(BASE_DIR, "logs")
+        log_file = log_file or os.path.join(logs_path, f"{name}.log")
 
-    os.makedirs(log_dir, exist_ok=True)
+        class DoubleNewlineFormatter(logging.Formatter):
+            def format(self, record):
+                s = super().format(record)
+                return s + "\n"
 
-    LOGGING_CONFIG = {
-        "version": 1,
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.INFO)
 
-        # 禁止覆盖 uvicorn 默认日志（重要）
-        "disable_existing_loggers": False,
+        # 防止重复添加 handler
+        if not logger.handlers:
+            fh = logging.FileHandler(log_file, encoding="utf-8")
+            fh.setFormatter(DoubleNewlineFormatter("%(asctime)s [%(levelname)s] %(message)s"))
 
-        # ===== 格式 =====
-        "formatters": {
-            "default": {
-                "format": "%(asctime)s [%(levelname)s] [%(name)s] %(message)s"
-            },
-            "simple": {
-                "format": "%(levelname)s: %(message)s"
-            },
-        },
+            ch = logging.StreamHandler()
+            ch.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
 
-        # ===== 输出位置 =====
-        "handlers": {
-            # 控制台
-            "console": {
-                "class": "logging.StreamHandler",
-                "formatter": "default",
-                "level": "INFO",
-            },
+            logger.addHandler(fh)
+            logger.addHandler(ch)
 
-            # 普通日志文件（自动切割）
-            "file_info": {
-                "class": "logging.handlers.TimedRotatingFileHandler",
-                "filename": os.path.join(log_dir, "info.log"),
-                "when": "midnight",   # 每天切割
-                "interval": 1,
-                "backupCount": 7,     # 保留7天
-                "encoding": "utf-8",
-                "formatter": "default",
-                "level": "INFO",
-            },
+        return logger
+    
+    @staticmethod
+    def register_signal_handlers(logger):
+        def handle_exit(signum, frame):
+            logger.warning("程序收到终止信号: %s", signum)
+            logger.info("程序退出")
+            sys.exit(0)
 
-            # 错误日志
-            "file_error": {
-                "class": "logging.handlers.TimedRotatingFileHandler",
-                "filename": os.path.join(log_dir, "error.log"),
-                "when": "midnight",
-                "interval": 1,
-                "backupCount": 7,
-                "encoding": "utf-8",
-                "formatter": "default",
-                "level": "ERROR",
-            },
-        },
+        # Ctrl+C
+        signal.signal(signal.SIGINT, handle_exit)
+        # kill 命令
+        signal.signal(signal.SIGTERM, handle_exit)
+        # 可选：终端关闭/挂起
+        signal.signal(signal.SIGHUP, handle_exit)
+        # 可选：程序退出请求
+        signal.signal(signal.SIGQUIT, handle_exit)
 
-        # ===== Logger定义 =====
-        "loggers": {
-            "": {  # root logger
-                "handlers": ["console", "file_info", "file_error"],
-                "level": "INFO",
-            },
-
-            # 你可以给不同模块单独定义
-            "crawler": {
-                "handlers": ["console", "file_info"],
-                "level": "INFO",
-                "propagate": False,
-            },
-
-            "ai": {
-                "handlers": ["console", "file_info"],
-                "level": "INFO",
-                "propagate": False,
-            },
-        },
-    }
-
-    logging.config.dictConfig(LOGGING_CONFIG)
-
-
-def get_logger(name: str):
-    """获取logger"""
-    return logging.getLogger(name)

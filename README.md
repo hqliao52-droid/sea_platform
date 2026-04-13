@@ -74,4 +74,7 @@ sea_ai_platform
         celery_worker.py
 
 ## 启动整个项目：
-    项目目录执行： docker compose up --build
+    项目目录执行： 
+        docker compose up --build （生产环境）
+        docker-compose -f docker-dev-compose.yml up --build （开发环境）
+

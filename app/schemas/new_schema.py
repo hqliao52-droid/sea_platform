@@ -14,8 +14,9 @@ class NewsSchema(BaseModel):
     keywords: Optional[str] = None
     category: Optional[str] = None
     ai_summary: Optional[str] = None
-    summary: Optional[str] = None
+    origin_msg: Optional[str] = None
     published_at: Optional[datetime] = None
     created_at: Optional[datetime] = None
+    is_policy: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)

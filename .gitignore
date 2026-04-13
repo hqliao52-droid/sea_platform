@@ -1,0 +1,29 @@
+# 编译文件
+*.pyc
+*.pyo
+__pycache__/
+
+# 分发/打包
+build/
+dist/
+*.egg-info/
+*.egg
+
+# 虚拟环境
+venv/
+env/
+.env
+.venv
+
+# IDE配置
+.vscode/
+.idea/
+
+# 测试相关
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 其他
+*.log
+.DS_Store

@@ -9,7 +9,7 @@ class News(Base):
 
     __tablename__ = "news"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
 
     # 新闻标题
     title = Column(String(255), nullable=False)
@@ -36,10 +36,12 @@ class News(Base):
     ai_summary = Column(Text)
 
     # 文章摘要
-    summary = Column(Text)
+    origin_msg = Column(Text)
 
     # 发布时间
     published_at = Column(DateTime)
 
     # 创建时间
     created_at = Column(DateTime, default=datetime.now)
+
+    is_policy = Column(Integer, default=0)
