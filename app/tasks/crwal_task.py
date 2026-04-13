@@ -19,7 +19,7 @@ def spider_rss():
         minutes = rss["update_rate"]
 
         scheduler.add_job(
-            func=run_single_rss_task,
+            func=run_single_rss_task(rss_name,url),
             trigger="interval",
             minutes=minutes,
             args=[rss_id,rss_name,url],

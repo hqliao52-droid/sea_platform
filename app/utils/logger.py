@@ -16,7 +16,7 @@ class Logger:
         return logs_dir
 
 
-    def set_file_date(logName):
+    def set_file_date():
         from datetime import date
         today = date.today()
         str_date = f"{today.year}_{today.month:02d}_{today.day:02d}_log"

@@ -8,7 +8,7 @@ from app.utils.logger import Logger
 
 
 router = APIRouter()
-loogger = Logger.setup_logger(Logger.set_file_date())
+logger = Logger.setup_logger(Logger.set_file_date())
 
 @router.get("/news")
 async def get_news(db: Session = Depends(get_db)):
@@ -23,6 +23,6 @@ async def startup():
     from app.tasks.crwal_task import spider_rss
     scheduler.start()
     await spider_rss()
-    loogger.info("定时任务启动成功！")
+    logger.info("定时任务启动成功！")
     
 
