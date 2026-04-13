@@ -5,11 +5,20 @@ fastapi==0.115.0
 uvicorn[standard]==0.30.6
 
 # =========================
+# Scheduler task
+# =========================
+apscheduler
+
+# =========================
 # Database
 # =========================
+# mysql
 sqlalchemy==2.0.35
 pymysql==1.1.1
 alembic==1.13.2
+mysql-connector-python
+# qdrant
+qdrant-client
 
 # =========================
 # Cache
@@ -26,7 +35,8 @@ kombu==5.4.0
 # Data Validation
 # =========================
 pydantic==2.9.2
-pydantic-settings==2.5.2
+pydantic-settings==2.5.2.
+cryptography
 
 # =========================
 # HTTP Requests
@@ -56,7 +66,6 @@ python-dotenv
 # =========================
 # Utils
 # =========================
-python-dotenv==1.0.1
 loguru==0.7.2
 tqdm==4.66.5
 

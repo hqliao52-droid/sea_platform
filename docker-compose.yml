@@ -31,6 +31,8 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      # 挂载sql下的sql文件
+      - ./sql:/docker-entrypoint-initdb.d 
 
   redis:
     image: redis:7

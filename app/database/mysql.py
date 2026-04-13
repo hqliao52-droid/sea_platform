@@ -67,7 +67,7 @@ Base = declarative_base()
             except StopIteration:
                 pass                    # 生成器正常结束
 """
-def get_db():
+async def get_db():
     print("1. 创建会话")
     db = SessionLocal()
     try:

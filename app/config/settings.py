@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     MYSQL_HOST: str = "localhost"
     MYSQL_PORT: int = 3306
     MYSQL_USER: str = "root"
-    MYSQL_PASSWORD: str = ""
-    MYSQL_DB: str = "sea_db"
+    MYSQL_PASSWORD: str
+    MYSQL_DB: str = "sea_data"
 
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
