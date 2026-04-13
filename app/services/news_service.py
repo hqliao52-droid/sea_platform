@@ -1,6 +1,6 @@
-from utils.logger import Logger
+from app.utils.logger import Logger
 from app.config.mysql_config import SessionLocal
-
+from app.models.news_model import News
 
 class NewsOperator:
     """
@@ -42,7 +42,7 @@ class NewsOperator:
             self.logger.info("数据库关闭！")
             db.close()
     
-    @staticmethod
+    # @staticmethod
     def insert_mult_news(self,news_list:list):
         """
         批量插入多条新闻
@@ -61,12 +61,18 @@ class NewsOperator:
         db = SessionLocal()
         inserted_ids = []
         try:
-            
-            db.add_all(news_list)
+            news_instances = []
+            for news_dict in news_list:
+            # 创建模型实例
+                news = News(**news_dict)  # 字典解包，相当于 News(title=xxx, content=xxx)
+            news_instances.append(news)
+
+
+            db.add_all(news_instances)
             db.commit()
             
             # 获取插入的ID
-            for news in news_list:
+            for news in news_instances:
                 db.refresh(news)
                 inserted_ids.append(news.id)
 
@@ -80,6 +86,3 @@ class NewsOperator:
         finally:
             self.logger.info("数据库关闭！")
             db.close()
-
-
-news_operator = NewsOperator()

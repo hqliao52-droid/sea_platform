@@ -18,6 +18,7 @@ class MQClient:
             return
 
         credentials = pika.PlainCredentials(settings.RABBITMQ_USER, settings.RABBITMQ_PASSWORD)
+        print("==================",settings.RABBITMQ_HOST, settings.RABBITMQ_USER, settings.RABBITMQ_PASSWORD)
 
         self.connection_params = pika.ConnectionParameters(
             host=settings.RABBITMQ_HOST,
@@ -30,7 +31,7 @@ class MQClient:
         self.channel = None
         self.initialized = True
 
-        self.queue_name="default_queue"
+        self.queue_name="sea_queue"
 
     def connect(self):
         if self.connection and not self.connection.is_closed:

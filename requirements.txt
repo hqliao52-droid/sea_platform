@@ -30,6 +30,7 @@ redis==5.0.8
 # =========================
 celery==5.4.0
 kombu==5.4.0
+pika
 
 # =========================
 # Data Validation
@@ -69,6 +70,8 @@ python-dotenv
 # =========================
 loguru==0.7.2
 tqdm==4.66.5
+# RSS -  RFC 2822 时间处理
+python-dateutil
 
 # =========================
 # Data Processing

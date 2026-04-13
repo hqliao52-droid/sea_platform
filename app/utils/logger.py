@@ -21,6 +21,13 @@ class Logger:
         today = date.today()
         str_date = f"{today.year}_{today.month:02d}_{today.day:02d}_log"
         return str_date
+    
+    def set_file_name(description:str):
+        from datetime import date
+        today = date.today()
+        str_date = f"{today.year}_{today.month:02d}_{today.day:02d}_{description}_log"
+        return str_date
+    
     def setup_logger(name: str, log_file: str = None):
         logs_path = Logger.logs_path()
         os.makedirs(logs_path, exist_ok=True)

@@ -36,6 +36,12 @@ services:
     volumes:
       - mysql_data_dev:/var/lib/mysql
       - ./sql:/docker-entrypoint-initdb.d 
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   redis:
     image: redis:7
@@ -55,6 +61,11 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASSWORD}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     
   qdrant:
     image: qdrant/qdrant
@@ -73,18 +84,26 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    container_name: sea_worker_dev
-    # ==================== 开发模式核心：Celery 自动重启 ====================
-    command: celery -A app.tasks.celery_app worker --loglevel=info --autoreload
     volumes:
-      - .:/app  # 代码同步
+      - .:/app
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      mysql:
+        condition: service_started
     env_file:
       - .env
     environment:
       MYSQL_HOST: mysql
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASSWORD}
+    # 启动 worker.py
+    command: python worker/rss_result_execute_worker.py
+    # 启动 3 个实例
+    deploy:
+      replicas: 3
+    restart: always
 
 volumes:
   mysql_data_dev:  # 开发独立数据卷
