@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
 
   api:
@@ -19,7 +17,8 @@ services:
       MYSQL_HOST: mysql
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_PASS: ${RABBITMQ_DEFAULT_PASSWORD}
+      QDRANT_API_KEY: ${QDRANT_API_KEY}
 
   mysql:
     image: mysql:8.0
@@ -37,7 +36,7 @@ services:
     image: redis:7
     container_name: sea_redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     command: redis-server --requirepass ${REDIS_PASSWORD}
@@ -52,11 +51,11 @@ services:
     image: rabbitmq:3-management
     container_name: sea_rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5673:5672"
+      - "15673:15672"
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASSWORD}
     
   qdrant:
     image: qdrant/qdrant

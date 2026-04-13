@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 @router.get("/news")
-def get_news(db: Session = Depends(get_db)):
+async def get_news(db: Session = Depends(get_db)):
     news_list = db.query(News).limit(10).all()
     news_data = [NewsSchema.model_validate(news) for news in news_list]
     return Result.success(data=news_data)

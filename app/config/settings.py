@@ -43,9 +43,9 @@ class Settings(BaseSettings):
         如果.env没有写，那么
             settings.LLM_API_KEY_DeepSeek = None
     '''
-    LLM_API_KEY_DeepSeek: str | None = None
-    LLM_BASE_URL_DeepSeek: str | None = None
-    LLM_MODEL_DeepSeek: str | None = None
+    LLM_API_KEY_DouBaoSeedLite: str | None = None
+    LLM_BASE_URL_DouBaoSeedLite: str | None = None
+    LLM_MODEL_DouBaoSeedLite: str | None = None
 
     LOG_DIR: str = "logs"
 
