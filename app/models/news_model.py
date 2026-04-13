@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime
 from datetime import datetime
-from ..database.mysql import Base
+from app.config.mysql_config import Base
 
 class News(Base):
     """

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.utils.result_response import Result
-from app.database.mysql import get_db
+from app.config.mysql_config import get_db
 from app.models.news_model import News
 from app.schemas.new_schema import NewsSchema
 

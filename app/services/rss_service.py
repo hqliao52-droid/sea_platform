@@ -1,5 +1,5 @@
 from models.rss_source import RssSource
-from database.mysql import db
+from app.config.mysql_config import db
 
 
 class RssSourceOperator:

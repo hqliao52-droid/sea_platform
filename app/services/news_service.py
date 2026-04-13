@@ -13,7 +13,7 @@ class NewsOperator:
     # 静态方法装饰器，用于定义不需要访问实例或类的方法。
     @staticmethod
     def insert_news(entry):
-        from database.mysql import SessionLocal
+        from app.config.mysql_config import SessionLocal
         setup_logging()
         logger = get_logger("NewsOperator - insert_news")
         db = SessionLocal()
@@ -71,7 +71,7 @@ class NewsOperator:
             ids = NewsOperator.insert_many_news(multiple_news)
             print(f"批量插入成功，IDs: {ids}")
         """
-        from database.mysql import SessionLocal
+        from app.config.mysql_config import SessionLocal
 
         setup_logging()
         logger = get_logger("NewsOperator - insert_mult_news")

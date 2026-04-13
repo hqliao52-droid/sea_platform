@@ -1,4 +1,4 @@
-from database.mysql import Base
+from app.config.mysql_config import Base
 from sqlalchemy import Column, Integer, String, Double, DateTime
 from datetime import datetime
 
@@ -29,7 +29,7 @@ class RssSource(Base):
     update_rate = Column(Integer, default=60*60*12)
 
     # 热度
-    hot_rate = Column(Integer)
+    hot_rate = Column(Double)
 
     # 源评分
     source_score = Column(Double)
