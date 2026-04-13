@@ -1,17 +1,17 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : localhost
+ Source Server         : sea_platform
  Source Server Type    : MySQL
- Source Server Version : 80043 (8.0.43)
- Source Host           : localhost:3306
+ Source Server Version : 80045 (8.0.45)
+ Source Host           : localhost:3307
  Source Schema         : sea_data
 
  Target Server Type    : MySQL
- Target Server Version : 80043 (8.0.43)
+ Target Server Version : 80045 (8.0.45)
  File Encoding         : 65001
 
- Date: 10/04/2026 23:50:40
+ Date: 14/04/2026 00:19:10
 */
 
 SET NAMES utf8mb4;
@@ -33,18 +33,18 @@ CREATE TABLE `rss_source`  (
   `source_score` double NULL DEFAULT NULL COMMENT '综合分数',
   `created_at` datetime NULL DEFAULT NULL COMMENT '构建时间',
   PRIMARY KEY (`id` DESC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = 'RSS地址——feedparser' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = 'RSS地址——feedparser' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of rss_source
 -- ----------------------------
-INSERT INTO `rss_source` VALUES (8, '开源中国', 'https://www.oschina.net/news/rss', NULL, '1', 0, NULL, NULL, NULL, '2026-03-17 11:28:21');
-INSERT INTO `rss_source` VALUES (7, 'Hacker News', 'https://hnrss.org/frontpage', NULL, '1', 0, NULL, NULL, NULL, '2026-03-16 10:18:42');
-INSERT INTO `rss_source` VALUES (6, 'Financial Times', 'https://www.ft.com/rss/home', NULL, '1', 0, NULL, NULL, NULL, '2026-03-16 10:18:15');
-INSERT INTO `rss_source` VALUES (5, 'reutersagency', 'https://www.reutersagency.com/feed/', NULL, '1', 0, NULL, NULL, NULL, '2026-03-16 10:17:52');
-INSERT INTO `rss_source` VALUES (4, 'BBC', 'http://feeds.bbci.co.uk/news/rss.xml', NULL, '1', 0, NULL, NULL, NULL, '2026-03-16 10:17:35');
-INSERT INTO `rss_source` VALUES (3, 'venturebeat', 'https://venturebeat.com/feed/', NULL, '1', 0, NULL, NULL, NULL, '2026-03-16 10:17:03');
-INSERT INTO `rss_source` VALUES (2, 'techcrunch', 'https://techcrunch.com/feed/', NULL, '1', 0, NULL, NULL, NULL, '2026-03-16 10:17:05');
-INSERT INTO `rss_source` VALUES (1, '36氪', 'https://36kr.com/feed', NULL, '1', 0, NULL, NULL, NULL, '2026-03-16 10:13:47');
+INSERT INTO `rss_source` VALUES (8, '开源中国', 'https://www.oschina.net/news/rss', NULL, '1', 0, 5, NULL, NULL, '2026-03-17 11:28:21');
+INSERT INTO `rss_source` VALUES (7, 'Hacker News', 'https://hnrss.org/frontpage', NULL, '1', 0, 10, NULL, NULL, '2026-03-16 10:18:42');
+INSERT INTO `rss_source` VALUES (6, 'Financial Times', 'https://www.ft.com/rss/home', NULL, '1', 0, 15, NULL, NULL, '2026-03-16 10:18:15');
+INSERT INTO `rss_source` VALUES (5, 'reutersagency', 'https://www.reutersagency.com/feed/', NULL, '1', 0, 30, NULL, NULL, '2026-03-16 10:17:52');
+INSERT INTO `rss_source` VALUES (4, 'BBC', 'http://feeds.bbci.co.uk/news/rss.xml', NULL, '1', 0, 30, NULL, NULL, '2026-03-16 10:17:35');
+INSERT INTO `rss_source` VALUES (3, 'venturebeat', 'https://venturebeat.com/feed/', NULL, '1', 0, 20, NULL, NULL, '2026-03-16 10:17:03');
+INSERT INTO `rss_source` VALUES (2, 'techcrunch', 'https://techcrunch.com/feed/', NULL, '1', 0, 10, NULL, NULL, '2026-03-16 10:17:05');
+INSERT INTO `rss_source` VALUES (1, '36氪', 'https://36kr.com/feed', NULL, '1', 0, 5, NULL, NULL, '2026-03-16 10:13:47');
 
 SET FOREIGN_KEY_CHECKS = 1;
