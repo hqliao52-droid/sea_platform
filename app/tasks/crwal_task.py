@@ -27,4 +27,7 @@ async def spider_rss():
             replace_existing=True
         )
         logger.info(f"已调度：{rss_name} 每 {minutes} 分钟爬取一次！")
+    
+    for rss in rss_list:
+        await run_single_rss_task(rss.name, rss.url)
 
