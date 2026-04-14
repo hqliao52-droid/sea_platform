@@ -35,6 +35,7 @@ CREATE TABLE `news`  (
   `published_at` datetime NULL DEFAULT NULL COMMENT '发布时间',
   `created_at` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '爬虫时间',
   `is_policy` tinyint NULL DEFAULT 0 COMMENT '是否是政策类新闻 1:是 0:否',
+  `ai_json_output` JSON NULL COMMENT 'AI输出的结果(json)',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 92 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 

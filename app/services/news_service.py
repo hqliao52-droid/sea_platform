@@ -16,7 +16,7 @@ class NewsOperator:
 
     # 静态方法装饰器，用于定义不需要访问实例或类的方法。
     # @staticmethod
-    def insert_news(self,news:dict):
+    def insert_news(self, news:News):
         db = SessionLocal()
 
         try:

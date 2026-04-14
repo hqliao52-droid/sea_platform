@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime
+from sqlalchemy import Column, Integer, String, Text, DateTime,JSON
 from datetime import datetime
 from app.config.mysql_config import Base
 
@@ -15,7 +15,7 @@ class News(Base):
     title = Column(String(255), nullable=False)
 
     # url原始链接
-    url = Column(String(255))
+    url = Column(String(255), nullable=False)
 
     # RSS来源
     source = Column(String(255))
@@ -44,4 +44,8 @@ class News(Base):
     # 创建时间
     created_at = Column(DateTime, default=datetime.now)
 
+    # 是否是政策类
     is_policy = Column(Integer, default=0)
+
+    # AI输出结果
+    ai_json_output = Column(JSON,comment="AI分析结果")

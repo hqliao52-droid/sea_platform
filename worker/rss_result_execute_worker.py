@@ -4,8 +4,9 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from app.config.rabbitMq_config import MQClient
 from app.utils.logger import Logger
-from app.tasks.ai_task import llm_check_outreach_news
+from app.tasks.ai_task import llm_check_outreach_news,llm_analyze_news
 from app.services.news_service import NewsOperator
+from app.models.news_model import News
 import time
 
 
@@ -23,11 +24,18 @@ def worker():
             logger.info(message)
             result = llm_check_outreach_news(message["title"], message["content"])
             message.update({"is_policy":1 if result == "1" else 0})
+            if result == "1":
+                ai_json = llm_analyze_news(message["title"], message["content"])
+                message.update({"ai_json_output":ai_json})
         
             try:
                 newsoperator = NewsOperator()
-                ids = newsoperator.insert_news(message)
-                logger.info(f"成功插入 {len(ids)} 条news")
+                news_obj = News(**message)  # 将 dict 转换为 News 对象
+                news_id = newsoperator.insert_news(news_obj)
+                if news_id:  # 检查是否插入成功
+                    logger.info(f"成功插入新闻，ID: {news_id}")
+                else:
+                    logger.warning(f"插入失败，返回值为空")
 
             except Exception as e:
                 logger.error(f"插入失败：{str(e)}")
