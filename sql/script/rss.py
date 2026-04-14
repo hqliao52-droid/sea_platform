@@ -1,7 +1,7 @@
 import requests
 from lxml import etree
 import pandas as pd
-import os
+import os,random
 from datetime import datetime
 
 # ====================== 你可以自定义的配置 ======================
@@ -36,6 +36,7 @@ def get_rss_structure():
         parent_url = parent_input[0].strip() if parent_input else ""
 
         if parent_name:
+            time = random.randint(5,30)
             parent_name += "（百度源）"
             result.append([
                 current_id,
@@ -45,7 +46,7 @@ def get_rss_structure():
                 0,          # 父类 is_child=0
                 None,       # is_active 空
                 None,       # is_api_key 空
-                10,         # 父类 update_rate=10
+                time,         # 父类 update_rate=10
                 None,       # hot_rate 空
                 None,       # source_score 空
                 now_time    # ✅ 正确时间
@@ -61,6 +62,8 @@ def get_rss_structure():
             sub_url = sub_input[0].strip() if sub_input else ""
 
             if sub_name:
+
+                sub_time = random.randint(5,35)
                 sub_name += "（百度源）"
                 result.append([
                     current_id,
@@ -70,7 +73,7 @@ def get_rss_structure():
                     1,       # 子类 is_child=1
                     None,
                     None,
-                    15,      # 子类 update_rate=15
+                    sub_time,      # 子类 update_rate=15
                     None,
                     None,
                     now_time
