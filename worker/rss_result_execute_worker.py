@@ -7,6 +7,7 @@ from app.utils.logger import Logger
 from app.tasks.ai_task import llm_check_outreach_news,llm_analyze_news
 from app.services.news_service import NewsOperator
 from app.models.news_model import News
+from app.utils.fetch_full_text import fetch_full_text
 import time
 
 
@@ -31,6 +32,8 @@ def worker():
             message.update({"is_policy":1 if result == "1" else 0})
             if result == "1":
                 ai_json = llm_analyze_news(message["title"], message["content"])
+                full_context = fetch_full_text(message["url"])
+                logger.info("全文信息：",full_context)
                 message.update({"ai_json_output":ai_json})
             try:
                 news_obj = News(**message)  # 将 dict 转换为 News 对象
