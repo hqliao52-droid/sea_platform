@@ -18,7 +18,7 @@ def get_rss_structure():
         resp = requests.get(URL, headers=headers, timeout=10)
         resp.encoding = resp.apparent_encoding
         tree = etree.HTML(resp.text)
-        top_ul = tree.xpath("/html/body/table[3]/tbody/tr/td[1]/div[7]/div[1]/div[1]/ul")[0]
+        top_ul = tree.xpath("/html/body/table[3]/tbody/tr/td[1]/div[7]/div[1]/div[2]/ul")[0]
     except Exception as e:
         print(f"❌ 网页获取失败：{e}")
         return []

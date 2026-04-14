@@ -4,92 +4,122 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    container_name: sea_api
+    # container_name: sea_api_dev
     ports:
       - "8000:8000"
     depends_on:
-      - mysql
-      - redis
-      - rabbitmq
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     env_file:
       - .env
     environment:
+      TZ: Asia/Shanghai
       MYSQL_HOST: mysql
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_PASS: ${RABBITMQ_DEFAULT_PASSWORD}
       QDRANT_API_KEY: ${QDRANT_API_KEY}
+    #   - .:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   mysql:
     image: mysql:8.0
-    container_name: sea_mysql
+    # container_name: sea_mysql_dev 
     restart: always
     environment:
+      TZ: Asia/Shanghai
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DB}
     ports:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      # 挂载sql下的sql文件
-      - ./sql:/docker-entrypoint-initdb.d 
+      # - ./sql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   redis:
     image: redis:7
-    container_name: sea_redis
+    # container_name: sea_redis_dev
+    restart: always
     ports:
       - "6380:6379"
     environment:
+      - TZ=Asia/Shanghai
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     command: redis-server --requirepass ${REDIS_PASSWORD}
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a","${REDIS_PASSWORD}","PING"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
 
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: sea_rabbitmq
+    # container_name: sea_rabbitmq_dev
     ports:
       - "5673:5672"
       - "15673:15672"
     environment:
+      - TZ=Asia/Shanghai
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASSWORD}
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit heartbeat 600
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
     
   qdrant:
     image: qdrant/qdrant
-    container_name: sea_qdrant
+    # container_name: sea_qdrant_dev
     restart: unless-stopped
     ports:
       - "6333:6333"
       - "6334:6334"
     environment:
+      TZ: Asia/Shanghai
       QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY}
       QDRANT__LOG_LEVEL: info 
     volumes:
-      - D:\PROJECT_PYTHON\sea_ai_platform\Qdrant_data:/qdrant/storage
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - qdrant_data:/qdrant/storage
 
   worker:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    container_name: sea_worker
-    command: celery -A app.tasks.celery_app worker --loglevel=info
+    # volumes:  # 生产环境不应挂载本地代码
+    #   - .:/app
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_healthy
+      mysql:
+        condition: service_started
     env_file:
       - .env
     environment:
+      TZ: Asia/Shanghai
       MYSQL_HOST: mysql
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASSWORD}
+    command: python worker/rss_result_execute_worker.py
+    deploy:
+      replicas: 3
+    restart: always
 
 volumes:
   mysql_data:
+  qdrant_data:
