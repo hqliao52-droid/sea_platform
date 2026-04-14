@@ -1,7 +1,7 @@
 # app/schemas/new_schema.py
-from pydantic import BaseModel, ConfigDict,JSON
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
-from typing import Optional
+from typing import Optional,Any,Dict
 
 
 class NewsSchema(BaseModel):
@@ -18,6 +18,6 @@ class NewsSchema(BaseModel):
     published_at: Optional[datetime] = None
     created_at: Optional[datetime] = None
     is_policy: Optional[int] = None
-    ai_json_output: Optional[JSON] = None
+    ai_json_output: Optional[Dict[str, Any]] = None
 
     model_config = ConfigDict(from_attributes=True)

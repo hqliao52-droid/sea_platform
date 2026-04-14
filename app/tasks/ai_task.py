@@ -5,11 +5,12 @@ from app.config.llm_config import llm_config
 from app.schemas.news.news_analysis import NewsAnalysis
 
 def llm_check_outreach_news(title: str, content: str) -> dict:
+        llm_prompt = AgentPrompt.DouBaoSeedLiteSystemPromptPolicJudge()
         # Prompt
         prompt = ChatPromptTemplate.from_messages([
-            ("system", AgentPrompt.DouBaoSeedLiteSystemPromptPolicJudge()),
+            ("system", llm_prompt),
 
-            ("user", f"标题：{title}\n内容：{content}")
+            ("user", "标题：{title}\n内容：{content}")
         ])
 
         # 组装流水线
@@ -23,10 +24,10 @@ def llm_check_outreach_news(title: str, content: str) -> dict:
 
 def llm_analyze_news(title: str, content: str) -> dict:
         parser = JsonOutputParser(pydantic_object=NewsAnalysis)
+        llm_prompt = AgentPrompt.DouBaoSeedLiteSystemPromptNewsSummarize()
         prompt = ChatPromptTemplate.from_messages([
-            ("system", AgentPrompt.DouBaoSeedLiteSystemPromptNewsSummarize()),
-
-            ("user", f"标题：{title}\n内容：{content}")
+            ("system", llm_prompt + "\n{format_instructions}"),
+            ("user", "标题：{title}\n内容：{content}")
         ])
         chain = prompt | llm_config.summary_llm() | parser
         return chain.invoke({
@@ -39,11 +40,12 @@ def _llm_analyze_news(title: str, content: str) -> dict:
     # 使用结构化输出（需要模型支持 function calling）
     llm = llm_config.summary_llm()
     structured_llm = llm.with_structured_output(NewsAnalysis)
+    llm_prompt = AgentPrompt.DouBaoSeedLiteSystemPromptNewsSummarize()
     
     prompt = ChatPromptTemplate.from_messages([
-        ("system", AgentPrompt.DouBaoSeedLiteSystemPromptNewsSummarize()),
-        ("user", "标题：{title}\n内容：{content}")
-    ])
+            ("system", llm_prompt + "\n{format_instructions}"),
+            ("user", "标题：{title}\n内容：{content}")
+        ])
     
     chain = prompt | structured_llm
     result = chain.invoke({"title": title, "content": content})

@@ -13,6 +13,7 @@ import time
 def worker():
     mq_client = MQClient()
     logger = Logger.setup_logger(Logger.set_file_name("worker"))
+    newsoperator = NewsOperator()
     while(True):
         msg = mq_client.consume()
         # 没消息就休眠1秒
@@ -22,18 +23,21 @@ def worker():
         
         for message in msg:
             logger.info(message)
+            status = newsoperator.is_news_exits(message["url"],message["published_at"])
+            if status["status"] == "exits":
+                # 已存在，加速循环
+                continue
             result = llm_check_outreach_news(message["title"], message["content"])
             message.update({"is_policy":1 if result == "1" else 0})
             if result == "1":
                 ai_json = llm_analyze_news(message["title"], message["content"])
                 message.update({"ai_json_output":ai_json})
-        
             try:
-                newsoperator = NewsOperator()
                 news_obj = News(**message)  # 将 dict 转换为 News 对象
-                news_id = newsoperator.insert_news(news_obj)
-                if news_id:  # 检查是否插入成功
-                    logger.info(f"成功插入新闻，ID: {news_id}")
+                id = newsoperator.insert_news(news_obj)
+                if id:  # 检查是否插入成功
+                    logger.info(f"成功插入新闻，ID: {id}")
+                    # 未来可做qdrant插入
                 else:
                     logger.warning(f"插入失败，返回值为空")
 

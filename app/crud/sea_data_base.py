@@ -27,6 +27,8 @@ class BaseCRUD:
         except Exception as e:
             self.db.rollback()
             raise e
+        finally:
+            self.db.close()
 
     def update(self, obj_id: int, update_data: dict):
         """
@@ -45,6 +47,8 @@ class BaseCRUD:
         except Exception as e:
             self.db.rollback()
             raise e
+        finally:
+            self.db.close()
 
     def delete(self, obj_id: int):
         """通用删除"""
@@ -57,15 +61,28 @@ class BaseCRUD:
         except Exception as e:
             self.db.rollback()
             raise e
+        finally:
+            self.db.close()
     
     def get(self, obj_id: int):
         """根据ID查询单条"""
-        return self.db.query(self.model).get(obj_id)
+        try:
+            result = self.db.query(self.model).get(obj_id)
+            return result
+        except Exception as e:
+            raise e
+        finally:
+            self.db.close()
 
     def get_all(self):
         """查询所有"""
-        return self.db.query(self.model).all()
-
+        try:
+            result = self.db.query(self.model).all()
+            return result
+        except Exception as e:
+            raise e
+        finally:
+            self.db.close()
     def close(self):
         """手动关闭（可选，程序退出时调用）"""
         self.db.close()

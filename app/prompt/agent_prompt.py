@@ -1,8 +1,9 @@
 class AgentPrompt:
+
     def DouBaoSeedLiteSystemPromptPolicJudge(self):
         return """
         你是企业出海资讯筛选助手。
-判断内容是否与【企业出海、跨境贸易、海外投资、出海政策、国际化经营】相关。
+判断内容是否与【企业出海、跨境贸易、海外投资、出海政策、国际化经营、合规法律、财税、人力资源、供应链物流、海外营销、海外市场洞察、本地化、跨境支付、ESG、关税、ODI备案】相关。
 只输出一个数字：
 1 = 相关
 0 = 不相关
@@ -50,17 +51,17 @@ class AgentPrompt:
 [摘录 1-2 句最关键的原文作为佐证]
 
 # 输出样式：
-{
+{{
     "summary": "一句话速读，说明本文对出海企业/服务机构的价值",
     "abstract": "3-5句话的详细摘要",
     "topic_cluster": "Topic聚类，如：合规法律、财税、人力资源等",
     "industry_category": "行业分类",
     "keywords": ["关键词1", "关键词2", "关键词3"],
-    "policy_risk": {
+    "policy_risk": {{
         "policy_compliance": "政策/合规要点",
         "market_risk": "市场/运营风险"
-    }
-}
+    }}
+}}
 注意：
 1. 只输出纯JSON对象，不要输出```json```标记
 2. 不要输出任何解释性文字

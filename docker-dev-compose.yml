@@ -8,12 +8,16 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - mysql
-      - redis
-      - rabbitmq
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     env_file:
       - .env
     environment:
+      TZ: Asia/Shanghai
       MYSQL_HOST: mysql
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
@@ -23,12 +27,20 @@ services:
     volumes:
       - .:/app  # 本地代码实时同步到容器
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload  # 热重载
+    restart: unless-stopped  # 添加重启策略
+    healthcheck:  # 为 API 服务也添加健康检查
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   mysql:
     image: mysql:8.0
     container_name: sea_mysql_dev
     restart: always
     environment:
+      TZ: Asia/Shanghai
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DB}
     ports:
@@ -46,9 +58,11 @@ services:
   redis:
     image: redis:7
     container_name: sea_redis_dev
+    restart: always
     ports:
       - "6380:6379"
     environment:
+      - TZ=Asia/Shanghai
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     command: redis-server --requirepass ${REDIS_PASSWORD}
 
@@ -59,13 +73,16 @@ services:
       - "5673:5672"
       - "15673:15672"
     environment:
+      - TZ=Asia/Shanghai
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASSWORD}
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit heartbeat 600 # 600秒
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
     
   qdrant:
     image: qdrant/qdrant
@@ -75,6 +92,7 @@ services:
       - "6333:6333"
       - "6334:6334"
     environment:
+      TZ: Asia/Shanghai
       QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY}
       QDRANT__LOG_LEVEL: info 
     volumes:
@@ -94,6 +112,7 @@ services:
     env_file:
       - .env
     environment:
+      TZ: Asia/Shanghai
       MYSQL_HOST: mysql
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}

@@ -39,6 +39,7 @@ CREATE TABLE `news`  (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 92 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
+ALTER TABLE news ADD UNIQUE INDEX uk_url (`url`);
 -- ----------------------------
 -- Records of news
 -- ----------------------------

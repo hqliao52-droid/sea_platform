@@ -16,7 +16,7 @@ class NewsOperator:
 
     # 静态方法装饰器，用于定义不需要访问实例或类的方法。
     # @staticmethod
-    def insert_news(self, news:News):
+    def insert_news(self, news:News) -> dict:
         db = SessionLocal()
 
         try:
@@ -31,13 +31,26 @@ class NewsOperator:
 
             # 返回ID
             self.logger.info(f"插入成功，ID:{news.id}")
-            return news.id
+            return {"id":news.id,"status":"success"}
         
         except Exception as e:
             # 出现异常，事务回滚
             db.rollback()
             self.logger.error(f"插入失败:{e}")
 
+        finally:
+            self.logger.info("数据库关闭！")
+            db.close()
+    
+    def is_news_exits(self,url:str,published_at) -> bool:
+        db = SessionLocal()
+        try:
+            id = db.query(News.id).filter(News.url == url,News.published_at == published_at).first()
+            self.logger.info(f"新闻已存在，URL:{url}")
+            return {"id":id,"status":"exits"} if id else {"id":None,"status":"NotExits"}
+        except Exception as e:
+            self.logger.error(f"查询失败:{e}")
+            return {"id":None,"status":"NotExits"}
         finally:
             self.logger.info("数据库关闭！")
             db.close()
