@@ -17,8 +17,8 @@ class MQClient:
         if hasattr(self, "initialized"):
             return
 
-        credentials = pika.PlainCredentials(settings.RABBITMQ_USER, settings.RABBITMQ_PASSWORD)
-        print("==================",settings.RABBITMQ_HOST, settings.RABBITMQ_USER, settings.RABBITMQ_PASSWORD)
+        credentials = pika.PlainCredentials(settings.RABBITMQ_DEFAULT_USER, settings.RABBITMQ_DEFAULT_PASSWORD)
+        print("==================",settings.RABBITMQ_HOST, settings.RABBITMQ_DEFAULT_USER, settings.RABBITMQ_DEFAULT_PASSWORD)
 
         self.connection_params = pika.ConnectionParameters(
             host=settings.RABBITMQ_HOST,

@@ -31,8 +31,8 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: str | None = None
 
     RABBITMQ_HOST: str = "localhost"
-    RABBITMQ_USER: str
-    RABBITMQ_PASSWORD: str
+    RABBITMQ_DEFAULT_USER: str
+    RABBITMQ_DEFAULT_PASSWORD: str
 
     QDRANT_HOST: str = "localhost"
     QDRANT_PORT: int = 6333

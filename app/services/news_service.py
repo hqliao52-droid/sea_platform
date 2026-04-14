@@ -15,7 +15,7 @@ class NewsOperator:
         self.logger = Logger.setup_logger(Logger.set_file_date())
 
     # 静态方法装饰器，用于定义不需要访问实例或类的方法。
-    @staticmethod
+    # @staticmethod
     def insert_news(self,news:dict):
         db = SessionLocal()
 

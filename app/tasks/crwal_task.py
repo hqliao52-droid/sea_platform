@@ -20,7 +20,7 @@ def spider_rss():
 
         scheduler.add_job(
             crawl_all_rss_sources,
-            args=[rss_name, url],
+            args=[url],
             trigger="interval",
             minutes=minutes,
             id=f"rss_task_{rss_id}",
@@ -29,5 +29,5 @@ def spider_rss():
         logger.info(f"已调度：{rss_name} 每 {minutes} 分钟爬取一次！")
     
     for rss in rss_list:
-        crawl_all_rss_sources(rss.name, rss.url)
+        crawl_all_rss_sources(rss.url)
 
