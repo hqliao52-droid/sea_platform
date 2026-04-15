@@ -18,7 +18,6 @@ class NewsDetail(Base):
         autoincrement=True,
         nullable=False,
         comment="主键ID",
-        description="主键ID"
     )
 
     # 父ID（原表标注为父ID，对应news_id）
@@ -27,7 +26,6 @@ class NewsDetail(Base):
         nullable=True,
         index=True,  # 建议加索引，提升查询性能
         comment="父ID",
-        description="父ID"
     )
 
     # 栏目/类别-id
@@ -35,7 +33,6 @@ class NewsDetail(Base):
         Integer,
         nullable=True,
         comment="栏目/类别-id",
-        description="栏目/类别-id"
     )
 
     # 栏目/类别
@@ -43,7 +40,6 @@ class NewsDetail(Base):
         String(255),
         nullable=True,
         comment="栏目/类别",
-        description="栏目/类别"
     )
 
     # 文章标题
@@ -51,21 +47,18 @@ class NewsDetail(Base):
         String(255),
         nullable=True,
         comment="文章标题",
-        description="文章标题"
     )
 
     # 文章作者
     authors = Column(
         String(255),
         comment="文章作者",
-        description="文章作者"
     )
 
     # 正文
     content = Column(
         Text,
         comment="正文",
-        description="正文"
     )
 
     # 文章原始url
@@ -73,7 +66,6 @@ class NewsDetail(Base):
         String(255),
         nullable=True,
         comment="文章原始url",
-        description="文章原始url"
     )
 
     # 访问量（原表类型int，长度255不合理，int类型无长度，修正为标准int）
@@ -82,49 +74,42 @@ class NewsDetail(Base):
         nullable=True,
         default=0,  # 建议默认值0，避免空值
         comment="访问量",
-        description="访问量"
     )
 
     # 关键词
     keywords = Column(
         String(255),
         comment="关键词",
-        description="关键词"
     )
 
     # AI解析输出（json类型）
     ai_origin_output = Column(
         JSON,
         comment="AI解析输出",
-        description="AI解析输出"
     )
 
     # 内容摘要
     summary = Column(
         Text,
         comment="内容",
-        description="内容摘要"
     )
 
     # 原始entry
     origin_entry = Column(
         String(255),
         comment="原始entry",
-        description="原始entry"
     )
 
     # 全文（longtext类型，对应SQLAlchemy的Text，MySQL会自动映射为longtext）
     in_full_page = Column(
         Text,
         comment="全文",
-        description="全文"
     )
 
     # 发布时间
     publiced_at = Column(
         DateTime,
         comment="发布时间",
-        description="发布时间"
     )
 
     # 创建时间（建议自动赋值）
@@ -132,7 +117,6 @@ class NewsDetail(Base):
         DateTime,
         default=datetime.now,
         comment="创建时间",
-        description="创建时间"
     )
 
     # 可选：添加__repr__方法，方便调试打印

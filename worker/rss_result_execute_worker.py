@@ -25,6 +25,7 @@ def news_execute(entry,llm_result,llm_json):
     news_detail = NewsDetail()
     # news主表ID
     id = None
+    obj = None
     try:
         if entry:
             news.title = entry["title"]
@@ -38,9 +39,11 @@ def news_execute(entry,llm_result,llm_json):
             news_detail.title = entry["title"]
             for tag in tags:
                 if llm_json["industry_category"] in tag.tag_name or llm_json["industry_category"] in tag.example:
+                    logger.info(f"匹配成功：{tag},匹配对象：{llm_json['industry_category']}")
                     news_detail.category_id = tag.id
                     news_detail.category_name = tag.tag_name
                 else:
+                    logger.error(f"匹配失败!,匹配对象：{llm_json['industry_category']}")
                     news_detail.category_id = 20
                     news_detail.category_name = "其他"
             

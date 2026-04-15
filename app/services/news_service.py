@@ -57,7 +57,7 @@ class NewsOperator:
         db = SessionLocal()
         try:
             id = db.query(News.id).filter(News.url == url,News.published_at == published_at).first()
-            self.logger.info(f"新闻已存在，URL:{url}")
+            self.logger.info(f"新闻已存在，URL:{id}")
             return {"id":id,"status":"exits"} if id else {"id":None,"status":"NotExits"}
         except Exception as e:
             self.logger.error(f"查询失败:{e}")
