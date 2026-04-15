@@ -1,23 +1,18 @@
 # app/schemas/new_schema.py
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
-from typing import Optional,Any,Dict
+from typing import Optional,Union
 
 
 class NewsSchema(BaseModel):
     id: int
+    category_id: Optional[str] = None
+    category_name: Optional[str] = None
     title: str
     url: Optional[str] = None
     source: Optional[str] = None
-    content: Optional[str] = None
-    authors: Optional[str] = None
-    keywords: Optional[str] = None
-    category: Optional[str] = None
-    ai_summary: Optional[str] = None
-    origin_msg: Optional[str] = None
     published_at: Optional[datetime] = None
     created_at: Optional[datetime] = None
     is_policy: Optional[int] = None
-    ai_json_output: Optional[Dict[str, Any]] = None
 
     model_config = ConfigDict(from_attributes=True)

@@ -1,6 +1,7 @@
 from app.utils.logger import Logger
 from app.config.mysql_config import SessionLocal
 from app.models.news_model import News
+from app.crud.data_crud.news import news_crud
 
 class NewsOperator:
     """
@@ -13,6 +14,16 @@ class NewsOperator:
     """
     def __init__(self):
         self.logger = Logger.setup_logger(Logger.set_file_date())
+    
+
+    def get_pages_news(self,page: int, page_size: int) -> list[News]:
+        try:
+            # 获取分页数据
+            return news_crud.get_pages_news(page, page_size)
+        except Exception as e:
+            self.logger.error(f"查询失败:{e}")
+            return {"status":500,"news_list":None,"total":0}
+
 
     # 静态方法装饰器，用于定义不需要访问实例或类的方法。
     # @staticmethod
@@ -99,3 +110,5 @@ class NewsOperator:
         finally:
             self.logger.info("数据库关闭！")
             db.close()
+            
+service = NewsOperator()

@@ -2,7 +2,6 @@ import requests
 from lxml import etree
 import pandas as pd
 import os,random
-from datetime import datetime
 
 # ====================== 你可以自定义的配置 ======================
 URL = "http://www.baidu.com/search/rss.html"
@@ -24,61 +23,65 @@ def get_rss_structure():
         return []
 
     result = []
-    current_id = 1
-    # ✅ 修复：生成 MySQL 标准时间格式：2025-12-20 15:30:00
-    now_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    current_id = 72
 
-    # 父分类
+    # ========= 1级：父分类 =========
     for li in top_ul.xpath("./li"):
         parent_name = li.xpath("./span/text()")
         parent_input = li.xpath("./input/@value")
         parent_name = parent_name[0].strip() if parent_name else ""
         parent_url = parent_input[0].strip() if parent_input else ""
 
+        parent_id = current_id  # 保存当前父ID，给子级用
+
+        parent_time = random.randint(10, 20)
         if parent_name:
-            time = random.randint(5,30)
             parent_name += "（百度源）"
             result.append([
-                current_id,
-                parent_name,
-                parent_url,
-                None,       # category 空
-                0,          # 父类 is_child=0
-                None,       # is_active 空
-                None,       # is_api_key 空
-                time,         # 父类 update_rate=10
-                None,       # hot_rate 空
-                None,       # source_score 空
-                now_time    # ✅ 正确时间
+                current_id, parent_name, parent_url, None,
+                0,        # is_child 父=0
+                0,        # parent_id 父=0
+                None, None, parent_time, None, None, None
             ])
             current_id += 1
 
-        # 子分类
-        sub_lis = li.xpath(".//ul/li")
+        # ========= 2级：子分类 =========
+        sub_lis = li.xpath("./ul/li")
         for sub_li in sub_lis:
             sub_name = sub_li.xpath("./span/text()")
             sub_input = sub_li.xpath("./input/@value")
             sub_name = sub_name[0].strip() if sub_name else ""
             sub_url = sub_input[0].strip() if sub_input else ""
 
+            sub_id = current_id  # 保存当前子ID，给孙级用
+            sub_time = random.randint(20, 30)
             if sub_name:
-
-                sub_time = random.randint(5,35)
                 sub_name += "（百度源）"
                 result.append([
-                    current_id,
-                    sub_name,
-                    sub_url,
-                    None,
-                    1,       # 子类 is_child=1
-                    None,
-                    None,
-                    sub_time,      # 子类 update_rate=15
-                    None,
-                    None,
-                    now_time
+                    current_id, sub_name, sub_url, None,
+                    1,        # is_child 子=1
+                    parent_id,# parent_id 子=父ID
+                    None, None, sub_time, None, None, None
                 ])
                 current_id += 1
+
+            # ========= 3级：孙子分类 =========
+            grand_sub_lis = sub_li.xpath("./ul/li")
+            for grand_sub_li in grand_sub_lis:
+                g_sub_name = grand_sub_li.xpath("./span/text()")
+                g_sub_input = grand_sub_li.xpath("./input/@value")
+                g_sub_name = g_sub_name[0].strip() if g_sub_name else ""
+                g_sub_url = g_sub_input[0].strip() if g_sub_input else ""
+                g_sub_time = random.randint(30, 40)
+                if g_sub_name:
+                    g_sub_name += "（百度源）"
+                    result.append([
+                        current_id, g_sub_name, g_sub_url, None,
+                        2,        # is_child 孙=2
+                        sub_id,   # parent_id 孙=直接父ID（2级ID）
+                        None, None, g_sub_time, None, None, None
+                    ])
+                    current_id += 1
 
     return result
 
@@ -95,14 +98,15 @@ if __name__ == "__main__":
     if not data:
         print("❌ 没有抓取到任何数据")
     else:
+        # 字段顺序已更新：加入 parent_id
         columns = [
-            "id", "name", "url", "category", "is_child",
+            "id", "name", "url", "category",
+            "is_child", "parent_id",  # 👈 新增在这里
             "is_active", "is_api_key", "update_rate",
             "hot_rate", "source_score", "created_at"
         ]
         df = pd.DataFrame(data, columns=columns)
 
-        # ✅ 关键修复：导出时保留正确时间格式，不被 Excel 篡改
         with pd.ExcelWriter(
             SAVE_PATH,
             engine="openpyxl",
@@ -111,5 +115,5 @@ if __name__ == "__main__":
             df.to_excel(writer, index=False)
 
         print(f"✅ 成功导出！文件：{SAVE_PATH}")
-        print(f"📊 共抓取 {len(data)} 条 RSS")
-        print(f"✅ 时间格式已修复，可直接导入 MySQL 无报错！")
+        print(f"📊 共抓取 {len(data)} 条 RSS（1级+2级+3级）")
+        print(f"✅ 已自动生成 parent_id 关联父子关系！")

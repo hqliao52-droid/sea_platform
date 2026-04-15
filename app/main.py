@@ -3,11 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config.settings import settings
 from app.api.news_api import router as news_router
 from app.api.rss_api import router as rss_router
+from app.tasks.scheduler import scheduler_task
 
 app = FastAPI(title=settings.APP_NAME)
 
 app.include_router(news_router, prefix="/news", tags=["news"])
 app.include_router(rss_router, prefix="/rss", tags=["rss"])
+app.include_router(scheduler_task, tags=["定时任务"])
 
 @app.get("/health")
 async def health_check():

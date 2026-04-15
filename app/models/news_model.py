@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime,JSON
+from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
 from app.config.mysql_config import Base
 
@@ -11,41 +11,24 @@ class News(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
 
+    category_id = Column(Integer,nullable=False,description="分类ID")
+
+    category_name = Column(String(255),nullable=False,description="分类名称")
+
     # 新闻标题
-    title = Column(String(255), nullable=False)
+    title = Column(String(255), nullable=False,description="新闻标题")
 
     # url原始链接
-    url = Column(String(255), nullable=False)
+    url = Column(String(255), nullable=False,description="新闻URL")
 
     # RSS来源
-    source = Column(String(255))
-
-    # 原文内容
-    content = Column(Text)
-
-    # 文章作者
-    authors = Column(String(255))
-
-    # 关键词
-    keywords = Column(String(255))
-
-    # 行业分类
-    category = Column(String(255))
-
-    # AI摘要
-    ai_summary = Column(Text)
-
-    # 文章摘要
-    origin_msg = Column(Text)
+    source = Column(String(255),description="RSS来源")
 
     # 发布时间
-    published_at = Column(DateTime)
+    published_at = Column(DateTime,description="发布时间")
 
     # 创建时间
-    created_at = Column(DateTime, default=datetime.now)
+    created_at = Column(DateTime, default=datetime.now,description="创建时间")
 
     # 是否是政策类
-    is_policy = Column(Integer, default=0)
-
-    # AI输出结果
-    ai_json_output = Column(JSON,comment="AI分析结果")
+    is_policy = Column(Integer, default=0,description="是否是政策类")

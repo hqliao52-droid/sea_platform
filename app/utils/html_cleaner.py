@@ -1,7 +1,21 @@
 # app/utils/html_cleaner.py
 
 from bs4 import BeautifulSoup
+import bleach
 
+ALLOWED_TAGS = [
+    'p', 'br', 'div',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'strong', 'b', 'em', 'i', 'u', 'del',
+    'ul', 'ol', 'li',
+    'img', 'a',
+    'blockquote'
+]
+ALLOWED_ATTRIBUTES = {
+    'a': ['href', 'title'],
+    'img': ['src', 'alt'],
+}
+DENY_TAGS = ['script', 'iframe', 'frame', 'object', 'embed', 'style', 'link', 'svg', 'math']
 
 def clean_html_to_text(html: str) -> str:
     """
@@ -27,3 +41,22 @@ def clean_html_to_text(html: str) -> str:
     lines = [line.strip() for line in text.splitlines() if line.strip()]
 
     return "\n".join(lines)
+
+
+def clean_html_for_all_platform(html_content):
+    if not html_content:
+        return ""
+
+    soup = BeautifulSoup(html_content, 'html.parser')
+    for tag in DENY_TAGS:
+        for t in soup.find_all(tag):
+            t.decompose()  # 彻底移除
+
+    cleaned = bleach.clean(
+        str(soup),
+        tags=ALLOWED_TAGS,
+        attributes=ALLOWED_ATTRIBUTES,
+        strip=True,
+        strip_comments=True
+    )
+    return cleaned.strip()

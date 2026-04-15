@@ -22,18 +22,20 @@ def llm_check_outreach_news(title: str, content: str) -> dict:
             "content": content
         })
 
-def llm_analyze_news(title: str, content: str) -> dict:
+def llm_analyze_news(title: str, content: str,tags_description) -> dict:
         parser = JsonOutputParser(pydantic_object=NewsAnalysis)
         llm_prompt = AgentPrompt.DouBaoSeedLiteSystemPromptNewsSummarize()
         prompt = ChatPromptTemplate.from_messages([
-            ("system", llm_prompt + "\n{format_instructions}"),
+            ("system", llm_prompt + "\n{format_instructions}" + "\n{tags_description}"),
             ("user", "标题：{title}\n内容：{content}")
         ])
         chain = prompt | llm_config.summary_llm() | parser
         return chain.invoke({
             "title": title,
             "content": content,
-            "format_instructions": parser.get_format_instructions()
+            "format_instructions": parser.get_format_instructions(),
+            "tags_description": tags_description
+
         })
 
 def _llm_analyze_news(title: str, content: str) -> dict:
