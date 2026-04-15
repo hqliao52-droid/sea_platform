@@ -56,14 +56,24 @@ class NewsOperator:
     def is_news_exits(self,url:str,published_at) -> bool:
         db = SessionLocal()
         try:
-            id = db.query(News.id).filter(News.url == url,News.published_at == published_at).first()
+            result = db.query(News.id).filter(
+                News.url == url,
+                News.published_at == published_at
+            ).first()
+            news_id = result[0] if result else None
             self.logger.info(f"新闻已存在，URL:{id}")
-            return {"id":id,"status":"exits"} if id else {"id":None,"status":"NotExits"}
+            if news_id:
+                self.logger.info(f"新闻已存在，URL:{url}")
+                return {"id": news_id, "status": "exists"}
+            else:
+                self.logger.info(f"新闻不存在，URL:{url}")
+                return {"id": None, "status": "NotExists"}
         except Exception as e:
             self.logger.error(f"查询失败:{e}")
             return {"id":None,"status":"NotExits"}
         finally:
             self.logger.info("数据库关闭！")
+            db.commit()  
             db.close()
     
     # @staticmethod
