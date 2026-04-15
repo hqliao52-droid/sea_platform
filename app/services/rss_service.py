@@ -20,5 +20,3 @@ class RssSourceOperator:
         """根据url获取rss源详情"""
         result = rss_source_crud.get_by_url(url)
         return RssSchema.from_orm(result)
-
-operator = RssSourceOperator()

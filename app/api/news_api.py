@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Query
 from app.utils.result_response import Result
-from app.services.news_service import service
+from app.services.news_service import NewsOperator
 from app.schemas.news.new_schema import NewsSchema
 from app.schemas.news.news_response_schema import NewsResponse
 from app.utils.logger import Logger
-from app.services.rss_service import operator
+from app.services.rss_service import RssSourceOperator
 
 router = APIRouter()
 logger = Logger.setup_logger(Logger.set_file_date())
@@ -16,9 +16,11 @@ def get_news(
     # 分页参数：每页条数，默认10条
     page_size: int = Query(10, gt=0, le=100, description="每页数量，最大100"),
 ):
+    service = NewsOperator()
     service_data = service.get_pages_news(page, page_size)
     logger.info("请求数据：",service_data)
     resp = []
+    operator = RssSourceOperator()
     if service_data["status"] == 200:
         for item in service_data["news_list"]:
             data_schema = NewsSchema.parse_obj(item)
