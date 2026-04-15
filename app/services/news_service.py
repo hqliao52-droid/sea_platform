@@ -122,4 +122,3 @@ class NewsOperator:
             db.commit()
             db.close()
             
-service = NewsOperator()
