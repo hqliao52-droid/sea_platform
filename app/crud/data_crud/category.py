@@ -11,9 +11,6 @@ class CategoryCRUD(BaseCRUD):
         except Exception as e:
             self.logger.error(e)
         finally:
+            self.db.close()
             self.close()
         
-
-
-# 全局单例，整个程序共用一个连接
-category_curd = CategoryCRUD()
