@@ -61,7 +61,6 @@ class NewsOperator:
                 News.published_at == published_at
             ).first()
             news_id = result[0] if result else None
-            self.logger.info(f"新闻已存在，URL:{news_id}")
             if news_id:
                 self.logger.info(f"新闻已存在，URL:{url}")
                 return {"id": news_id, "status": "exists"}
