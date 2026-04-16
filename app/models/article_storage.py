@@ -26,7 +26,7 @@ class ArticleStorage(Base):
         default=datetime.now,
         comment="创建时间"
     )
-    original_input = Column(
+    origin_input = Column(
         JSON, 
         nullable=False,
         comment="原始URL"

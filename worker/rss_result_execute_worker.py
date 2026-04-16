@@ -38,6 +38,7 @@ def news_execute(entry, llm_result, llm_json):
     categories = category_operator.get_category_is_active()
     tags = [categoryBase(**tag.__dict__) for tag in categories]
     logger.info(f"当前有效分类：{tags}")
+    result = None
 
     try:
         if entry:
@@ -70,18 +71,23 @@ def news_execute(entry, llm_result, llm_json):
                         news_detail.category_name = tag.tag_name
                         # 匹配成功：找到就 break
                         break
-
+            
             result = news_operator.insert_news(news)
 
-            article_storage_model.article_name = entry["title"]
-            article_storage_model.original_input = entry["origin_msg"]
-            article_storage_model.news_id = result["id"]
-            article_storage_service.insert_article(article_storage_model)
+            if result["status"] == "success":
+                logger.info("news表插入成功")
+                article_storage_model.article_name = entry["title"]
+                article_storage_model.origin_input = entry["origin_msg"]
+                article_storage_model.news_id = result["id"]
+                article_result = article_storage_service.insert_article(article_storage_model)
+            else:
+                logger.error("news表插入失败")
+
 
         else:
             return 
     
-        if (llm_result == "1" or llm_result == 1) and result["id"]:
+        if (llm_result == "1" or llm_result == 1) and result is not None and result["status"] == "success":
             logger.info("需求类数据，详情插入...")
             news_detail.news_id = result["id"]
             news_detail.title = entry["title"]
@@ -106,7 +112,8 @@ def news_execute(entry, llm_result, llm_json):
                 "status": 200,
                 "msg": "插入成功",
                 "news_id": result["id"],
-                "news_detail":obj if obj else None
+                "news_detail":obj if obj else None,
+                "article_id":article_result["id"]
             })
         else:
             logger.error({
