@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
-class NewsResponse(BaseModel):
+class NewsDetailResponse(BaseModel):
     id: Optional[int] = Field(None, description="新闻ID(子)")
     news_id: Optional[int] = Field(None, description="新闻ID(父)")
     title: Optional[str] = Field(None, description="新闻标题")

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Query
 from app.utils.result_response import Result
 from app.services.news_service import NewsOperator
 from app.schemas.news.new_schema import NewsSchema
-from app.schemas.news.news_response_schema import NewsResponse
+from app.schemas.news_detail.news_detail_response_schema import NewsDetailResponse
 from app.utils.logger import Logger
 from app.services.rss_service import RssSourceOperator
 
@@ -27,7 +27,7 @@ def get_news(
             rss_data = operator.get_rss_detail_by_url(data_schema.source)
 
             # 填充数据-基本信息
-            result = NewsResponse()
+            result = NewsDetailResponse()
             result.id = data_schema.id
             result.url = data_schema.url
             result.title = data_schema.title

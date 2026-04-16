@@ -1,13 +1,12 @@
 from app.crud.sea_data_base import BaseCRUD
 from app.models.news_model import News
-from app.config.mysql_config import db_session
+from sqlalchemy.orm import Session
 
 class NewsCRUD(BaseCRUD):
     def __init__(self):
         super().__init__(News)
     
-    def get_pages_news(self,page: int, page_size: int):
-        db = db_session()
+    def get_pages_news(self,db:Session,page: int, page_size: int):
         try:
             # 计算偏移量
             skip = (page - 1) * page_size
@@ -24,7 +23,13 @@ class NewsCRUD(BaseCRUD):
         finally:
             db.close()
     
+    def get_news_by_url(self,db:Session,url:str):
+        news = db.query(News).filter(News.url == url).first()
+        return news
+    
+    def get_news_by_id(self,db:Session,id:int):
+        news = db.query(News).filter(News.id == id).first()
+        return news
     
     
-# 全局单例，整个程序共用一个连接
-news_crud = NewsCRUD()
+    

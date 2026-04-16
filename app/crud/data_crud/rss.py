@@ -1,6 +1,5 @@
 from app.crud.sea_data_base import BaseCRUD
 from app.models.rss_source import RssSource
-from app.config.mysql_config import db_session
 from sqlalchemy.orm import Session
 
 class RssSourceCRUD(BaseCRUD):
@@ -20,5 +19,3 @@ class RssSourceCRUD(BaseCRUD):
                         .filter(self.model.url == url)\
                         .first()
 
-
-rss_source_crud = RssSourceCRUD()

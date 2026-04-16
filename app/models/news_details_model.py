@@ -107,7 +107,7 @@ class NewsDetail(Base):
     )
 
     # 发布时间
-    publiced_at = Column(
+    published_at = Column(
         DateTime,
         comment="发布时间",
     )

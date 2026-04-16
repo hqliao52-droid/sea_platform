@@ -1,6 +1,7 @@
 from app.utils.logger import Logger
 from app.config.mysql_config import db_session
 from app.models.news_model import News
+from app.crud.data_crud.news import NewsCRUD
 
 class NewsOperator:
     """
@@ -13,12 +14,12 @@ class NewsOperator:
     """
     def __init__(self):
         self.logger = Logger.setup_logger(Logger.set_file_date())
+        self.news_crud = NewsCRUD()
     
     def get_news_by_id(self,news_id: int):
-        from app.crud.data_crud.news import news_crud
         db = db_session()
         try:
-            return news_crud.get(news_id)
+            return self.news_crud.get_news_by_id(db,news_id)
         except Exception as e:
             self.logger.error(f"查询失败:{e}")
             return None
@@ -26,10 +27,10 @@ class NewsOperator:
             db.close()
 
     def get_pages_news(self,page: int, page_size: int) -> list[News]:
-        from app.crud.data_crud.news import news_crud
+        
         try:
             # 获取分页数据
-            return news_crud.get_pages_news(page, page_size)
+            return self.news_crud.get_pages_news(page, page_size)
         except Exception as e:
             self.logger.error(f"查询失败:{e}")
             return {"status":500,"news_list":None,"total":0}

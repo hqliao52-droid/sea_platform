@@ -23,10 +23,10 @@ class CategoryOperator:
             result = self.category_curd.insert(db, news_detail_data)
             return result
         except Exception as e:
-            db.rollback()   # ⭐ 必须
+            db.rollback()
             raise e
         finally:
-            db.close()      # ⭐ 必须
+            db.close()
     
     def get_category_is_active(self) -> list[category]:
         db = db_session()
