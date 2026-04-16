@@ -145,6 +145,7 @@ def worker():
                 ch.basic_nack(delivery_tag=method.delivery_tag,requeue=True)
         executor.submit(task)
 
+    # 消息处理
     mq_client.consume(handle)
             
 
