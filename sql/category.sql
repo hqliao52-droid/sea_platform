@@ -11,7 +11,7 @@
  Target Server Version : 80045 (8.0.45)
  File Encoding         : 65001
 
- Date: 15/04/2026 18:02:18
+ Date: 16/04/2026 18:21:55
 */
 
 SET NAMES utf8mb4;
@@ -29,7 +29,7 @@ CREATE TABLE `category`  (
   `created_at` datetime NULL DEFAULT NULL COMMENT '创建时间',
   `example` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '子类别举例，顿号分割。eg:整车出口、海外建厂、充电桩、电池、锂电池、固态电池、回收利用、太阳能板、户用储能、工商业储能、电动摩托、电单车',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '类别/栏目' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '类别/栏目' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of category
