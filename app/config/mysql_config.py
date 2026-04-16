@@ -1,7 +1,7 @@
 # app/database/mysql.py
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base,scoped_session
 from app.config.settings import settings
 
 
@@ -11,7 +11,7 @@ DATABASE_URL = (
     f"{settings.MYSQL_PASSWORD}@"
     f"{settings.MYSQL_HOST}:"
     f"{settings.MYSQL_PORT}/"
-    f"{settings.MYSQL_DB}"
+    f"{settings.MYSQL_DB}?charset=utf8mb4"
 )
 
 # 创建数据库引擎
@@ -19,9 +19,12 @@ engine = create_engine(
     DATABASE_URL,
     echo=True,  # 开发阶段可以改为True，开启SQL日志
     pool_pre_ping=True, 
+    pool_size=10,
+    max_overflow=10,
     pool_timeout=30, 
     future=True,  # 使用SQLAlchemy 2.0风格
     pool_recycle=3600,
+    connect_args={"charset": "utf8mb4"} 
 )
 
 # Session 会话工厂
@@ -51,6 +54,8 @@ SessionLocal = sessionmaker(
     就会执行：SELECT * FROM news
 """
 Base = declarative_base()
+# 线程安全
+db_session = scoped_session(SessionLocal)
 
 
 # FastAPI依赖

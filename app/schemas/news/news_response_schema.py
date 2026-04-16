@@ -2,12 +2,14 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 
 class NewsResponse(BaseModel):
-    id: Optional[int] = Field(None, description="新闻ID")
+    id: Optional[int] = Field(None, description="新闻ID(子)")
+    news_id: Optional[int] = Field(None, description="新闻ID(父)")
     title: Optional[str] = Field(None, description="新闻标题")
     data_source: Optional[str] = Field(None, description="数据来源")
     is_policy: Optional[int] = Field(None, description="是否政策有关")
     url: Optional[str] = Field(None, description="新闻URL")
     published_at: Optional[str] = Field(None, description="发布时间")
+    detail_full: Optional[str] = Field(None, description="新闻全文")
 
     ai_summary: Optional[str] = Field(None, description="AI摘要（一句话速读）")
     one_sentence_summary: Optional[str] = Field(None, description="一句话速读")

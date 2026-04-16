@@ -7,82 +7,38 @@ class BaseCRUD:
     所有模型的CRUD都继承这个类，自动获得 insert, update, delete, get 等方法
     """
     def __init__(self, model):
-        self.model = model  # 传入ORM模型，如News
-        self.db: Session = SessionLocal()  # 一次创建，复用
+        self.model = model
 
-    def insert(self, obj):
-        """
-        通用插入：传入字典 或 模型实例
-        返回 插入后的对象
-        """
-        try:
-            # 如果是字典，自动转成模型实例
-            if isinstance(obj, dict):
-                obj = self.model(**obj)
+    def insert(self, db: Session, obj):
+        if isinstance(obj, dict):
+            obj = self.model(**obj)
 
-            self.db.add(obj)
-            self.db.commit()
-            self.db.refresh(obj)
-            return obj
-        except Exception as e:
-            self.db.rollback()
-            raise e
-        finally:
-            self.db.close()
+        db.add(obj)
+        db.commit()
+        db.refresh(obj)
+        return obj
 
-    def update(self, obj_id: int, update_data: dict):
-        """
-        通用更新：根据ID更新字段
-        """
-        try:
-            query = self.db.query(self.model).filter(self.model.id == obj_id)
-            obj = query.first()
-            if not obj:
-                return None
+    def update(self, db: Session, obj_id: int, update_data: dict):
+        obj = db.query(self.model).filter(self.model.id == obj_id).first()
+        if not obj:
+            return None
 
-            query.update(update_data)
-            self.db.commit()
-            self.db.refresh(obj)
-            return obj
-        except Exception as e:
-            self.db.rollback()
-            raise e
-        finally:
-            self.db.close()
+        for k, v in update_data.items():
+            setattr(obj, k, v)
 
-    def delete(self, obj_id: int):
-        """通用删除"""
-        try:
-            obj = self.db.query(self.model).get(obj_id)
-            if obj:
-                self.db.delete(obj)
-                self.db.commit()
-            return obj
-        except Exception as e:
-            self.db.rollback()
-            raise e
-        finally:
-            self.db.close()
+        db.commit()
+        db.refresh(obj)
+        return obj
+
+    def delete(self, db: Session, obj_id: int):
+        obj = db.query(self.model).filter(self.model.id == obj_id).first()
+        if obj:
+            db.delete(obj)
+            db.commit()
+        return obj
     
-    def get(self, obj_id: int):
-        """根据ID查询单条"""
-        try:
-            result = self.db.query(self.model).get(obj_id)
-            return result
-        except Exception as e:
-            raise e
-        finally:
-            self.db.close()
+    def get(self, db: Session, obj_id: int):
+        return db.query(self.model).filter(self.model.id == obj_id).first()
 
-    def get_all(self):
-        """查询所有"""
-        try:
-            result = self.db.query(self.model).all()
-            return result
-        except Exception as e:
-            raise e
-        finally:
-            self.db.close()
-    def close(self):
-        """手动关闭（可选，程序退出时调用）"""
-        self.db.close()
+    def get_all(self, db: Session):
+        return db.query(self.model).all()

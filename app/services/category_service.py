@@ -1,6 +1,7 @@
 from app.utils.logger import Logger
 from app.models.category import category
 from app.crud.data_crud.category import CategoryCRUD
+from app.config.mysql_config import db_session
 
 class CategoryOperator:
     """
@@ -16,8 +17,22 @@ class CategoryOperator:
         self.category_curd = CategoryCRUD()
 
 
-    def insert_category(self, news_detail_data: category) -> int:
-        return self.category_curd.insert(news_detail_data)
+    def insert_category(self, news_detail_data: category):
+        db = db_session()
+        try:
+            result = self.category_curd.insert(db, news_detail_data)
+            return result
+        except Exception as e:
+            db.rollback()   # ⭐ 必须
+            raise e
+        finally:
+            db.close()      # ⭐ 必须
     
     def get_category_is_active(self) -> list[category]:
-        return self.category_curd.get_category_is_active()
+        db = db_session()
+        try:
+            return self.category_curd.get_category_is_active(db)
+        except Exception as e:
+            raise e
+        finally:
+            db.close()

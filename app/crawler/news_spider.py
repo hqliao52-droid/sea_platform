@@ -29,5 +29,5 @@ def crawl_all_rss_sources(url):
             "ai_json_output": ""
         }
         news_list.append(news)
-    mq_client.publish(news_list)
+        mq_client.publish(news)
     return news_list

@@ -4,11 +4,14 @@ from app.config.settings import settings
 from app.api.news_api import router as news_router
 from app.api.rss_api import router as rss_router
 from app.tasks.scheduler import scheduler_task
+from app.api.news_detail_api import router as news_detail_router
 
 app = FastAPI(title=settings.APP_NAME)
 
 app.include_router(news_router, prefix="/news", tags=["news"])
+app.include_router(news_detail_router, prefix="/news_detail", tags=["news_detail"])
 app.include_router(rss_router, prefix="/rss", tags=["rss"])
+
 app.include_router(scheduler_task, tags=["定时任务"])
 
 @app.get("/health")

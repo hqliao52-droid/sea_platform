@@ -96,7 +96,7 @@ class NewsDetail(Base):
 
     # 原始entry
     origin_entry = Column(
-        String(255),
+        JSON,
         comment="原始entry",
     )
 
