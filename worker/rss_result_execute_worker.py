@@ -134,17 +134,18 @@ def worker():
     print("Worker 启动成功，开始消费消息...")
     
     def handle(ch,method,message):
-        def task():
+        future = executor.submit(handle_message, message)
+        def callback(fut):
             try:
-                handle_message(message)
+                # 有异常就抛出去
+                fut.result()
                 # 消费成功后才ack
-                ch.basic_ack(delivery_tag=method.delivery_tag)
+                ch.connection.add_callback_threadsafe(lambda: ch.basic_ack(delivery_tag=method.delivery_tag))
             except Exception as e:
                 logger.error({"status":500,"msg":f"处理失败:{str(e)}"})
                 # 失败后重新入队
-                ch.basic_nack(delivery_tag=method.delivery_tag,requeue=True)
-        executor.submit(task)
-
+                ch.connection.add_callback_threadsafe(lambda: ch.basic_nack(delivery_tag=method.delivery_tag,requeue=True))
+        future.add_done_callback(callback)
     # 消息处理
     mq_client.consume(handle)
             
