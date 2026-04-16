@@ -7,21 +7,16 @@ class NewsCRUD(BaseCRUD):
         super().__init__(News)
     
     def get_pages_news(self,db:Session,page: int, page_size: int):
-        try:
-            # 计算偏移量
-            skip = (page - 1) * page_size
+        # 计算偏移量
+        skip = (page - 1) * page_size
 
-            # 查询分页数据
-            news_list = db.query(News).filter(News.is_policy == 1).order_by(News.published_at.desc()).offset(skip).limit(page_size).all()
+        # 查询分页数据
+        news_list = db.query(News).filter(News.is_policy == 1).order_by(News.published_at.desc()).offset(skip).limit(page_size).all()
 
-            # 获取总条数
-            total = db.query(News).count()
+        # 获取总条数
+        total = db.query(News).count()
 
-            return {"total": total, "news_list": news_list,"status": 200}
-        except Exception as e:
-            return {"message": str(e), "status": 500}
-        finally:
-            db.close()
+        return {"total": total, "news_list": news_list,"status": 200}
     
     def get_news_by_url(self,db:Session,url:str):
         news = db.query(News).filter(News.url == url).first()

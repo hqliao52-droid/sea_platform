@@ -2,17 +2,20 @@ import sys,json
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent)) 
 
+from concurrent.futures import ThreadPoolExecutor
+
 from app.config.rabbitMq_config import MQClient
 from app.utils.logger import Logger
+from app.utils.fetch_full_text import fetch_full_text
 from app.tasks.ai_task import llm_check_outreach_news,llm_analyze_news
 from app.services.news_service import NewsOperator
 from app.services.news_detail_service import NewsDetailOperator
+from app.services.category_service import CategoryOperator
+from app.services.article_storage_service import ArticleStorageService
 from app.models.news_model import News
 from app.models.news_details_model import NewsDetail
-from app.services.category_service import CategoryOperator
+from app.models.article_storage import ArticleStorage as ArticleStorageModel
 from app.schemas.category.category import categoryBase
-from app.utils.fetch_full_text import fetch_full_text
-from concurrent.futures import ThreadPoolExecutor
 
 news_detail_operator = NewsDetailOperator()
 logger = Logger.setup_logger(Logger.set_file_name("worker"))
@@ -26,6 +29,8 @@ def news_execute(entry, llm_result, llm_json):
     news = News()
     news_operator = NewsOperator()
     news_detail = NewsDetail()
+    article_storage_model = ArticleStorageModel()
+    article_storage_service = ArticleStorageService()
     obj = None
 
     # 每次都重新获取最新分类！！！
@@ -41,6 +46,8 @@ def news_execute(entry, llm_result, llm_json):
             news.source = entry["source"]
             news.published_at = entry["published_at"]
             news.is_policy = 1 if llm_result == "1" else 0
+
+
 
             # 默认值
             news.category_name = "其他"
@@ -65,6 +72,11 @@ def news_execute(entry, llm_result, llm_json):
                         break
 
             result = news_operator.insert_news(news)
+
+            article_storage_model.article_name = entry["title"]
+            article_storage_model.original_input = entry["origin_msg"]
+            article_storage_model.news_id = result["id"]
+            article_storage_service.insert_article(article_storage_model)
 
         else:
             return 

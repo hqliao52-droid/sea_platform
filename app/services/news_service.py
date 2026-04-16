@@ -27,13 +27,15 @@ class NewsOperator:
             db.close()
 
     def get_pages_news(self,page: int, page_size: int) -> list[News]:
-        
+        db = db_session()
         try:
             # 获取分页数据
-            return self.news_crud.get_pages_news(page, page_size)
+            return self.news_crud.get_pages_news(db,page, page_size)
         except Exception as e:
             self.logger.error(f"查询失败:{e}")
             return {"status":500,"news_list":None,"total":0}
+        finally:
+            db.close()
 
 
     def insert_news(self, news: News):
