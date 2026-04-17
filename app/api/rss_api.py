@@ -14,5 +14,5 @@ def get_rss_source_list():
 @router.get("/get_by_url", summary="根据url获取rss源")
 async def get_by_url(url: str = Query(..., description="RSS源的URL地址")):
     """根据url获取rss源"""
-    result = rss.get_rss_by_url(url)
+    result = rss.get_rss_detail_by_url(url)
     return Result.success(data=result)

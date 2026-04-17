@@ -34,7 +34,7 @@ class RssSourceOperator:
         finally:
             db.close()
 
-    def get_rss_by_url(self,url:str)-> RssSource:
+    def get_rss_detail_by_url(self,url:str)-> RssSource:
         """根据url获取rss源详情"""
         db = db_session()
         try:
