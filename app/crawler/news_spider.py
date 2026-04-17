@@ -28,6 +28,7 @@ def crawl_all_rss_sources(url):
             "is_policy": 0,
             "ai_json_output": ""
         }
+        logger.info(entry)
         news_list.append(news)
         mq_client.publish(news)
     return news_list

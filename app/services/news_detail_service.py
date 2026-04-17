@@ -40,3 +40,16 @@ class NewsDetailOperator:
             return {"status":500,"news_detail_list":None,"total":0}
         finally:
             db.close()
+    
+    def get_news_detail_by_id(self,id: int) -> NewsDetail:
+        db = db_session()
+        try:
+            result = self.news_detail_crud.get_news_detail_by_id(db,id)
+            self.logger.info(f"查询成功:{result}")
+            return result
+        except Exception as e:
+            self.logger.error(f"查询失败:{e}")
+            raise {"status":500,"news_detail":None}
+        
+        finally:
+            db.close()

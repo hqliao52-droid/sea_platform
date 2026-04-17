@@ -36,4 +36,15 @@ class NewsDetailCRUD(BaseCRUD):
             "total_pages": (total + page_size - 1) // page_size,  # 计算总页数
             "status": 200
         }
+    
+    def get_news_detail_by_id(self,db: Session,news_id: int) -> Dict[str, Any]:
+        """
+        根据ID查询新闻
+        :param db: 数据库会话
+        :param news_id: 新闻ID
+        :return: 新闻详情
+        """
+        news_detail = db.query(self.model).filter(self.model.id == news_id).first()
+        return news_detail
+
 

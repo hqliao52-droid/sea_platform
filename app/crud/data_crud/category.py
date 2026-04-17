@@ -8,4 +8,5 @@ class CategoryCRUD(BaseCRUD):
 
     def get_category_is_active(self, db: Session):
         return db.query(category).filter(category.is_active == 1).all()
+
         

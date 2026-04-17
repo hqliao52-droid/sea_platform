@@ -8,7 +8,7 @@ class RssSource(Base):
     """
     __tablename__ = "rss_source"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True,autoincrement=True,)
 
     # 源名称
     name = Column(String(255))

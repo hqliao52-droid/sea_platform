@@ -36,3 +36,13 @@ class CategoryOperator:
             raise e
         finally:
             db.close()
+    
+    def get_category_by_id(self,id: int) -> category:
+        db = db_session()
+        try:
+            return self.category_curd.get(db,id)
+        except Exception as e:
+            raise e
+        finally:
+            db.close()
+    

@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
 from app.utils.result_response import Result
 from app.services.news_detail_service import NewsDetailOperator
 from app.services.news_service import NewsOperator
 from app.schemas.news_detail.news_detail_response_schema import NewsDetailResponse
+from app.schemas.news_detail.news_detail_schema import NewsDetailsSchema
 from app.schemas.news_detail.news_detail_page_resp import NewsDetailsPageSchema
 from app.utils.logger import Logger
 from app.services.rss_service import RssSourceOperator
@@ -12,8 +13,9 @@ logger = Logger.setup_logger(Logger.set_file_date())
 
 @router.get("/get_news_detail", response_model=Result[NewsDetailsPageSchema])
 def get_news_detail(
+    request: Request,
     page:int = Query(1, gt=0, description="页码，从1开始"),
-    page_size:int = Query(10, gt=0, le=100, description="每页数量，最大100")
+    page_size:int = Query(10, gt=0, le=100, description="每页数量，最大100"),
 ):
     detail_service = NewsDetailOperator()
     news_detail_list = detail_service.get_pages_news(page, page_size)
@@ -60,5 +62,15 @@ def get_news_detail(
     logger.info(f"返回数据：{resp}")
     return Result.success(r)
 
+@router.get("/get_detail_by_id", response_model=Result[NewsDetailsSchema])
+def get_detail_by_id(
+    request: Request,
+    id:int,
+):
+    detail_service = NewsDetailOperator()
+    news_detail = detail_service.get_news_detail_by_id(id)
 
+    result = NewsDetailsSchema.parse_obj(news_detail)
+
+    return Result.success(result)
             
