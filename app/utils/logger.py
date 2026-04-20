@@ -2,6 +2,8 @@ import logging
 import os
 import signal
 import sys
+from datetime import date
+
 
 class Logger:
 
@@ -17,15 +19,18 @@ class Logger:
 
 
     def set_file_date():
-        from datetime import date
         today = date.today()
         str_date = f"{today.year}_{today.month:02d}_{today.day:02d}_log"
         return str_date
     
     def set_file_name(description:str):
-        from datetime import date
         today = date.today()
         str_date = f"{today.year}_{today.month:02d}_{today.day:02d}_{description}_log"
+        return str_date
+    
+    def set_logger_file_llm():
+        today = date.today()
+        str_date = f"{today.year}_{today.month:02d}_{today.day:02d}_llm"
         return str_date
     
     def setup_logger(name: str, log_file: str = None):

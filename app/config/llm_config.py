@@ -1,19 +1,29 @@
 from langchain_openai import ChatOpenAI
+from app.config.settings import settings
 
 class LLMConfig:
     def __init__(self):
         # 一次性初始化豆包（兼容 OpenAI 格式）
         self.doubao_category = ChatOpenAI(
-            model="ep-20260410155952-vqgg4",
-            api_key="4b23f71f-963c-4d9e-b2e3-4971a1b47d8b",
-            base_url="https://ark.cn-beijing.volces.com/api/v3",
+            model=settings.LLM_MODEL_DouBaoSeedLite,
+            api_key=settings.LLM_API_KEY_DouBaoSeedLite,
+            base_url=settings.LLM_BASE_URL_DouBaoSeedLite,
             temperature=0.1,
         )
         self.doubao_summary = ChatOpenAI(
-            model="ep-20260410155952-vqgg4",
-            api_key="4b23f71f-963c-4d9e-b2e3-4971a1b47d8b",
-            base_url="https://ark.cn-beijing.volces.com/api/v3",
+            model=settings.LLM_MODEL_DouBaoSeedLite,
+            api_key=settings.LLM_API_KEY_DouBaoSeedLite,
+            base_url=settings.LLM_BASE_URL_DouBaoSeedLite,
             temperature=0.7,
+        )
+
+    def get_chat_llm(self,streaming:bool = True):
+        return  ChatOpenAI(
+            model=settings.LLM_MODEL_DouBaoSeedLite,
+            api_key=settings.LLM_API_KEY_DouBaoSeedLite,
+            base_url=settings.LLM_BASE_URL_DouBaoSeedLite,
+            temperature=0.7,
+            streaming=streaming
         )
 
 

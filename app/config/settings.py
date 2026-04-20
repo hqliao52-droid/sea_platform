@@ -47,6 +47,13 @@ class Settings(BaseSettings):
     LLM_BASE_URL_DouBaoSeedLite: str | None = None
     LLM_MODEL_DouBaoSeedLite: str | None = None
 
+    # jwt
+    JWT_SECRET_KEY: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    JWT_ALGORITHM: str
+
+
+
     LOG_DIR: str = "logs"
 
 

@@ -37,20 +37,3 @@ def llm_analyze_news(title: str, content: str,tags_description) -> dict:
             "tags_description": tags_description
 
         })
-
-def _llm_analyze_news(title: str, content: str) -> dict:
-    # 使用结构化输出（需要模型支持 function calling）
-    llm = llm_config.summary_llm()
-    structured_llm = llm.with_structured_output(NewsAnalysis)
-    llm_prompt = AgentPrompt.DouBaoSeedLiteSystemPromptNewsSummarize()
-    
-    prompt = ChatPromptTemplate.from_messages([
-            ("system", llm_prompt + "\n{format_instructions}"),
-            ("user", "标题：{title}\n内容：{content}")
-        ])
-    
-    chain = prompt | structured_llm
-    result = chain.invoke({"title": title, "content": content})
-    
-    # 如果 result 是 Pydantic 对象，转为 dict
-    return result.dict() if hasattr(result, 'dict') else result

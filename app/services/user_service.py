@@ -21,10 +21,10 @@ class UserService:
         finally:
             db.close()
     
-    def get_user_by_id(self,id:int):
+    def get_user_by_username(self,username:int):
         db = db_session()
         try:
-            user = self.user_crud.get_user_by_id(db,id)
+            user = self.user_crud.get_user_by_id(db,username)
             if user:
                 return {"user":user,"status":"success"}
             else:
@@ -33,3 +33,17 @@ class UserService:
             self.logger.error("查询用户失败:%s",str(e))
         finally:
             db.close()
+
+    def update_user(self,id:int,user:UserModel):
+        db = db_session()
+        try:
+            id = self.user_crud.update(db,id,user)
+            self.logger.info("更新用户成功:%s",id)
+            return {"id":id,"status":"success"}
+        except Exception as e:
+            self.logger.error("更新用户失败:%s",str(e))
+            db.rollback()
+            return {"id":None,"status":"fail"}
+        finally:
+            db.close()
+
