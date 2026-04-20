@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request,Body
+from fastapi import APIRouter, Request,Body,Header
 from app.utils.jwt import create_access_token,hash_password,verify_token
 from app.services.user_service import UserService
 from app.utils.result_response import Result
@@ -6,8 +6,11 @@ from app.utils.result_response import ResultCode
 from app.utils.ip_util import get_real_ip
 from app.schemas.user.user_schema import UserSchema
 from app.models.user_model import UserModel
+from app.config.redis_config import RedisConfig
 
 router = APIRouter()
+
+redis = RedisConfig()
 
 @router.post("/login")
 def login(
@@ -66,8 +69,10 @@ def register(user: UserSchema,request: Request = None):
         return Result.error(ResultCode.USER_REGISTER_ERROR)
 
 @router.get("/logout")
-def logout(request: Request):
-    pass
+def logout(request: Request,authorization: str = Header(None)):
+    token = authorization.replace("Bearer ", "")
+    redis.init_black_list_token(token)
+    return Result.success(data={"message": "退出成功！"})
 
 
 

@@ -14,3 +14,9 @@ class RedisConfig:
             decode_responses=True,
         )
         self.initialized = True
+
+    def init_black_list_token(self,token):
+        self.client.set(f"blackList:{token}",15*24*3600,"1")
+    
+    def check_black_list_token(self,token):
+        return self.client.get(f"blackList:{token}" is not None)
