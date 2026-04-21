@@ -29,6 +29,20 @@ class BaseCRUD:
         db.commit()
         db.refresh(obj)
         return obj
+    
+    def update_segment(self, db: Session, id: int, update_data: dict):
+        obj = db.query(self.model).filter(self.model.id == id).first()
+        if not obj:
+            return None
+        
+        # 遍历字典，只更新存在的键值对
+        for key,value in update_data.items():
+            if hasattr(obj, key):
+                setattr(obj, key, value)
+        
+        db.commit()
+        db.refresh(obj)
+        return obj
 
     def delete(self, db: Session, obj_id: int):
         obj = db.query(self.model).filter(self.model.id == obj_id).first()

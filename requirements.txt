@@ -85,7 +85,8 @@ numpy==2.1.1
 # Security
 # =========================
 python-jose==3.3.0
-passlib[bcrypt]==1.7.4
+passlib[argon2]==1.7.4
+argon2-cffi==23.1.0
 
 # =========================
 # Formatting Tools

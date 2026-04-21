@@ -3,11 +3,10 @@ from pydantic import BaseModel,Field,ConfigDict
 from datetime import datetime
 from typing import Optional
 
-class UserSchema(BaseModel):
+class UserResponseSchema(BaseModel):
     id: Optional[int] = Field(None, description="用户ID") 
     username: Optional[str] = Field(description="用户名")
-    password: Optional[str] = Field(description="密码")
-    
+    password: Optional[str] = Field(None, exclude=True) # 序列化时排除密码
     nickname: Optional[str] = Field(None,description="昵称")
     phone: Optional[str] = Field(None,description="手机号")
     email: Optional[str] = Field(None,description="邮箱")

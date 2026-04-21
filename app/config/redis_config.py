@@ -16,7 +16,8 @@ class RedisConfig:
         self.initialized = True
 
     def init_black_list_token(self,token):
-        self.client.set(f"blackList:{token}",15*24*3600,"1")
+        self.client.set(f"blackList:{token}","1",15*24*3600)
     
     def check_black_list_token(self,token):
-        return self.client.get(f"blackList:{token}" is not None)
+        result = self.client.get(f"blackList:{token}")
+        return result is not None
