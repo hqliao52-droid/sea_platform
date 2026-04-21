@@ -92,3 +92,9 @@ argon2-cffi==23.1.0
 # Formatting Tools
 # =========================
 black==24.8.0
+
+
+# =========================
+# File Management
+# =========================
+python-multipart

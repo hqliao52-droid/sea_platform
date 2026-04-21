@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request,Body,Header
+from fastapi import APIRouter, Request,Body,Header,UploadFile,File
 from app.utils.jwt import create_access_token,hash_password,verify_password
 from app.services.user_service import UserService
 from app.utils.result_response import Result
@@ -52,7 +52,8 @@ def login(
                                 "userInfo":user_response})
 
 @router.post("/register")
-def register(user: UserSchema,request: Request = None):
+def register(user: UserSchema,
+             request: Request = None):
     user_service = UserService()
     user_info = user_service.get_user_by_username(user.username)
     if user_info["status"] == "success":
