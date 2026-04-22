@@ -28,11 +28,15 @@ class NewsDetailOperator:
         finally:
             db.close()
 
-    def get_pages_news(self,page: int, page_size: int) -> list[NewsDetail]:
+    def get_pages_news(self,page: int, page_size: int, category_id:int) -> list[NewsDetail]:
         db = db_session()
         try:
             # 获取分页数据
-            result = self.news_detail_crud.get_pages_news(db,page, page_size)
+            result = None
+            if category_id is not None:
+                result = self.news_detail_crud.get_pages_news_by_category_id(db,page, page_size,category_id)
+            else:
+                result = self.news_detail_crud.get_pages_news(db,page, page_size)
             self.logger.info(f"查询成功:{result}")
             return result
         except Exception as e:

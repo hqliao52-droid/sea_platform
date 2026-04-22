@@ -93,6 +93,10 @@ services:
       TZ: Asia/Shanghai
       QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY}
       QDRANT__LOG_LEVEL: info 
+      # 将集合的向量默认存储在磁盘上
+      QDRANT__STORAGE__PERFORMANCE__VECTORS_IN_RAM: false
+      # 同时将payload也默认存储在磁盘上，进一步节省内存
+      QDRANT__STORAGE__ON_DISK_PAYLOAD: true
     volumes:
       - qdrant_data:/qdrant/storage
 

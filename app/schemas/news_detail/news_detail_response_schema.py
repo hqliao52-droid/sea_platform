@@ -21,3 +21,6 @@ class NewsDetailResponse(BaseModel):
 
     rss_tag: Optional[str] = Field(None, description="RSS标签/RSS名称")
     rss_id: Optional[int] = Field(None, description="RSS源ID")
+
+    category_id: Optional[int] = Field(None, description="新闻分类ID")
+    category_name: Optional[str] = Field(None, description="新闻分类名称")
