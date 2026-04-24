@@ -11,7 +11,7 @@
  Target Server Version : 80045 (8.0.45)
  File Encoding         : 65001
 
- Date: 23/04/2026 17:45:07
+ Date: 24/04/2026 18:20:15
 */
 
 SET NAMES utf8mb4;
@@ -30,12 +30,13 @@ CREATE TABLE `chat_message`  (
   `llm_refer_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '引用资料',
   `llm_refer_data_id` int NULL DEFAULT NULL COMMENT '引用资料ID',
   `user_rating` tinyint NULL DEFAULT 0 COMMENT '用户评分 取值：1-5分或1=点赞, 0=无反馈, -1=点踩',
+  `current_user_ip_info` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '当前用户IP信息',
   `user_feedback` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '用户使用反馈内容（用于后续优化模型或prompt）',
-  `is_deleted` tinyint NULL DEFAULT 0 COMMENT '是否删除？ 1=是  0=1',
   `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` tinyint NULL DEFAULT 0 COMMENT '是否删除？ 1=是  0=1',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_session_id`(`session_id` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '存储用户 / LLM 的每一条消息内容' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '存储用户 / LLM 的每一条消息内容' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of chat_message
