@@ -1,23 +1,16 @@
 import logging
 import os
-import signal
-import sys
 from datetime import date
+import logging.handlers
+import queue
 
+# 全局队列（关键！所有 logger 共用）
+log_queue = queue.Queue(-1)
+
+# 全局 listener（只启动一次）
+listener = None
 
 class Logger:
-
-    @staticmethod
-    def logs_path():
-        # 获取当前文件所在目录
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        # 向上两级到达 项目 目录
-        pro_root = os.path.dirname(os.path.dirname(current_dir))
-        # 拼接 logs 目录
-        logs_dir = os.path.join(pro_root, 'logs')
-        return logs_dir
-
-
     def set_file_date():
         today = date.today()
         str_date = f"{today.year}_{today.month:02d}_{today.day:02d}_log"
@@ -33,46 +26,60 @@ class Logger:
         str_date = f"{today.year}_{today.month:02d}_{today.day:02d}_llm"
         return str_date
     
-    def setup_logger(name: str, log_file: str = None):
-        logs_path = Logger.logs_path()
-        os.makedirs(logs_path, exist_ok=True)
+    @staticmethod
+    def setup_logger(name: str, log_dir: str=None):
+        def logs_path():
+            # 获取当前文件所在目录
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            # 向上两级到达 项目 目录
+            pro_root = os.path.dirname(os.path.dirname(current_dir))
+            # 拼接 logs 目录
+            logs_dir = os.path.join(pro_root, 'logs')
+            return logs_dir
+        log_dir = log_dir or logs_path()
 
-        log_file = log_file or os.path.join(logs_path, f"{name}.log")
+        global listener
 
-        class DoubleNewlineFormatter(logging.Formatter):
-            def format(self, record):
-                s = super().format(record)
-                return s + "\n"
+        os.makedirs(log_dir, exist_ok=True)
+        log_file = os.path.join(log_dir, f"{name}.log")
 
         logger = logging.getLogger(name)
         logger.setLevel(logging.INFO)
 
-        # 防止重复添加 handler
-        if not logger.handlers:
-            fh = logging.FileHandler(log_file, encoding="utf-8")
-            fh.setFormatter(DoubleNewlineFormatter("%(asctime)s [%(levelname)s] %(message)s"))
+        # ⚠️ 避免重复添加 handler
+        if logger.handlers:
+            return logger
 
-            ch = logging.StreamHandler()
-            ch.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+        # ========= 核心：QueueHandler =========
+        queue_handler = logging.handlers.QueueHandler(log_queue)
+        logger.addHandler(queue_handler)
 
-            logger.addHandler(fh)
-            logger.addHandler(ch)
+        # ========= listener 只启动一次 =========
+        if listener is None:
+
+            # 文件 handler
+            file_handler = logging.FileHandler(log_file, encoding="utf-8")
+            file_formatter = logging.Formatter(
+                "%(asctime)s [%(levelname)s] %(message)s"
+            )
+            file_handler.setFormatter(file_formatter)
+
+            # 控制台 handler
+            console_handler = logging.StreamHandler()
+            console_handler.setFormatter(file_formatter)
+
+            listener = logging.handlers.QueueListener(
+                log_queue,
+                file_handler,
+                console_handler,
+                respect_handler_level=True
+            )
+            listener.start()
 
         return logger
-    
+
     @staticmethod
-    def register_signal_handlers(logger):
-        def handle_exit(signum, frame):
-            logger.warning("程序收到终止信号: %s", signum)
-            logger.info("程序退出")
-            sys.exit(0)
-
-        # Ctrl+C
-        signal.signal(signal.SIGINT, handle_exit)
-        # kill 命令
-        signal.signal(signal.SIGTERM, handle_exit)
-        # 可选：终端关闭/挂起
-        signal.signal(signal.SIGHUP, handle_exit)
-        # 可选：程序退出请求
-        signal.signal(signal.SIGQUIT, handle_exit)
-
+    def shutdown():
+        global listener
+        if listener:
+            listener.stop()

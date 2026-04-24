@@ -12,6 +12,7 @@ class ChatMessageSchema(BaseModel):
     llm_refer_data: Optional[str] = Field(None, description="引用资料")
     llm_refer_data_id: Optional[int] = Field(None, description="引用资料ID")
     user_rating: Optional[int] = Field(0, description="用户评分 取值：1-5分或1=点赞, 0=无反馈, -1=点踩")
+    curren_user_ip_info: Optional[str] = Field(None, description="用户IP信息")
     user_feedback: Optional[str] = Field(None, description="用户使用反馈内容（用于后续优化模型或prompt）")
     is_deleted: Optional[int] = Field(0, description="是否删除？ 1=是  0=否")
     created_time: Optional[datetime] = Field(None, description="创建时间")

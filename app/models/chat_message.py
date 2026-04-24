@@ -51,6 +51,12 @@ class ChatMessage(Base):
         default=0,
         comment="用户评分 取值：1-5分或1=点赞, 0=无反馈, -1=点踩"
     )
+    current_user_ip_info = Column(
+        String(255),
+        nullable=True,
+        default=None,
+        comment="用户IP信息"
+    )
     user_feedback = Column(
         String(500),
         nullable=True,
