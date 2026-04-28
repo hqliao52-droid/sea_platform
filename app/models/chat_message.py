@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, BigInteger, SmallInteger
+from sqlalchemy import Column, Integer, String, DateTime, Text, SmallInteger
 from datetime import datetime
 from app.config.mysql_config import Base
 
@@ -7,14 +7,14 @@ class ChatMessage(Base):
     __table_args__ = {'comment': '存储用户 / LLM 的每一条消息内容'}
 
     id = Column(
-        BigInteger,
+        Integer,
         primary_key=True,
         autoincrement=True,
         nullable=False,
         comment="消息ID"
     )
     session_id = Column(
-        String(64),
+        Integer,
         nullable=False,
         comment="会话ID",
         index=True
@@ -24,10 +24,27 @@ class ChatMessage(Base):
         nullable=False,
         comment="用户ID"
     )
+    task_id = Column(
+        String,
+        nullable=True,
+        default=None,
+        comment="任务ID"
+    )
     message_type = Column(
         SmallInteger,
         nullable=False,
         comment="1用户 2机器人 3系统 4工具"
+    )
+    pre_id = Column(
+        Integer,
+        nullable=True,
+        default=None,
+        comment="引用消息ID 如果是LLM的回答，就不能置空，并且对应值是回复的消息的ID"
+    )
+    role = Column(
+        String(16),
+        nullable=False,
+        comment="角色"
     )
     content = Column(
         Text(None),
@@ -44,6 +61,12 @@ class ChatMessage(Base):
         nullable=True,
         default=None,
         comment="引用资料ID"
+    )
+    status = Column(
+        SmallInteger,
+        nullable=True,
+        default='done',
+        comment="消息状态 done/streaming/exception"
     )
     user_rating = Column(
         SmallInteger,

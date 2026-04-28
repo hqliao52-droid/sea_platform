@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from app.config.rabbitMq_config import MQClient
 from app.utils.logger import Logger
 from app.utils.fetch_full_text import fetch_full_text
-from app.tasks.ai_task import llm_check_outreach_news,llm_analyze_news
+from app.tasks.ai_response import llm_check_outreach_news,llm_analyze_news
 from app.services.news_service import NewsOperator
 from app.services.news_detail_service import NewsDetailOperator
 from app.services.category_service import CategoryOperator

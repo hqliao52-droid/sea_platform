@@ -13,8 +13,8 @@ class ChatMessageOperator:
     def insert_chat_message(self,chat_message:ChatMessage):
         db = db_session()
         try:
-            id = self.chat_message_curd.insert(db,chat_message)
-            return id
+            obj = self.chat_message_curd.insert(db,chat_message)
+            return obj
         except Exception as e:
             db.rollback()
             self.logger.error(e)
@@ -26,6 +26,17 @@ class ChatMessageOperator:
         db = db_session()
         try:
             chat_message = self.chat_message_curd.get(db,id)
+            return chat_message
+        except Exception as e:
+            self.logger.error(e)
+            return None
+        finally:
+            db.close()
+    
+    def get_chat_message_by_pre_id(self,pre_id:int) ->ChatMessage:
+        db = db_session()
+        try:
+            chat_message = self.chat_message_curd.get_chat_message_by_pre_id(db,pre_id)
             return chat_message
         except Exception as e:
             self.logger.error(e)
@@ -52,5 +63,21 @@ class ChatMessageOperator:
         except Exception as e:
             self.logger.error(e)
             return None
+        finally:
+            db.close()
+
+
+    def update_by_id(self,id:int,update_data:dict) -> bool:
+        db = db_session()
+        try:
+            obj = self.chat_message_curd.update(db,id,update_data)
+            if obj is not None:
+                return True
+            else:
+                return False
+        except Exception as e:
+            db.rollback()
+            self.logger.error(f"更新失败：{str(e)}")
+            return False
         finally:
             db.close()

@@ -1,0 +1,90 @@
+import time,asyncio
+from fastapi import APIRouter,Depends
+from fastapi.responses  import StreamingResponse
+from typing import List
+from uuid import uuid4
+from datetime import datetime
+
+from app.utils.result_response import Result
+from app.utils.result_response import ResultCode
+from app.services.chat_message_service import ChatMessageOperator
+from app.schemas.chat_message.chat_message import ChatMessageSchema,ChatMsg
+from app.models.chat_message import ChatMessage
+from app.utils.logger import Logger
+from app.tasks.ai_task import run_llm_task
+from app.config.redis_config import redis_client
+
+from app.core.user_deps import get_current_user
+
+chat_message_router = APIRouter()
+chat_msg = ChatMessageOperator()
+
+logger = Logger.setup_logger(Logger.set_file_date())
+
+@chat_message_router.get("/get_by_session_id",response_model = Result[List[ChatMessageSchema]])
+async def get_by_session_id(session_id:int):
+    """通过session id查用户历史消息"""
+    try:
+        chat_message = chat_msg.get_chat_message_by_session_id(session_id)
+        result = [ChatMessageSchema.from_orm(item) for item in chat_message]
+        logger.info(f"通过session_id:{session_id}查询用户历史消息成功")
+        return Result.success(result)
+    except Exception as e:
+        logger.error(f"通过session_id:{session_id}查询用户历史消息失败，错误信息：{str(e)}")
+        return Result.error(ResultCode.SYSTEM_ERROR)
+    
+@chat_message_router.put("/insert_message")
+async def insert_message(req:ChatMsg):
+    """发送对话 - 写入用户消息"""
+    logger.info(f"当前({datetime.now}),客户发送销售：{req.query}")
+    task_id = str(uuid4())
+
+    now_time = datetime.now()
+
+    user_message = ChatMessage()
+    user_message.task_id = task_id
+    user_message.role = "user"
+    user_message.message_type = 1
+    user_message.content = req.query
+    user_message.user_id = req.user_id
+    user_message.session_id = req.session_id
+    user_message.created_time = now_time
+    user_message.status = "done"
+    user_msg = chat_msg.insert_chat_message(user_message)
+
+    ai_message = ChatMessage()
+    ai_message.task_id = task_id
+    ai_message.role = "assistant"
+    ai_message.message_type = 2
+    ai_message.content = ""
+    ai_message.user_id = req.user_id
+    ai_message.pre_id = user_msg.id
+    ai_message.session_id = req.session_id
+    ai_message.status = "streaming"
+    ai_message.created_time = now_time
+    ai_msg = chat_msg.insert_chat_message(ai_message)
+
+    # 发送celery任务
+    run_llm_task.delay(task_id, req.query, ai_msg.id)
+
+    return Result.success(data={"task_id":task_id,"ai_msg_id":ai_msg.id})
+
+
+@chat_message_router.get("/chat_stream/{task_id}")
+async def stream(task_id:str):
+    """前端拉取llm流式数据"""
+    async def event_generator():
+        last_len = 0
+        while True:
+            content = redis_client.get_stream(task_id) or ""
+            if len(content) > last_len:
+                delta = content[last_len:]
+                last_len = len(content)
+                yield f"data:{delta}\n\n"
+            
+            if "[[END]]" in content:
+                break
+
+            await asyncio.sleep(0.02)
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    

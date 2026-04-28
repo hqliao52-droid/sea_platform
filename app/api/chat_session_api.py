@@ -17,7 +17,6 @@ logger = Logger.setup_logger(Logger.set_file_date())
 @chat_session_router.get("/get_sessions", response_model=Result[List[ChatSessionSchema]])
 async def get_chat_session_by_llm_id(user_id: int):
     """通过userID获取会话列表"""
-    print("用户ID:{user_id}")
     session = chat_session_operator.get_chat_session_by_user_id(user_id)
     if session is not None:
         return Result.success(session)
@@ -26,10 +25,18 @@ async def get_chat_session_by_llm_id(user_id: int):
 
 @chat_session_router.put("/new_session")
 async def new_session(user_id: int = Body(..., embed=True),user=Depends(get_current_user)):
-    session = chat_session_operator.new_session(user_id)
-    logger.info(f"用户:{user} 新建会话")
-    if session is not None:
-        logger.info(f"用户ID:{user_id} 新建会话成功")
-        return Result.success(session)
-    else:
+    from app.config.mysql_config import db_session
+    db = db_session()
+    try:
+        select_session = chat_session_operator.get_new_chat_session_by_user_id(db,user_id)
+        logger.info(f"用户:{user} 新建会话")
+        if select_session is not None:
+            logger.info(f"用户ID:{user_id} 新建会话成功")
+            return Result.success(select_session)
+        else:
+            return Result.error(ResultCode.SYSTEM_ERROR)
+    except Exception as e:
+        logger.error(e)
         return Result.error(ResultCode.SYSTEM_ERROR)
+    finally:
+        db.close()

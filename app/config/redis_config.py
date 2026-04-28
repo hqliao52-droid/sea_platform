@@ -21,3 +21,20 @@ class RedisConfig:
     def check_black_list_token(self,token):
         result = self.client.get(f"blackList:{token}")
         return result is not None
+    
+    def append_stream(self,task_id:str,chunk:str):
+        """追加流式内容"""
+        key = f"stream:{task_id}"
+        self.client.append(key,chunk)
+
+    def get_stream(self,task_id:str):
+        """获取流式内容"""
+        key = f"stream:{task_id}"
+        return self.client.get(key)
+
+    def delete_stream(self,task_id:str):
+        """删除流式内容"""
+        key = f"stream:{task_id}"
+        self.client.delete(key)
+
+redis_client = RedisConfig()

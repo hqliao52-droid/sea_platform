@@ -127,6 +127,29 @@ services:
     deploy:
       replicas: 3
     restart: always
+  
+  celery_worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: sea_ai_celery
+    command: celery -A app.tasks.celery_app worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - rabbitmq
+      - redis
+      - mysql
+    env_file:
+      - .env
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_HOST: mysql
+      REDIS_HOST: redis
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASSWORD}
+    restart: unless-stopped
 
 volumes:
   mysql_data_dev:  # 开发独立数据卷

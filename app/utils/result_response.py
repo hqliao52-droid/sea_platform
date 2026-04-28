@@ -20,6 +20,9 @@ class ResultCode(Enum):
     PARAM_PASSWORD_ERROR = ("5005", "原密码输入错误")
     USER_REGISTER_ERROR = ("5006", "用户注册失败,请稍后重试...")
 
+    MSG_NOT_EXIST_ERROR = ("6001", "消息不存在")
+
+
     JSON_ERROR = ("6000", "JSON解析错误")
 
     def __init__(self, code: str, msg: str | list):
