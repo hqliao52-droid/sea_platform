@@ -82,6 +82,22 @@ class ChatSessionOperator:
             db.rollback()
             self.logger.error(e)
             return None
+        finally:
+            db.close()
+    
+    def update_session_topic(self,session_id:int,session_topic:str) -> bool:
+        db = db_session()
+        try:
+            update_data = {"session_topic":session_topic}
+            result = self.chat_session_curd.update(db,session_id,update_data)
+            return result
+        except Exception as e:
+            db.rollback()
+            self.logger.error(e)
+        finally:
+            db.close()
+        
+
             
             
 

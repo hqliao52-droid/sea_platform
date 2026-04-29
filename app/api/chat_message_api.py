@@ -65,26 +65,34 @@ async def insert_message(req:ChatMsg):
     ai_msg = chat_msg.insert_chat_message(ai_message)
 
     # 发送celery任务
-    run_llm_task.delay(task_id, req.query, ai_msg.id)
+    run_llm_task.delay(task_id, req.query, ai_msg.id, req.session_id)
 
     return Result.success(data={"task_id":task_id,"ai_msg_id":ai_msg.id})
 
 
 @chat_message_router.get("/chat_stream/{task_id}")
-async def stream(task_id:str):
-    """前端拉取llm流式数据"""
+async def stream(task_id: str):
     async def event_generator():
         last_len = 0
+
         while True:
             content = redis_client.get_stream(task_id) or ""
+
+            # 有新内容
             if len(content) > last_len:
                 delta = content[last_len:]
                 last_len = len(content)
-                yield f"data:{delta}\n\n"
-            
-            if "[[END]]" in content:
-                break
 
-            await asyncio.sleep(0.02)
+                yield f"data: {delta}\n\n"
+
+                # 结束
+                if "[[END]]" in delta:
+                    break
+
+                if "[[ERROR]]" in delta:
+                    break
+
+            await asyncio.sleep(0.05)
+
     return StreamingResponse(event_generator(), media_type="text/event-stream")
     

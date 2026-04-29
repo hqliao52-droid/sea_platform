@@ -5,6 +5,7 @@ from celery.utils.log import get_task_logger
 from app.tasks.celery_app import celery_app
 from app.config.redis_config import redis_client
 from app.services.chat_message_service import ChatMessageOperator
+from app.services.chat_session_service import ChatSessionOperator
 from app.utils.logger import Logger
 from app.prompt.agent_prompt import prompt as AgentPrompt
 from app.config.llm_config import llm_config
@@ -23,14 +24,25 @@ def fake_llm_stream(user_input:str):
         if chunk.content:
             yield chunk.content
 
+def session_topic_generator(user_input:str):
+    llm = llm_config.summary_llm()
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", AgentPrompt.doubao_service_dialog_topic_generator()),
+        ("user", "{query}"),
+    ])
+    chain =  prompt | llm
+    return chain.invoke({"query": user_input})
+
 @celery_app.task(bind=True, name="ai.run_llm_task")
-def run_llm_task(self,task_id:str,prompt:str,ai_msg_id:str):
+def run_llm_task(self,task_id:str,prompt:str,ai_msg_id:str,session_id:int):
     """
     1、调用LLM流式
     2、SSE推送（redis）
     3、更新mysql
     """
     chat_message_operator = ChatMessageOperator()
+    # chat_session_operator = ChatSessionOperator()
+    print(f"会话ID{session_id}")
     try:
         logger.info(f"LLM处理开始:{prompt}")
         chunks = []
@@ -46,6 +58,13 @@ def run_llm_task(self,task_id:str,prompt:str,ai_msg_id:str):
         redis_client.client.expire(f"stream:{task_id}", 300)
 
         chat_message = chat_message_operator.get_chat_message_by_id(ai_msg_id)
+
+        # chat_session = chat_session_operator.get_chat_session_by_id(session_id)
+        # logger.info(f"会话信息{chat_session}")
+        # if chat_session.session_topic is "新会话":
+        #     session_topic = session_topic_generator(prompt)
+        #     obj = chat_session_operator.update_session_topic(session_id,session_topic)
+        #     logger.info(f"会话主题生成成功：{obj}")
 
         if chat_message:
             update_data = {
