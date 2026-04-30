@@ -1,6 +1,6 @@
-import time
+import time,json
 from langchain_core.prompts import ChatPromptTemplate
-from celery.utils.log import get_task_logger
+from langchain_core.messages import AIMessage
 
 from app.tasks.celery_app import celery_app
 from app.config.redis_config import redis_client
@@ -31,7 +31,21 @@ def session_topic_generator(user_input:str):
         ("user", "{query}"),
     ])
     chain =  prompt | llm
-    return chain.invoke({"query": user_input})
+    response: AIMessage = chain.invoke({"query": user_input})
+    data = message_to_dict(response)
+    return data
+
+def message_to_dict(message: AIMessage) -> dict:
+    """将 AIMessage 转换为可直接 JSON 序列化的字典"""
+    return {
+        "content": message.content,
+        "additional_kwargs": message.additional_kwargs,
+        "response_metadata": message.response_metadata,
+        "id": message.id,
+        "tool_calls": message.tool_calls,
+        "invalid_tool_calls": getattr(message, "invalid_tool_calls", []),
+        "usage_metadata": getattr(message, "usage_metadata", None)
+    }
 
 @celery_app.task(bind=True, name="ai.run_llm_task")
 def run_llm_task(self,task_id:str,prompt:str,ai_msg_id:str,session_id:int):
@@ -41,7 +55,7 @@ def run_llm_task(self,task_id:str,prompt:str,ai_msg_id:str,session_id:int):
     3、更新mysql
     """
     chat_message_operator = ChatMessageOperator()
-    # chat_session_operator = ChatSessionOperator()
+    chat_session_operator = ChatSessionOperator()
     print(f"会话ID{session_id}")
     try:
         logger.info(f"LLM处理开始:{prompt}")
@@ -59,12 +73,14 @@ def run_llm_task(self,task_id:str,prompt:str,ai_msg_id:str,session_id:int):
 
         chat_message = chat_message_operator.get_chat_message_by_id(ai_msg_id)
 
-        # chat_session = chat_session_operator.get_chat_session_by_id(session_id)
-        # logger.info(f"会话信息{chat_session}")
-        # if chat_session.session_topic is "新会话":
-        #     session_topic = session_topic_generator(prompt)
-        #     obj = chat_session_operator.update_session_topic(session_id,session_topic)
-        #     logger.info(f"会话主题生成成功：{obj}")
+        chat_session = chat_session_operator.get_chat_session_by_id(session_id)
+        logger.info(f"会话信息{chat_session}")
+        if chat_session.session_topic == "新会话":
+            session_topic = session_topic_generator(prompt)
+            logger.info(f"会话主题生成成功：{session_topic}")
+            topic = {"session_topic":session_topic["content"]}
+            obj = chat_session_operator.update_session(session_id,topic)
+            logger.info(f"会话主题更新：{obj}")
 
         if chat_message:
             update_data = {

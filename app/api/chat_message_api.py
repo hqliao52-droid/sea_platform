@@ -9,6 +9,7 @@ from app.utils.result_response import Result
 from app.utils.result_response import ResultCode
 from app.services.chat_message_service import ChatMessageOperator
 from app.schemas.chat_message.chat_message import ChatMessageSchema,ChatMsg
+from app.services.chat_session_service import ChatSessionOperator
 from app.models.chat_message import ChatMessage
 from app.utils.logger import Logger
 from app.tasks.ai_task import run_llm_task
@@ -18,6 +19,7 @@ from app.core.user_deps import get_current_user
 
 chat_message_router = APIRouter()
 chat_msg = ChatMessageOperator()
+chat_session = ChatSessionOperator()
 
 logger = Logger.setup_logger(Logger.set_file_date())
 
@@ -63,6 +65,9 @@ async def insert_message(req:ChatMsg):
     ai_message.status = "streaming"
     ai_message.created_time = now_time
     ai_msg = chat_msg.insert_chat_message(ai_message)
+
+    update_time = {"update_time":now_time}
+    chat_session.update_session(req.session_id,update_time)
 
     # 发送celery任务
     run_llm_task.delay(task_id, req.query, ai_msg.id, req.session_id)

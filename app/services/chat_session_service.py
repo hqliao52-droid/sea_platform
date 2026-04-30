@@ -84,19 +84,19 @@ class ChatSessionOperator:
             return None
         finally:
             db.close()
-    
-    def update_session_topic(self,session_id:int,session_topic:str) -> bool:
+
+    def update_session(self,session_id:int,session_data:dict):
         db = db_session()
         try:
-            update_data = {"session_topic":session_topic}
-            result = self.chat_session_curd.update(db,session_id,update_data)
+            result = self.chat_session_curd.update(db,session_id,session_data)
+            self.logger.info(f"更新会话成功：{result}")
             return result
         except Exception as e:
             db.rollback()
-            self.logger.error(e)
+            self.logger.error(f"更新失败：{str(e)}")
         finally:
             db.close()
-        
+
 
             
             
