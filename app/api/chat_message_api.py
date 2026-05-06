@@ -99,5 +99,38 @@ async def stream(task_id: str):
 
             await asyncio.sleep(0.05)
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
-    
+    return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",  # 🔥 关键（Nginx）
+            }
+        )
+
+
+from fastapi import WebSocket, WebSocketDisconnect
+@chat_message_router.websocket("/ws/chat/{task_id}")
+async def ws_chat(websocket: WebSocket, task_id: str):
+    await websocket.accept()
+
+    last_len = 0
+
+    try:
+        while True:
+            content = redis_client.get_stream(task_id) or ""
+
+            if len(content) > last_len:
+                delta = content[last_len:]
+                last_len = len(content)
+
+                await websocket.send_text(delta)
+
+                if "[[END]]" in delta:
+                    break
+
+            await asyncio.sleep(0.05)
+
+    except WebSocketDisconnect:
+        print("客户端断开")
