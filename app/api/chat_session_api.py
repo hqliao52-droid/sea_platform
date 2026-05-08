@@ -24,14 +24,14 @@ async def get_chat_session_by_llm_id(user_id: int):
         return Result.error(ResultCode.SYSTEM_ERROR)
 
 @chat_session_router.put("/new_session")
-async def new_session(user_id: int = Body(..., embed=True),user=Depends(get_current_user)):
+async def new_session(user=Depends(get_current_user)):
     from app.config.mysql_config import db_session
     db = db_session()
     try:
-        select_session = chat_session_operator.get_new_chat_session_by_user_id(db,user_id)
+        select_session = chat_session_operator.get_new_chat_session_by_user_id(db,user.id)
         logger.info(f"用户:{user} 新建会话")
         if select_session is not None:
-            logger.info(f"用户ID:{user_id} 新建会话成功")
+            logger.info(f"用户ID:{user.id} 新建会话成功")
             return Result.success(select_session)
         else:
             return Result.error(ResultCode.SYSTEM_ERROR)
