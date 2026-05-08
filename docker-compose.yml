@@ -60,13 +60,6 @@ services:
       # 使用绝对路径或相对路径指向宿主机目录
       - /home/ubuntu/data/mysql:/var/lib/mysql
       - ./sql:/docker-entrypoint-initdb.d
-    command: 
-      - --innodb_buffer_pool_size=128M
-      - --max_connections=50
-      - --performance_schema=OFF
-      - --table_open_cache=200
-      - --tmp_table_size=16M
-      - --thread_cache_size=4
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD}"]
       interval: 30s
