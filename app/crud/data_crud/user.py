@@ -6,7 +6,7 @@ class UserCRUD(BaseCRUD):
     def __init__(self):
         super().__init__(UserModel)
 
-    def get_user_by_id(self,db:Session,username):
+    def get_user_by_username(self,db:Session,username):
         return db.query(UserModel).filter(UserModel.username==username).first()
     
     

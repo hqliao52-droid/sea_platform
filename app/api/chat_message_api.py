@@ -16,7 +16,6 @@ from app.utils.logger import Logger
 from app.tasks.ai_task import run_llm_task
 from app.config.redis_config import redis_client
 
-from app.core.user_deps import get_current_user
 
 chat_message_router = APIRouter()
 chat_msg = ChatMessageOperator()

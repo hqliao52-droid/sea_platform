@@ -23,10 +23,10 @@ class UserService:
         finally:
             db.close()
     
-    def get_user_by_username(self,username:int):
+    def get_user_by_username(self,username:str):
         db = db_session()
         try:
-            user = self.user_crud.get_user_by_id(db,username)
+            user = self.user_crud.get_user_by_username(db,username)
             if user:
                 return {"user":user,"status":"success"}
             else:
@@ -36,9 +36,22 @@ class UserService:
         finally:
             db.close()
 
+    def get_user_by_id(self,id:int):
+        db = db_session()
+        try: 
+            user = self.user_crud.get(db,id)
+            if user:
+                return user
+            else:
+                return None
+        except Exception as e:
+            self.logger.error("查询用户失败:%s",str(e))
+        finally:
+            db.close()
+
+
     def update_user(self,id:int,user_data:dict):
         """更新（部分更新）"""
-        print(f"更新后的信息：{user_data}")
         db = db_session()
         try:
             updated_id  = self.user_crud.update_segment(db,id,user_data)
@@ -51,6 +64,25 @@ class UserService:
             self.logger.error("更新用户失败:%s",str(e))
             db.rollback()
             return {"id":None,"status":"fail"}
+        finally:
+            db.close()
+
+    def update_user_info(self,id:int,user_data:dict):
+        db = db_session()
+        try:
+            user = self.user_crud.get(db,id)
+            if not user:
+                return {"user":None,"status":"fail","msg":"用户不存在"}
+            
+            update_date = user_data.model_dump(exclude_unset=True)
+            updated = self.user_crud.update_segment(db,id,update_date)
+
+            return {"user":updated,"status":"success","msg":"更新成功"}
+        except Exception as e:
+            self.logger.error("更新用户失败:%s",str(e))
+            db.rollback()
+            return {"user":None,"status":"fail","msg":f"出现异常：{str(e)}"}
+        
         finally:
             db.close()
 

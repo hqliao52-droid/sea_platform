@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Request,Body,Header,UploadFile,File
+from fastapi import APIRouter, Request,Body,Header,Depends
 from app.utils.jwt import create_access_token,hash_password,verify_password
 from app.services.user_service import UserService
 from app.utils.result_response import Result
 from app.utils.result_response import ResultCode
 from app.utils.ip_util import get_real_ip
-from app.schemas.user.user_schema import UserSchema
+from app.schemas.user.user_schema import UserSchema,UserUpdateSchema
 from app.schemas.user.user_response_schema import UserResponseSchema
 from app.models.user_model import UserModel
 from app.config.redis_config import RedisConfig
+from app.core.user_deps import get_current_user
 
 router = APIRouter()
 
@@ -44,7 +45,7 @@ def login(
         user_service.update_user(user_id,update_data)
         stored_user.last_login_ip = ip
     
-    token = create_access_token({"username": username})
+    token = create_access_token({"sub": user_id,"username": username})
     
     user_response = UserResponseSchema.model_validate(stored_user)
     return Result.success(data={"token": token,
@@ -77,6 +78,18 @@ def register(user: UserSchema,
 
     if result["status"] == "success":
         return Result.success(data={"message": "注册成功"})
+    else:
+        return Result.error(ResultCode.USER_REGISTER_ERROR)
+
+@router.put("/update_info")
+def register(user: UserUpdateSchema,
+            user_info = Depends(get_current_user)):
+    user_service = UserService()
+
+    result = user_service.update_user_info(id=user_info["id"],update_data=user)
+
+    if result["status"] == "success":
+        return Result.success(data=result["user"])
     else:
         return Result.error(ResultCode.USER_REGISTER_ERROR)
 
