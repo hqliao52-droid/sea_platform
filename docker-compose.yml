@@ -61,11 +61,11 @@ services:
       - /home/ubuntu/data/mysql:/var/lib/mysql
       - ./sql:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD}"]
-      interval: 30s
+      test: ["CMD-SHELL", "mysqladmin ping -u root -p$${MYSQL_PASSWORD} -h localhost"]
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 30s
+      retries: 5
+      start_period: 40s
     deploy:
       resources:
         limits:
