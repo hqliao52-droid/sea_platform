@@ -89,7 +89,8 @@ def update_user_info(user: UserUpdateSchema,
     result = user_service.update_user_info(id=user_info.id,update_data=user)
 
     if result["status"] == "success":
-        return Result.success(data=result["user"])
+        user_response = UserResponseSchema.model_validate(result["user"])
+        return Result.success(data=user_response)
     else:
         return Result.error(ResultCode.SYSTEM_ERROR)
 
