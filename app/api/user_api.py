@@ -82,7 +82,7 @@ def register(user: UserSchema,
         return Result.error(ResultCode.USER_REGISTER_ERROR)
 
 @router.put("/update_info")
-def register(user: UserUpdateSchema,
+def update_user_info(user: UserUpdateSchema,
             user_info = Depends(get_current_user)):
     user_service = UserService()
 
