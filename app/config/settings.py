@@ -49,7 +49,7 @@ class Settings(BaseSettings):
 
     # jwt
     JWT_SECRET_KEY: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
     JWT_ALGORITHM: str
 
     ''' SERVER_HOST: str = "192.168.110.218" '''
