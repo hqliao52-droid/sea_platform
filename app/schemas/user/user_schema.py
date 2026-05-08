@@ -31,4 +31,4 @@ class UserUpdateSchema(BaseModel):
     email: Optional[str]  = None
     city: Optional[str]  = None
     avatar: Optional[str]  = None
-    status: Optional[int]  = None
+    # status: Optional[int]  = None
