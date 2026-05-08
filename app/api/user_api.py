@@ -45,7 +45,7 @@ def login(
         user_service.update_user(user_id,update_data)
         stored_user.last_login_ip = ip
     
-    token = create_access_token({"sub": user_id,"username": username})
+    token = create_access_token({"sub": str(user_id),"username": username})
     
     user_response = UserResponseSchema.model_validate(stored_user)
     return Result.success(data={"token": token,
