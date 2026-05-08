@@ -52,7 +52,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     JWT_ALGORITHM: str
 
-    # SERVER_HOST: str = "192.168.110.218"
+    ''' SERVER_HOST: str = "192.168.110.218" '''
     SERVER_HOST: str = "106.52.97.98"
     SERVER_PORT: int = 8000
 

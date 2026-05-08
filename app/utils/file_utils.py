@@ -55,6 +55,5 @@ class FileUtils:
         # 返回URL
         relative_path = f"attach/{file_type}/{new_filename}"
         url = f"{file_config.FILE_HOST}/{relative_path}"
-        print(url)
 
         return url
