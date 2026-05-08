@@ -3,9 +3,10 @@ from jose import jwt
 from app.config.settings import settings
 from passlib.context import CryptContext
 import hashlib
+from app.utils.logger import Logger
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-
+logger = Logger.setup_logger(Logger.set_file_date())
 
 def create_access_token(data: dict):
     """ 生成JWT TOKEN
@@ -21,13 +22,18 @@ def create_access_token(data: dict):
     return token
 
 def verify_token(token: str):
-    """ 验证token
-    token: 需要验证的token
+    """
+    验证token
     """
     try:
-        payload = jwt.decode(token,settings.JWT_SECRET_KEY,algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(
+            token,
+            settings.JWT_SECRET_KEY,
+            algorithms=[settings.JWT_ALGORITHM]
+        )
         return payload
     except Exception as e:
+        logger.error("JWT ERROR:", e)
         return None
 
 def hash_password(password: str) -> str:
