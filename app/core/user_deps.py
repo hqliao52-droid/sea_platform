@@ -31,6 +31,6 @@ def get_current_user(authorization: str = Header(None)):
     
     stored_user = user_service.get_user_by_id(user_id)
     if not stored_user:
-        return Result.error(ResultCode.USER_NOT_EXIST)
+        return Result.error(ResultCode.USER_NOT_EXIST_ERROR)
     
     return stored_user

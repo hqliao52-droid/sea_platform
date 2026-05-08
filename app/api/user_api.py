@@ -86,12 +86,12 @@ def register(user: UserUpdateSchema,
             user_info = Depends(get_current_user)):
     user_service = UserService()
 
-    result = user_service.update_user_info(id=user_info["id"],update_data=user)
+    result = user_service.update_user_info(id=user_info.id,update_data=user)
 
     if result["status"] == "success":
         return Result.success(data=result["user"])
     else:
-        return Result.error(ResultCode.USER_REGISTER_ERROR)
+        return Result.error(ResultCode.SYSTEM_ERROR)
 
 @router.post("/logout")
 def logout(authorization: str = Header(None)):
