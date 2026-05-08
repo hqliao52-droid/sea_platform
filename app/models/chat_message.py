@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, SmallInteger
+from sqlalchemy import Column, Integer, String, DateTime, Text, SmallInteger,JSON
 from datetime import datetime
 from app.config.mysql_config import Base
 
@@ -52,12 +52,12 @@ class ChatMessage(Base):
         comment="消息内容"
     )
     llm_refer_data = Column(
-        Text,
+        JSON,
         nullable=True,
         comment="引用资料"
     )
     llm_refer_data_id = Column(
-        Integer,
+        JSON,
         nullable=True,
         default=None,
         comment="引用资料ID"

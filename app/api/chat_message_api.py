@@ -10,6 +10,7 @@ from app.utils.result_response import ResultCode
 from app.services.chat_message_service import ChatMessageOperator
 from app.schemas.chat_message.chat_message import ChatMessageSchema,ChatMsg
 from app.services.chat_session_service import ChatSessionOperator
+from app.services.news_detail_service import NewsDetailOperator
 from app.models.chat_message import ChatMessage
 from app.utils.logger import Logger
 from app.tasks.ai_task import run_llm_task
@@ -20,6 +21,7 @@ from app.core.user_deps import get_current_user
 chat_message_router = APIRouter()
 chat_msg = ChatMessageOperator()
 chat_session = ChatSessionOperator()
+news_detail = NewsDetailOperator()
 
 logger = Logger.setup_logger(Logger.set_file_date())
 
@@ -38,10 +40,15 @@ async def get_by_session_id(session_id:int):
 @chat_message_router.put("/insert_message")
 async def insert_message(req:ChatMsg):
     """发送对话 - 写入用户消息"""
-    logger.info(f"当前({datetime.now}),客户发送销售：{req.query}")
+    logger.info(f"当前({datetime.now}),客户发送销售：{req.news_ids}")
     task_id = str(uuid4())
 
     now_time = datetime.now()
+    refer_data = []
+    if req.news_ids:
+        for id in req.news_ids:
+            news = news_detail.get_news_detail_by_id(id)
+            refer_data.append(news.title)
 
     user_message = ChatMessage()
     user_message.task_id = task_id
@@ -51,6 +58,8 @@ async def insert_message(req:ChatMsg):
     user_message.user_id = req.user_id
     user_message.session_id = req.session_id
     user_message.created_time = now_time
+    user_message.llm_refer_data = refer_data or None
+    user_message.llm_refer_data_id = req.news_ids or None
     user_message.status = "done"
     user_msg = chat_msg.insert_chat_message(user_message)
 
@@ -70,7 +79,8 @@ async def insert_message(req:ChatMsg):
     chat_session.update_session(req.session_id,update_time)
 
     # 发送celery任务
-    run_llm_task.delay(task_id, req.query, ai_msg.id, req.session_id)
+    req_dict = req.model_dump() 
+    run_llm_task.delay(task_id, ai_msg.id,req_dict)
 
     return Result.success(data={"task_id":task_id,"ai_msg_id":ai_msg.id})
 

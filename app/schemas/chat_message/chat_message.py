@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional
+from typing import Optional,List
 from datetime import datetime
 
 class ChatMessageSchema(BaseModel):
@@ -12,8 +12,8 @@ class ChatMessageSchema(BaseModel):
     role: Optional[str] = Field(None, description="角色")
     message_type: Optional[int] = Field(None, description="1用户 2机器人 3系统 4工具")
     content: Optional[str] = Field(None, description="消息内容")
-    llm_refer_data: Optional[str] = Field(None, description="引用资料")
-    llm_refer_data_id: Optional[int] = Field(None, description="引用资料ID")
+    llm_refer_data: Optional[List[str]] = Field(None, description="引用资料")
+    llm_refer_data_id: Optional[list] = Field(None, description="引用资料ID")
     status: Optional[str] = Field(0, description="消息状态 done/streaming/exception")
     user_rating: Optional[int] = Field(0, description="用户评分 取值：1-5分或1=点赞, 0=无反馈, -1=点踩")
     curren_user_ip_info: Optional[str] = Field(None, description="用户IP信息")
@@ -27,3 +27,4 @@ class ChatMsg(BaseModel):
     query: str
     user_id: int
     session_id: int
+    news_ids: Optional[List[int]] = None

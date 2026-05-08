@@ -1,10 +1,11 @@
-services:
+version: '3.8'
 
+services:
   api:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    # container_name: sea_api_dev
+    container_name: sea_api_prod
     ports:
       - "8000:8000"
     depends_on:
@@ -23,53 +24,100 @@ services:
       RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_PASS: ${RABBITMQ_DEFAULT_PASSWORD}
       QDRANT_API_KEY: ${QDRANT_API_KEY}
-    #   - .:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 
-    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 768M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   mysql:
     image: mysql:8.0
-    # container_name: sea_mysql_dev 
+    container_name: sea_mysql_prod
     restart: always
     environment:
       TZ: Asia/Shanghai
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DB}
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
-      # - ./sql:/docker-entrypoint-initdb.d
+      # 使用绝对路径或相对路径指向宿主机目录
+      - /home/ubuntu/data/mysql:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+    command: 
+      - --innodb_buffer_pool_size=256M
+      - --innodb_log_file_size=64M
+      - --max_connections=100
+      - --query_cache_size=0
+      - --performance_schema=OFF
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD}"]
-      interval: 10s
+      interval: 30s
       timeout: 5s
-      retries: 5
+      retries: 3
       start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   redis:
-    image: redis:7
-    # container_name: sea_redis_dev
+    image: redis:7-alpine
+    container_name: sea_redis_prod
     restart: always
     ports:
-      - "6380:6379"
+      - "6379:6379"
+    volumes:
+      # Redis数据持久化
+      - /home/ubuntu/data/redis:/data
     environment:
       - TZ=Asia/Shanghai
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 128mb --maxmemory-policy allkeys-lru --appendonly yes
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   rabbitmq:
-    image: rabbitmq:3-management
-    # container_name: sea_rabbitmq_dev
+    image: rabbitmq:3-management-alpine
+    container_name: sea_rabbitmq_prod
     ports:
-      - "5673:5672"
-      - "15673:15672"
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      # RabbitMQ数据持久化
+      - /home/ubuntu/data/rabbitMQ:/var/lib/rabbitmq
     environment:
       - TZ=Asia/Shanghai
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
@@ -77,35 +125,53 @@ services:
       - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit heartbeat 600
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    restart: unless-stopped
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+        reservations:
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     
   qdrant:
     image: qdrant/qdrant
-    # container_name: sea_qdrant_dev
-    restart: unless-stopped
+    container_name: sea_qdrant_prod
+    restart: always
     ports:
       - "6333:6333"
-      - "6334:6334"
+    volumes:
+      # Qdrant数据持久化
+      - /home/ubuntu/data/qdrant:/qdrant/storage
     environment:
       TZ: Asia/Shanghai
       QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY}
-      QDRANT__LOG_LEVEL: info 
-      # 将集合的向量默认存储在磁盘上
+      QDRANT__LOG_LEVEL: warn
       QDRANT__STORAGE__PERFORMANCE__VECTORS_IN_RAM: false
-      # 同时将payload也默认存储在磁盘上，进一步节省内存
       QDRANT__STORAGE__ON_DISK_PAYLOAD: true
-    volumes:
-      - qdrant_data:/qdrant/storage
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+        reservations:
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   worker:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    # volumes:  # 生产环境不应挂载本地代码
-    #   - .:/app
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -120,10 +186,54 @@ services:
       RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASSWORD}
     command: python worker/rss_result_execute_worker.py
-    deploy:
-      replicas: 3
     restart: always
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 384M
+        reservations:
+          cpus: '0.3'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-volumes:
-  mysql_data:
-  qdrant_data:
+  celery_worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: sea_ai_celery
+    command: celery -A app.tasks.celery_app worker -l info --concurrency=2
+    depends_on:
+      - rabbitmq
+      - redis
+      - mysql
+    env_file:
+      - .env
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_HOST: mysql
+      REDIS_HOST: redis
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASSWORD}
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 512M
+        reservations:
+          cpus: '0.3'
+          memory: 384M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# 注意：因为使用了宿主机绝对路径，不再需要定义volumes
