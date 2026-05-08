@@ -61,11 +61,12 @@ services:
       - /home/ubuntu/data/mysql:/var/lib/mysql
       - ./sql:/docker-entrypoint-initdb.d
     command: 
-      - --innodb_buffer_pool_size=256M
-      - --innodb_log_file_size=64M
-      - --max_connections=100
-      - --query_cache_size=0
+      - --innodb_buffer_pool_size=128M
+      - --max_connections=50
       - --performance_schema=OFF
+      - --table_open_cache=200
+      - --tmp_table_size=16M
+      - --thread_cache_size=4
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD}"]
       interval: 30s
