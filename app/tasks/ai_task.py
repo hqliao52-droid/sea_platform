@@ -127,7 +127,7 @@ def run_llm_task(self,task_id:str,ai_msg_id:str,user_dialog_id,req:dict):
             for id in req.get("news_ids"):
                 news = news_detail.get_news_detail_by_id(id)
                 logger.info(f"用户当前引用的文章{news.title}")
-                refer_data.append(news.content)
+                refer_data.append(news)
 
         dialog_history = []
         if req.get("user_id") and req.get("session_id"):
