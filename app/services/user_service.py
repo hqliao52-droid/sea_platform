@@ -69,6 +69,7 @@ class UserService:
 
     def update_user_info(self,id:int,user_data:dict):
         db = db_session()
+        self.logger.info("更新用户信息:%s",user_data)
         try:
             user = self.user_crud.get(db,id)
             if not user:
