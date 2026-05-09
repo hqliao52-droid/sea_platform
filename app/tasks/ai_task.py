@@ -65,6 +65,22 @@ def fake_llm_stream(user_input: str, refer_data: list = None, history_messages: 
             #     messages.append(ToolMessage(content=item.content))
     # 当前用户对话
     messages.append(HumanMessage(content=user_input))
+
+    logger.info("=" * 80)
+    logger.info("最终发送给 LLM 的 messages：")
+
+    for i, msg in enumerate(messages, start=1):
+        role = msg.__class__.__name__
+        content = msg.content if msg.content else ""
+
+        # 防止日志过长，只打印前 500 个字符
+        preview = content[:500]
+
+        logger.info(f"[{i}] {role}")
+        logger.info(preview)
+        logger.info("-" * 80)
+
+    logger.info("=" * 80)
     
     for chunk in llm_normal.stream(messages):
         if chunk.content:
