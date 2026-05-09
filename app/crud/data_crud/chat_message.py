@@ -20,7 +20,7 @@ class ChatMessageCRUD(BaseCRUD):
         return db.query(ChatMessage).filter(ChatMessage.pre_id == pre_id).first()
 
     def get_dialog_history(self,db:Session,user_id:int,session_id:int,current_id:int) -> List[ChatMessage]:
-       return db.query(ChatMessage.role,ChatMessage.content,ChatMessage.llm_refer_data,ChatMessage.llm_refer_data_id)\
+       return db.query(ChatMessage.id,ChatMessage.role,ChatMessage.content,ChatMessage.llm_refer_data,ChatMessage.llm_refer_data_id)\
         .filter(
             ChatMessage.id < current_id,
             ChatMessage.user_id == user_id,
