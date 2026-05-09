@@ -144,7 +144,7 @@ class AgentPrompt:
         
         lines = ["当前会话引用的文章：\n"]
         for idx,article in enumerate(article_refs,start=1):
-            title = article.get("title","未知标题")
+            title = article.title
             lines.append(f"第{idx}篇文章-> {title}\n")
         
         lines.append("\n用户后续提到："
