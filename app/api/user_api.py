@@ -84,6 +84,7 @@ def register(user: UserSchema,
 @router.put("/update_info",response_model=Result[UserResponseSchema])
 def update_user_info(user: UserUpdateSchema,
             user_info = Depends(get_current_user)):
+    print(f"用户信息：{user}")
     user_service = UserService()
 
     result = user_service.update_user_info(id=user_info.id,update_data=user)
