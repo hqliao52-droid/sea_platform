@@ -1,5 +1,5 @@
 import time,asyncio
-from fastapi import APIRouter,Depends
+from fastapi import APIRouter,WebSocket, WebSocketDisconnect
 from fastapi.responses  import StreamingResponse
 from typing import List
 from uuid import uuid4
@@ -79,7 +79,7 @@ async def insert_message(req:ChatMsg):
 
     # 发送celery任务
     req_dict = req.model_dump() 
-    run_llm_task.delay(task_id, ai_msg.id,req_dict)
+    run_llm_task.delay(task_id, ai_msg.id, req_dict)
 
     return Result.success(data={"task_id":task_id,"ai_msg_id":ai_msg.id})
 
@@ -118,8 +118,6 @@ async def stream(task_id: str):
             }
         )
 
-
-from fastapi import WebSocket, WebSocketDisconnect
 @chat_message_router.websocket("/ws/chat/{task_id}")
 async def ws_chat(websocket: WebSocket, task_id: str):
     await websocket.accept()

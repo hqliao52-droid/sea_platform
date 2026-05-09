@@ -65,6 +65,19 @@ class ChatMessageOperator:
             return None
         finally:
             db.close()
+        
+    def get_dialog_history(self,user_id,session_id,current_id) -> List[ChatMessage]:
+        db = db_session()
+        try:
+            chat_message = self.chat_message_curd.get_dialog_history(db,user_id,session_id,current_id)
+            self.logger.info(f"获取历史上下文成功：{chat_message}")
+            return chat_message
+        except Exception as e:
+            self.logger.error(f"获取历史上下文失败：{e}")
+            return None
+        finally:
+            db.close()
+
 
 
     def update_by_id(self,id:int,update_data:dict) -> bool:

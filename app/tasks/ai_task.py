@@ -1,6 +1,10 @@
 import time,json
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.messages import AIMessage
+from langchain_core.prompts import ChatPromptTemplate,MessagesPlaceholder,ToolMessage
+from langchain_core.messages import (
+    SystemMessage,
+    HumanMessage,
+    AIMessage,
+) 
 
 from app.tasks.celery_app import celery_app
 from app.config.redis_config import redis_client
@@ -14,44 +18,54 @@ from app.config.llm_config import llm_config
 
 logger = Logger.setup_logger(f"llm_task_celery_{time.strftime('%Y_%m_%d')}")
 
-def fake_llm_stream(user_input: str, refer_data: list = None):
+def fake_llm_stream(user_input: str, refer_data: list = None, history_messages: list = None):
     """LLM的流式输出"""
     llm_normal = llm_config.get_chat_llm(streaming=True)
     
     # 1. 获取基础 System Prompt
     base_system_prompt = AgentPrompt.doubao_service_system_prompt()
-    
-    # 2. 处理引用数据
-    context_str = None
-    if refer_data and len(refer_data) > 0:
-        # 使用 enumerate 获取索引和内容
-        # 过滤掉空内容，避免无效引用
-        valid_refs = [(idx, content) for idx, content in enumerate(refer_data) if content]
-        
-        if valid_refs:
-            context_parts = []
-            for idx, content in valid_refs:
-                # 建议限制每篇引用的长度，防止 Prompt 过长超出 Token 限制
+    logger.info(f"构建基础System Prompt:{base_system_prompt[:20]}")
 
-                context_parts.append(f"参考资料 {idx + 1}:\n{content}\n")
-            
-            context_str = "\n---\n".join(context_parts)
-            
-    # 3. 构建最终 Prompt
-    # 策略：如果有引用数据，将其拼接到 System Prompt 中，明确告知模型这是参考信息
-    if context_str:
-        final_system_prompt = f"{base_system_prompt}\n\n用户提供了以下资料：\n{context_str}"
-    else:
-        final_system_prompt = base_system_prompt
+    messages = [SystemMessage(content=base_system_prompt)]
+    
+    # 2.  构建会话级文章引用状态
+    conversation_state = AgentPrompt.build_conversation_state(refer_data)
+    logger.info(f"构建会话级文章引用状态:{conversation_state[:30]}")
 
-    prompt_tpl = ChatPromptTemplate.from_messages([
-        ("system", final_system_prompt),
-        ("user", "{query}"),
-    ])
+    if conversation_state:
+        messages.append(SystemMessage(content=conversation_state))
+
+    refer_data_status = True
+    # 3. 构建历史上下文
+    if history_messages and len(history_messages) > 0:
+        # 历史对话中用户主动提出的引用文章列表
+        news_detail = NewsDetailOperator()
+        for item in history_messages:
+            logger.info(f"获取用户引用文章列表:{item}")
+            # 数据库该字段存储样式：[ids],null,空
+            if refer_data_status and item.llm_refer_data_id and item.llm_refer_data_id != "null":
+                # 只找最近用户引用文章
+                refer_data_status = False
+                # 返回对象：[NewsDetail]仅查title和对应的content
+                retrieved_article = news_detail.get_news_detail_by_ids(item.llm_refer_data_id)
+                if retrieved_article:
+                    retrieved_articles = AgentPrompt.build_retrieved_context(retrieved_article)
+                    logger.info(f"构建文章引用状态:{retrieved_articles[:30]}")
+                    messages.append(SystemMessage(content=retrieved_articles))
+
+        # 由于查询出来对话历史是最近几条，为倒序，需要按照ID重新排序
+        history_messages.sort(key=lambda x: x.id)
+        for item in history_messages:
+            if item.message_type == 1:
+                messages.append(HumanMessage(content=item.content))
+            elif item.message_type == 2:
+                messages.append(AIMessage(content=item.content))
+            # elif item.message_type == 4:
+            #     messages.append(ToolMessage(content=item.content))
+    # 当前用户对话
+    messages.append(HumanMessage(content=user_input))
     
-    chain = prompt_tpl | llm_normal
-    
-    for chunk in chain.stream({"query": user_input}):
+    for chunk in llm_normal.stream(messages):
         if chunk.content:
             yield chunk.content
 
@@ -82,25 +96,28 @@ def message_to_dict(message: AIMessage) -> dict:
 def run_llm_task(self,task_id:str,ai_msg_id:str,req:dict):
     """
     1、调用LLM流式
-    2、SSE推送（redis）
+    2、WebSocket 推送（redis）
     3、更新mysql
     """
     
     chat_message_operator = ChatMessageOperator()
     chat_session_operator = ChatSessionOperator()
     news_detail = NewsDetailOperator()
-    print(f"会话ID{req['session_id']}")
-    print(req["news_ids"])
     try:
         logger.info(f"LLM处理开始:{req['query']}")
         refer_data = []
-        if req["news_ids"]:
-            for id in req["news_ids"]:
+        if req.get("news_ids"):
+            for id in req.get("news_ids"):
                 news = news_detail.get_news_detail_by_id(id)
+                logger.info(f"用户当前引用的文章{news.title}")
                 refer_data.append(news.content)
 
+        dialog_history = []
+        if req.get("user_id") and req.get("session_id"):
+            dialog_history = chat_message_operator.get_dialog_history(req.get("user_id"),req.get("session_id"),ai_msg_id)
+
         chunks = []
-        for chunk in fake_llm_stream(req['query'],refer_data):
+        for chunk in fake_llm_stream(req.get("query"), refer_data, dialog_history):
             redis_client.append_stream(task_id,chunk)
             chunks.append(chunk)
         

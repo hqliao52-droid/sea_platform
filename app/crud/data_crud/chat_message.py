@@ -18,4 +18,17 @@ class ChatMessageCRUD(BaseCRUD):
     
     def get_chat_message_by_pre_id(self,db:Session,pre_id:int) -> ChatMessage:
         return db.query(ChatMessage).filter(ChatMessage.pre_id == pre_id).first()
+
+    def get_dialog_history(self,db:Session,user_id:int,session_id:int,current_id:int) -> List[ChatMessage]:
+       return db.query(ChatMessage.role,ChatMessage.content,ChatMessage.llm_refer_data,ChatMessage.llm_refer_data_id)\
+        .filter(
+            ChatMessage.id < current_id,
+            ChatMessage.user_id == user_id,
+            ChatMessage.session_id == session_id,
+            ChatMessage.is_deleted == 0,
+            ChatMessage.status == 'done'
+        )\
+        .order_by(ChatMessage.id.desc())\
+        .limit(6)\
+        .all()
     

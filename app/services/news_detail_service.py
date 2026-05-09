@@ -49,11 +49,23 @@ class NewsDetailOperator:
         db = db_session()
         try:
             result = self.news_detail_crud.get_news_detail_by_id(db,id)
-            self.logger.info(f"查询成功:{result}")
+            self.logger.info(f"文章查询成功:{result}")
             return result
         except Exception as e:
             self.logger.error(f"查询失败:{e}")
             raise {"status":500,"news_detail":None}
         
+        finally:
+            db.close()
+
+    def get_news_detail_by_ids(self,ids: list[int]) -> list[NewsDetail]:
+        db = db_session()
+        try:
+            result = self.news_detail_crud.get_news_detail_by_ids(db,ids)
+            self.logger.info(f"按ids查询成功:{result}")
+            return result
+        except Exception as e:
+            self.logger.error(f"查询失败:{e}")
+            raise {"status":500,"news_detail_list":None}
         finally:
             db.close()

@@ -79,4 +79,14 @@ class NewsDetailCRUD(BaseCRUD):
         news_detail = db.query(NewsDetail).filter(NewsDetail.id == news_id).first()
         return news_detail
 
+    def get_news_detail_by_ids(self,db: Session,news_ids: list) -> Dict[str, Any]:
+        """
+        根据ID列表查询新闻
+        :param db: 数据库会话
+        :param news_ids: 新闻ID列表
+        :return: 新闻详情列表
+        """
+        news_details = db.query(NewsDetail.title,NewsDetail.content).filter(NewsDetail.id.in_(news_ids)).all()
+        return news_details
+
 
