@@ -79,7 +79,7 @@ async def insert_message(req:ChatMsg):
 
     # 发送celery任务
     req_dict = req.model_dump() 
-    run_llm_task.delay(task_id, ai_msg.id, req_dict)
+    run_llm_task.delay(task_id, ai_msg.id,user_msg.id, req_dict)
 
     return Result.success(data={"task_id":task_id,"ai_msg_id":ai_msg.id})
 

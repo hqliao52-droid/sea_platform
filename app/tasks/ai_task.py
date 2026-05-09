@@ -94,7 +94,7 @@ def message_to_dict(message: AIMessage) -> dict:
     }
 
 @celery_app.task(bind=True, name="ai.run_llm_task")
-def run_llm_task(self,task_id:str,ai_msg_id:str,req:dict):
+def run_llm_task(self,task_id:str,ai_msg_id:str,user_dialog_id,req:dict):
     """
     1、调用LLM流式
     2、WebSocket 推送（redis）
@@ -115,7 +115,7 @@ def run_llm_task(self,task_id:str,ai_msg_id:str,req:dict):
 
         dialog_history = []
         if req.get("user_id") and req.get("session_id"):
-            dialog_history = chat_message_operator.get_dialog_history(req.get("user_id"),req.get("session_id"),ai_msg_id)
+            dialog_history = chat_message_operator.get_dialog_history(req.get("user_id"),req.get("session_id"),user_dialog_id)
 
         chunks = []
         for chunk in fake_llm_stream(req.get("query"), refer_data, dialog_history):

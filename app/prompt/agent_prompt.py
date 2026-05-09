@@ -135,7 +135,7 @@ class AgentPrompt:
 用户 query：“今天的天气怎么样”
 生成标题：今日天气查询
 """
-    def build_conversation_state(article_refs: list) -> str:
+    def build_conversation_state(self,article_refs: list) -> str:
         """
         构建会话级文章引用状态
         """
@@ -153,7 +153,7 @@ class AgentPrompt:
 
         return "\n".join(lines)
 
-    def build_retrieved_context(article_refs: list) -> str:
+    def build_retrieved_context(self,article_refs: list) -> str:
         """
         构建文章上下文，如果本轮对话中用户主动传入了文章列表，就不使用本方法，直接调用 build_conversation_state 即可
         """
