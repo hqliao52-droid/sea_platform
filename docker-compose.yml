@@ -45,6 +45,9 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    volumes:
+      - ./attach:/app/attach
+      - ./logs:/app/logs
 
   mysql:
     image: mysql:8.0
@@ -229,8 +232,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    volumes:
+      - ./attach:/app/attach
+      - ./logs:/app/logs
 
 # 注意：因为使用了宿主机绝对路径，不再需要定义volumes
-volumes:
-  - ./attach:/app/attach
-  - ./logs:/app/logs
