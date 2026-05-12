@@ -1,13 +1,15 @@
-from app.services.rss_service import RssSourceOperator
+# from app.services.rss_service import RssSourceOperator
+from app.services.baidu_rss_service import BaiduRssSourceOperator
 from app.utils.logger import Logger
 from app.core.scheduler import scheduler
 from app.crawler.news_spider import crawl_all_rss_sources
 
-rss_sources = RssSourceOperator()
+# rss_sources = RssSourceOperator()
+baidu_rss_sources = BaiduRssSourceOperator()
 logger = Logger.setup_logger(Logger.set_file_date())
 def spider_rss():
     ## rss源列表
-    rss_list = rss_sources.get_active_rss_sources()
+    rss_list = baidu_rss_sources.get_active_rss_sources()
 
     ## 清空旧任务
     scheduler.remove_all_jobs()
