@@ -20,7 +20,15 @@ from app.config.llm_config import llm_config
 logger = Logger.setup_logger(f"llm_task_celery_{time.strftime('%Y_%m_%d')}")
 
 def fake_llm_stream(user_input: str, refer_data: list = None, history_messages: list = None):
-    """LLM的流式输出"""
+    """LLM的流式输出
+    分层上下文架构：
+        短期上下文（Recent Messages） N轮
+        长期记忆（Conversation Memory Summary） N轮前的记忆
+        用户画像（User Profile） 
+        当前检索内容（RAG Retrieval）
+        工具定义（Tools Schema）
+        运行状态（Workflow State）
+    """
     llm_normal = llm_config.get_chat_llm(streaming=True)
     
     # 1. 获取基础 System Prompt
@@ -37,7 +45,7 @@ def fake_llm_stream(user_input: str, refer_data: list = None, history_messages: 
         messages.append(SystemMessage(content=conversation_state))
 
     refer_data_status = True
-    # 3. 构建历史上下文
+    # 3. 构建历史上下文（短期）
     if history_messages and len(history_messages) > 0:
         # 历史对话中用户主动提出的引用文章列表
         news_detail = NewsDetailOperator()
