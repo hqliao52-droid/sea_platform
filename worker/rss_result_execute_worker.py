@@ -42,10 +42,10 @@ def news_execute(entry, llm_result, llm_json):
 
     try:
         if entry:
-            news.title = entry["title"]
-            news.url = entry["url"]
-            news.source = entry["source"]
-            news.published_at = entry["published_at"]
+            news.title = entry.get("title","")
+            news.url = entry.get("url") or entry.get("link")
+            news.source = entry.get("source","")
+            news.published_at = entry.get("published_at","")
             news.is_policy = 1 if llm_result == "1" else 0
 
 
@@ -74,11 +74,11 @@ def news_execute(entry, llm_result, llm_json):
             
             result = news_operator.insert_news(news)
 
-            if result["status"] == "success":
+            if result.get("status") == "success":
                 logger.info("news表插入成功")
-                article_storage_model.article_name = entry["title"]
-                article_storage_model.origin_input = entry["origin_msg"]
-                article_storage_model.news_id = result["id"]
+                article_storage_model.article_name = entry.get("title","")
+                article_storage_model.origin_input = entry.get("origin_input","")
+                article_storage_model.news_id = result.get("id")
                 article_result = article_storage_service.insert_article(article_storage_model)
             else:
                 logger.error("news表插入失败")
@@ -89,19 +89,19 @@ def news_execute(entry, llm_result, llm_json):
     
         if (llm_result == "1" or llm_result == 1) and result is not None and result["status"] == "success":
             logger.info("需求类数据，详情插入...")
-            news_detail.news_id = result["id"]
-            news_detail.title = entry["title"]
+            news_detail.news_id = result.get("id")
+            news_detail.title = entry.get("title","")
             
             news_detail.authors = entry.get("authors", "")
             news_detail.content = entry.get("content", "")
-            news_detail.url = entry.get("url", "")
+            news_detail.url = entry.get("url") or entry.get("link")
             news_detail.keywords = entry.get("keywords", "")
             news_detail.ai_origin_output = llm_json
             news_detail.summary = entry.get("summary", "")
             news_detail.origin_entry = entry
             news_detail.publiced_at = entry.get("published_at", "")
             
-            full_context = fetch_full_text(entry["url"])
+            full_context = fetch_full_text(entry.get("url") or entry.get("link"))
             news_detail.in_full_page = full_context.get("content") if full_context.get("status") == "success" else None
 
             obj = news_detail_operator.insert_news_detail(news_detail)

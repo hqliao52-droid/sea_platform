@@ -25,5 +25,5 @@ RUN python -m playwright install --with-deps chromium
 # 复制项目代码
 COPY . .
 
-# 启动 FastAPI（2 workers 适合你的 2 核 2G 腾讯云服务器）
+# 启动 FastAPI（2 workers 适配原因： 2 核 2G 腾讯云服务器）
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
