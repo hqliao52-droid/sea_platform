@@ -64,7 +64,7 @@ class FileUtils:
     def get_android_download_url() -> str:
         """获取 Android APK 下载地址"""
         # return f"{file_config.FILE_HOST}/attach/apps/{file_config.ANDROID_APK_NAME}"
-        return "https://gitee.com/liao-hongqiang/sp/releases/download/1.0.0/sea_platform_v1.0.0.apk"
+        return "https://gitee.com/centPinking/sp/releases/download/1.0.0/sea_platform_v1.0.0.apk"
     
     @staticmethod
     def get_ios_download_url() -> str:
