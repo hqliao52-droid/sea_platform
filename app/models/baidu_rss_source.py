@@ -10,14 +10,7 @@ class BaiduRssSource(Base):
         'mysql_row_format': 'DYNAMIC'
     }
 
-    id = Column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-        nullable=False,
-        unsigned=True,
-        comment="主键ID"
-    )
+    id = Column(Integer, primary_key=True, autoincrement=True, mysql_unsigned=True)
     name = Column(
         String(255),
         nullable=True,
