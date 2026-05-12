@@ -14,7 +14,7 @@ async def upload_file(file: UploadFile = File(...)):
 @router.get("/download/app/latest")
 async def get_app_download_url():
     """
-    返回最新 Android APK 下载地址（JSON）
+    返回最新 APK 下载地址（JSON）
     """
     android_file = None
     ios = None
