@@ -1,9 +1,9 @@
-# from fastapi import APIRouter
-# from app.utils.logger import Logger
-# import threading
+from fastapi import APIRouter
+from app.utils.logger import Logger
+import threading
 
-# scheduler_task = APIRouter()
-# logger = Logger.setup_logger(Logger.set_file_date())
+scheduler_task = APIRouter()
+logger = Logger.setup_logger(Logger.set_file_date())
 
 # @scheduler_task.on_event("startup")
 # def startup():
