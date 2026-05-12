@@ -17,6 +17,7 @@ class FileConfig:
     OTHER_DIR = ATTACH_DIR / "others"
     APP_DIR = ATTACH_DIR / "apps"
     ANDROID_APK_NAME = ATTACH_DIR / "sea_platform_latest.apk"
+    IOS_APK_NAME = None
 
     # 访问host(生产环境需改为nginx域名)
     FILE_HOST = f"http://{settings.SERVER_HOST}:{settings.SERVER_PORT}"

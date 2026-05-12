@@ -18,3 +18,8 @@ class FileService:
     def get_android_download_url(cls) -> str:
         """获取 Android 下载链接"""
         return FileUtils.get_android_download_url()
+    
+    @classmethod
+    def get_ios_download_url(cls) -> str:
+        """获取 iOS 下载链接"""
+        return FileUtils.get_ios_download_url()
