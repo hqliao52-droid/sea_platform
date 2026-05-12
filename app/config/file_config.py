@@ -15,6 +15,8 @@ class FileConfig:
     VIDEO_DIR = ATTACH_DIR / "videos"
     AUDIO_DIR = ATTACH_DIR / "audios"
     OTHER_DIR = ATTACH_DIR / "others"
+    APP_DIR = ATTACH_DIR / "apps"
+    ANDROID_APK_NAME = ATTACH_DIR / "sea_platform_latest.apk"
 
     # 访问host(生产环境需改为nginx域名)
     FILE_HOST = f"http://{settings.SERVER_HOST}:{settings.SERVER_PORT}"

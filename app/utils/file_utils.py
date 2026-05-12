@@ -19,6 +19,8 @@ class FileUtils:
             return "audios"
         elif ext in ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx","txt"]:
             return "docs"
+        elif ext in ["apk","ipa"]:
+            return "apps"
         else:
             return "others"
         
@@ -57,3 +59,8 @@ class FileUtils:
         url = f"{file_config.FILE_HOST}/{relative_path}"
 
         return url
+    
+    @staticmethod
+    def get_android_download_url() -> str:
+        """获取 Android APK 下载地址"""
+        return f"{file_config.FILE_HOST}/attach/apps/{file_config.ANDROID_APK_NAME}"
