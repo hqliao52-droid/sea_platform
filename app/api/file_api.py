@@ -1,5 +1,4 @@
 from fastapi import APIRouter,UploadFile,File
-from fastapi.responses import RedirectResponse
 from app.services.file_service import FileService
 from app.utils.result_response import Result
 from app.utils.result_response import ResultCode
@@ -22,7 +21,7 @@ async def get_app_download_url():
         android_file = FileService.get_android_download_url()
         ios = FileService.get_ios_download_url()
     except Exception as e:
-        return Result.error(ResultCode.FILE_NOT_FOUND, "文件未找到")
+        return Result.error(ResultCode.FILE_NOT_FOUND, msg=f"文件未找到{str(e)}")
     android_url = {
         "platform": "android",
         "version": "latest",
