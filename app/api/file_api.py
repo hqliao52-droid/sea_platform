@@ -16,12 +16,17 @@ async def get_app_download_url():
     返回最新 APK 下载地址（JSON）
     """
     android_file = None
-    ios = None
     try:
         android_file = FileService.get_android_download_url()
+
+    except Exception as e:
+        return Result.error(ResultCode.FILE_NOT_FOUND, msg=f"Android安装部未找到{str(e)}")
+    
+    ios = None
+    try:
         ios = FileService.get_ios_download_url()
     except Exception as e:
-        return Result.error(ResultCode.FILE_NOT_FOUND, msg=f"文件未找到{str(e)}")
+        return Result.error(ResultCode.FILE_NOT_FOUND, msg=f"IOS安装包未找到{str(e)}")
     android_url = {
         "platform": "android",
         "version": "latest",
