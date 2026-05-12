@@ -36,33 +36,28 @@ class BaiduRssSource(Base):
         SmallInteger,
         nullable=True,
         default=1,
-        unsigned=True,
         comment="是否为子类rss"
     )
     parent_id = Column(
         SmallInteger,
         nullable=True,
-        unsigned=True,
         comment="父节点ID"
     )
     is_active = Column(
         SmallInteger,
         nullable=True,
         default=1,
-        unsigned=True,
         comment="是否可用 1:可用 0:不可用"
     )
     is_api_key = Column(
         SmallInteger,
         nullable=True,
         default=0,
-        unsigned=True,
         comment="是否需要API秘钥 1：是 0：否"
     )
     update_rate = Column(
         Integer,
         nullable=True,
-        unsigned=True,
         comment="更新频率"
     )
     hot_rate = Column(
