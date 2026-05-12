@@ -74,6 +74,7 @@ loguru==0.7.2
 tqdm==4.66.5
 # RSS -  RFC 2822 时间处理
 python-dateutil
+qrcode[pil]
 
 # =========================
 # Data Processing

@@ -69,3 +69,17 @@ class FileUtils:
     def get_ios_download_url() -> str:
         """获取 ios APK 下载地址"""
         return f"{file_config.FILE_HOST}/attach/apps/{file_config.IOS_APK_NAME}"
+    
+    @staticmethod
+    def get_android_rqcode() -> str:
+        """获取 APP 二维码"""
+        return (
+            f"{file_config.FILE_HOST}/attach/images/android_qrcode.png"
+        )
+    
+    @staticmethod
+    def get_ios_rqcode() -> str:
+        """获取 APP 二维码"""
+        return (
+            f"{file_config.FILE_HOST}/attach/images/ios_qrcode.png"
+        )
