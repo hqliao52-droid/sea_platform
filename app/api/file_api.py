@@ -2,7 +2,7 @@ from fastapi import APIRouter,UploadFile,File
 from fastapi.responses import RedirectResponse
 from app.services.file_service import FileService
 from app.utils.result_response import Result
-# from app.utils.result_response import ResultCode
+from app.utils.result_response import ResultCode
 
 router = APIRouter()
 
@@ -15,16 +15,18 @@ async def upload_file(file: UploadFile = File(...)):
 async def get_app_download_url():
     """
     返回最新 Android APK 下载地址（JSON）
-    
-    返回示例：
-    {
+    """
+    file = None
+    try:
+        file = FileService.get_android_download_url()
+    except Exception as e:
+        return Result.error(ResultCode.FILE_NOT_FOUND, "文件未找到")
+    url = {
         "platform": "android",
         "version": "latest",
-        "url": "https://your-domain.com/attach/apps/sea_platform_latest.apk"
+        "url": file
     }
-    """
-    return FileService.get_android_download_url()
-
+    return Result.success(url)
 
 # @router.get("/download/android")
 # async def download_android():

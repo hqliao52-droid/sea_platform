@@ -20,6 +20,8 @@ class ResultCode(Enum):
     PARAM_PASSWORD_ERROR = ("5005", "原密码输入错误")
     USER_REGISTER_ERROR = ("5006", "用户注册失败,请稍后重试...")
 
+    FILE_NOT_FOUND = ("5007", "文件不存在")
+
     MSG_NOT_EXIST_ERROR = ("6001", "消息不存在")
 
 
