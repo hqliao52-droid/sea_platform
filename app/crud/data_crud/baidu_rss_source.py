@@ -8,4 +8,4 @@ class BaiduRssSourceCRUD(BaseCRUD):
         super().__init__(BaiduRssSource)
 
     def get_active_rss_sources(self,db:Session) -> list[BaiduRssSource]:
-        return db.query(BaiduRssSource).filter(BaiduRssSource.is_active==1).all()
+        return db.query(BaiduRssSource).filter(BaiduRssSource.is_active==0).all()
