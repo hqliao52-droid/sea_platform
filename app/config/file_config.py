@@ -16,7 +16,7 @@ class FileConfig:
     AUDIO_DIR = ATTACH_DIR / "audios"
     OTHER_DIR = ATTACH_DIR / "others"
     APP_DIR = ATTACH_DIR / "apps"
-    ANDROID_APK_NAME = ATTACH_DIR / "sea_platform_latest.apk"
+    ANDROID_APK_NAME = "sea_platform_latest.apk"
     IOS_APK_NAME = None
 
     # 访问host(生产环境需改为nginx域名)

@@ -63,7 +63,10 @@ class FileUtils:
     @staticmethod
     def get_android_download_url() -> str:
         """获取 Android APK 下载地址"""
-        return f"{file_config.FILE_HOST}/attach/apps/{file_config.ANDROID_APK_NAME}"
+        return (
+        f"{file_config.FILE_HOST}"
+        f"/attach/apps/{file_config.ANDROID_APK_NAME}"
+    )
     
     @staticmethod
     def get_ios_download_url() -> str:
