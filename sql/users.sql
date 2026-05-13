@@ -39,9 +39,4 @@ CREATE TABLE `users`  (
   INDEX `idx_created_at`(`created_at` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户表' ROW_FORMAT = Dynamic;
 
--- ----------------------------
--- Records of users
--- ----------------------------
-INSERT INTO `users` VALUES (1, 'hq', 'hq_liao@126.com', '123456', 1, 1, '2025-12-22 11:01:10', NULL);
-
 SET FOREIGN_KEY_CHECKS = 1;
