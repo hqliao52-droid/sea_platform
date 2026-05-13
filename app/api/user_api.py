@@ -95,27 +95,46 @@ def update_user_info(user: UserUpdateSchema,
         return Result.error(ResultCode.SYSTEM_ERROR)
 
 @router.put("/update_password")
-def update_password(user: UserUpdateSchema,
-                    user_info = Depends(get_current_user)):
+def update_password(
+        user: UserUpdateSchema,
+        user_info=Depends(get_current_user),
+        authorization: str = Header(None)
+):
     user_service = UserService()
 
-    get_user = user_service.get_user_by_username(user_info.username)
+    # 查询最新用户
+    stored_user = user_service.get_user_by_id(user_info.id)
 
-    print(f"用户信息：{user}")
-
-    if get_user["status"] == "fail":
+    if not stored_user:
         return Result.error(ResultCode.USER_NOT_EXIST_ERROR)
 
-    stored_user = get_user["user"]
-    if not verify_password(user.old_password, stored_user.password):
+    # 校验旧密码
+    if not verify_password(
+            user.old_password,
+            stored_user.password
+    ):
         return Result.error(ResultCode.USER_ACCOUNT_ERROR)
-    else:
-        hashed_pwd = hash_password(user.new_password)
-        result = user_service.update_user_password(user_info.id,hashed_pwd)
-        if result:
-            return Result.success(msg="密码修改成功")
-        else:
-            return Result.error(ResultCode.SYSTEM_ERROR)
+
+    # 新密码加密
+    hashed_pwd = hash_password(user.new_password)
+
+    # 更新数据库密码
+    result = user_service.update_user_password(
+        user_info.id,
+        hashed_pwd
+    )
+
+    if not result:
+        return Result.error(ResultCode.SYSTEM_ERROR)
+
+    '''
+    密码修改成功后，将当前Token加入黑名单
+    '''
+    if authorization:
+        token = authorization.replace("Bearer ", "")
+        redis.add_black_list_token(token)
+
+    return Result.success(msg="密码修改成功，请重新登录")
 
 
 @router.post("/logout")
