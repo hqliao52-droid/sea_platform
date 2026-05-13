@@ -4,8 +4,8 @@ from app.services.news_service import NewsOperator
 from app.schemas.news.new_schema import NewsSchema
 from app.schemas.news_detail.news_detail_response_schema import NewsDetailResponse
 from app.utils.logger import Logger
-# from app.services.rss_service import RssSourceOperator
-from app.services.baidu_rss_service import BaiduRssSourceOperator
+from app.services.rss_service import RssSourceOperator
+# from app.services.baidu_rss_service import BaiduRssSourceOperator
 
 router = APIRouter()
 logger = Logger.setup_logger(Logger.set_file_date())
@@ -21,7 +21,7 @@ def get_news(
     service_data = service.get_pages_news(page, page_size)
     logger.info("请求数据：",service_data)
     resp = []
-    operator = BaiduRssSourceOperator()
+    operator = RssSourceOperator()
     if service_data["status"] == 200:
         for item in service_data["news_list"]:
             data_schema = NewsSchema.parse_obj(item)
