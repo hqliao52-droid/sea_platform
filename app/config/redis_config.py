@@ -33,7 +33,7 @@ class RedisConfig:
         key = f"stream:{task_id}"
         return self.client.get(key)
     
-    def init_black_list_token(self, token: str):
+    def add_black_list_token(self, token: str):
         """
         将 JWT Token 加入 Redis 黑名单
 
