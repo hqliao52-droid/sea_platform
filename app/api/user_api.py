@@ -99,14 +99,14 @@ def update_password(user: UserUpdateSchema,
                     user_info = Depends(get_current_user)):
     user_service = UserService()
 
-    user = user_service.get_user_by_username(user_info.username)
+    get_user = user_service.get_user_by_username(user_info.username)
 
     print(f"用户信息：{user}")
 
-    if user["status"] == "fail":
+    if get_user["status"] == "fail":
         return Result.error(ResultCode.USER_NOT_EXIST_ERROR)
 
-    stored_user = user_info["user"]
+    stored_user = get_user["user"]
     if not verify_password(user.old_password, stored_user.password):
         return Result.error(ResultCode.USER_ACCOUNT_ERROR)
     else:
