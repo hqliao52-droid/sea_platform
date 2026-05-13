@@ -25,6 +25,10 @@ class BaiduRssSourceOperator:
         db = db_session()
         try:
             result = self.baidu_rss_source_curd.get_by_url(db,url)
+            self.logger.info(f"获取URL对应的RSS源成功: {result}")
+            if result is None:
+                self.logger.warning(f"未找到URL对应的RSS源: {url}")
+                return None
             return BaiduRssSourceSchema.from_orm(result)
         except Exception as e:
             self.logger.error(f"获取百度RSS源详情失败: {e}")
