@@ -44,3 +44,14 @@ class RssSourceOperator:
             raise e
         finally:
             db.close()
+    
+    def get_by_id(self,id:int)-> RssSource:
+        """根据id获取rss源详情"""
+        db = db_session()
+        try:
+            result = self.rss_source_crud.get(db,id)
+            return RssSchema.from_orm(result)
+        except Exception as e:
+            raise e
+        finally:
+            db.close()
