@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.staticfiles import StaticFiles
+
 from app.config.settings import settings
 from app.api.news_api import router as news_router
 from app.api.rss_api import router as rss_router
