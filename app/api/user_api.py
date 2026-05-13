@@ -95,8 +95,7 @@ def update_user_info(user: UserUpdateSchema,
         return Result.error(ResultCode.SYSTEM_ERROR)
 
 @router.put("/update_password")
-def update_password(old_password: str = Body(..., embed=True),
-                    new_password: str = Body(..., embed=True),
+def update_password(user: UserUpdateSchema,
                     user_info = Depends(get_current_user)):
     user_service = UserService()
 
@@ -108,10 +107,10 @@ def update_password(old_password: str = Body(..., embed=True),
         return Result.error(ResultCode.USER_NOT_EXIST_ERROR)
 
     stored_user = user_info["user"]
-    if not verify_password(old_password, stored_user.password):
+    if not verify_password(user.old_password, stored_user.password):
         return Result.error(ResultCode.USER_ACCOUNT_ERROR)
     else:
-        hashed_pwd = hash_password(new_password)
+        hashed_pwd = hash_password(user.new_password)
         result = user_service.update_user_password(user_info.id,hashed_pwd)
         if result:
             return Result.success(msg="密码修改成功")

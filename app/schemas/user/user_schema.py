@@ -24,7 +24,8 @@ class UserSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class UserUpdateSchema(BaseModel):
-    password: Optional[str]  = None
+    old_password: Optional[str]  = None
+    new_password: Optional[str]  = None
     
     nickname: Optional[str]  = None
     phone: Optional[str]  = None
