@@ -35,6 +35,21 @@ class UserService:
             self.logger.error("查询用户失败:%s",str(e))
         finally:
             db.close()
+    
+    def update_user_password(self,id:int,new_password:str):
+        db = db_session()
+        try:
+            self.logger.info("更新用户密码:%s",id)
+            updated_id = self.user_crud.update(db,id,{"password":new_password})
+            if updated_id:
+                return True
+            else:
+                return False
+        except Exception as e:
+            self.logger.error("更新用户密码失败:%s",str(e))
+        finally:
+            db.close()
+
 
     def get_user_by_id(self,id:int):
         db = db_session()

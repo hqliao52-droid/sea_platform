@@ -94,6 +94,31 @@ def update_user_info(user: UserUpdateSchema,
     else:
         return Result.error(ResultCode.SYSTEM_ERROR)
 
+@router.put("/update_password")
+def update_password(old_password: str = Body(..., embed=True),
+                    new_password: str = Body(..., embed=True),
+                    user_info = Depends(get_current_user)):
+    user_service = UserService()
+
+    user = user_service.get_user_by_username(user_info.username)
+
+    print(f"用户信息：{user}")
+
+    if user["status"] == "fail":
+        return Result.error(ResultCode.USER_NOT_EXIST_ERROR)
+
+    stored_user = user_info["user"]
+    if not verify_password(old_password, stored_user.password):
+        return Result.error(ResultCode.USER_ACCOUNT_ERROR)
+    else:
+        hashed_pwd = hash_password(new_password)
+        result = user_service.update_user_password(user_info.id,hashed_pwd)
+        if result:
+            return Result.success(msg="密码修改成功")
+        else:
+            return Result.error(ResultCode.SYSTEM_ERROR)
+
+
 @router.post("/logout")
 def logout(authorization: str = Header(None)):
     token = authorization.replace("Bearer ", "")
