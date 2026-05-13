@@ -7,7 +7,8 @@ from app.schemas.news_detail.news_detail_response_schema import NewsDetailRespon
 from app.schemas.news_detail.news_detail_schema import NewsDetailsSchema
 from app.schemas.news_detail.news_detail_page_resp import NewsDetailsPageSchema
 from app.utils.logger import Logger
-from app.services.rss_service import RssSourceOperator
+# from app.services.rss_service import RssSourceOperator
+from app.services.baidu_rss_service import BaiduRssSourceOperator
 
 router = APIRouter()
 logger = Logger.setup_logger(Logger.set_file_date())
@@ -23,7 +24,7 @@ def get_news_detail(
     logger.info(f"收到请求参数: page={page}, page_size={page_size}, category_id={category_id}")
     news_detail_list = detail_service.get_pages_news(page, page_size, category_id)
 
-    rss_service = RssSourceOperator()
+    rss_service = BaiduRssSourceOperator()
     resp = []
 
     if news_detail_list["status"] == 200:

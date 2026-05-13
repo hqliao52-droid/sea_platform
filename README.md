@@ -78,3 +78,11 @@ sea_ai_platform
         docker compose up --build （生产环境）
         docker-compose -f docker-dev-compose.yml up --build （开发环境）
 
+        启动流程：
+            首次启动：
+                docker compose build
+            以后：
+                docker compose up
+            如果改动了代码：
+                docker compose up --build api 或者 docker compose build api
+
