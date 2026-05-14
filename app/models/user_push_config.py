@@ -1,4 +1,10 @@
-from sqlalchemy import Column, Integer, String, DateTime, DECIMAL, SmallInteger, ForeignKey, Index
+from sqlalchemy import (
+    Column,
+    Integer,
+    DateTime,
+    SmallInteger,
+    Index,
+)
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.config.mysql_config import Base
@@ -18,8 +24,18 @@ class UserPushConfigModel(Base):
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, comment='更新时间')
 
     # 定义关系 (可选，方便后续查询关联数据)
-    channels = relationship("UserPushNotifyChannelModel", back_populates="config")
-    weights = relationship("UserPushCategoryWeightModel", back_populates="config")
+    channels = relationship(
+        "UserPushNotifyChannelModel",
+        back_populates="config",
+        cascade="all, delete-orphan",
+        lazy="select"
+    )
+    weights = relationship(
+        "UserPushCategoryWeightModel",
+        back_populates="config",
+        cascade="all, delete-orphan",
+        lazy="select"
+    )
 
     __table_args__ = (
         Index('idx_is_enabled', 'is_enabled'),

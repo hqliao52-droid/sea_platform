@@ -15,7 +15,7 @@ router = APIRouter()
 redis = RedisConfig()
 
 @router.post("/login")
-def login(
+async def login(
     username: str = Body(..., embed=True),
     password: str = Body(..., embed=True),
     request: Request = None
@@ -53,7 +53,7 @@ def login(
                                 "userInfo":user_response})
 
 @router.post("/register")
-def register(user: UserSchema,
+async def register(user: UserSchema,
              request: Request = None):
     user_service = UserService()
     user_info = user_service.get_user_by_username(user.username)
@@ -82,7 +82,7 @@ def register(user: UserSchema,
         return Result.error(ResultCode.USER_REGISTER_ERROR)
 
 @router.put("/update_info",response_model=Result[UserResponseSchema])
-def update_user_info(user: UserUpdateSchema,
+async def update_user_info(user: UserUpdateSchema,
             user_info = Depends(get_current_user)):
     user_service = UserService()
 
@@ -95,7 +95,7 @@ def update_user_info(user: UserUpdateSchema,
         return Result.error(ResultCode.SYSTEM_ERROR)
 
 @router.put("/update_password")
-def update_password(
+async def update_password(
         user: UserUpdateSchema,
         user_info=Depends(get_current_user),
         authorization: str = Header(None)
@@ -138,7 +138,7 @@ def update_password(
 
 
 @router.post("/logout")
-def logout(authorization: str = Header(None)):
+async def logout(authorization: str = Header(None)):
     token = authorization.replace("Bearer ", "")
     redis.init_black_list_token(token)
     return Result.success()

@@ -1,7 +1,8 @@
 
 from app.config.mysql_config import Base
-from sqlalchemy import Column, Integer, DateTime, ForeignKey, Index
+from sqlalchemy import Column, Integer, DateTime, ForeignKey, Index, SmallInteger,String
 from datetime import datetime
+from sqlalchemy.orm import relationship
 
 class UserPushNotifyChannelModel(Base):
     """
@@ -16,6 +17,14 @@ class UserPushNotifyChannelModel(Base):
     is_enabled = Column(SmallInteger, nullable=False, default=1, comment='是否启用')
     priority = Column(Integer, nullable=False, default=1, comment='优先级 1~5  1：最高优先级  5：最低优先级')
     created_at = Column(DateTime, default=datetime.now, comment='创建时间')
+
+    '''
+    回到父对象
+    '''
+    config = relationship(
+        "UserPushConfigModel",
+        back_populates="channels"
+    )
 
     __table_args__ = (
         Index('push_config_id', 'push_config_id'),

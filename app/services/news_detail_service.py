@@ -54,7 +54,6 @@ class NewsDetailOperator:
         except Exception as e:
             self.logger.error(f"查询失败:{e}")
             raise {"status":500,"news_detail":None}
-        
         finally:
             db.close()
 

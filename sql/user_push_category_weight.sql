@@ -1,7 +1,7 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : sea_platform
+ Source Server         : sea_prod
  Source Server Type    : MySQL
  Source Server Version : 80046 (8.0.46)
  Source Host           : 106.52.97.98:3306
@@ -11,7 +11,7 @@
  Target Server Version : 80046 (8.0.46)
  File Encoding         : 65001
 
- Date: 13/05/2026 22:08:49
+ Date: 14/05/2026 10:34:13
 */
 
 SET NAMES utf8mb4;
@@ -27,6 +27,7 @@ CREATE TABLE `user_push_category_weight`  (
   `category_id` bigint NOT NULL COMMENT '分类ID',
   `weight` decimal(5, 2) NOT NULL DEFAULT 0.00 COMMENT '分类权重',
   `created_at` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `category_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '分类名称',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_config_category`(`push_config_id` ASC, `category_id` ASC) USING BTREE,
   CONSTRAINT `user_push_category_weight_ibfk_1` FOREIGN KEY (`push_config_id`) REFERENCES `user_push_config` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
