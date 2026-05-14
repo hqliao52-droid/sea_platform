@@ -13,6 +13,7 @@ from app.api.user_api import router as user_router
 from app.api.file_api import router as file_router
 from app.api.chat_session_api import chat_session_router
 from app.api.chat_message_api import chat_message_router
+from app.api.user_config_api import router as user_config_router
 
 app = FastAPI(title=settings.APP_NAME,docs_url=None)
 
@@ -24,6 +25,7 @@ app.include_router(user_router, prefix="/user", tags=["user"])
 app.include_router(file_router, prefix="/file",tags=["文件接口"])
 app.include_router(chat_session_router, prefix="/session",tags=["会话接口"])
 app.include_router(chat_message_router, prefix="/chatMessage",tags=["用户消息接口"])
+app.include_router(user_config_router, prefix="/userConfig",tags=["用户配置接口"])
 
 app.include_router(scheduler_task, tags=["定时任务"])
 
