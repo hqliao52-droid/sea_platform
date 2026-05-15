@@ -31,6 +31,7 @@ async def insert_config(config: UserPushConfigSchema, user_info=Depends(get_curr
         return Result.error(result_code=ResultCode.TOKEN_INVALID_ERROR, msg="未登录")
     
     service = UserPushConfigService()
+    config.user_id = user_info.id
     config_model = service.insert(config)
     try:
         response_data = UserPushConfigResponseSchema.model_validate(config_model)
@@ -50,6 +51,7 @@ async def update_config(config: UserPushConfigSchema, user_info=Depends(get_curr
         return Result.error(result_code=ResultCode.TOKEN_INVALID_ERROR, msg="未登录")
     
     service = UserPushConfigService()
+    config.user_id = user_info.id
     config_model = service.update(config)
     try:
         response_data = UserPushConfigResponseSchema.model_validate(config_model)
