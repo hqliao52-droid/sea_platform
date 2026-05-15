@@ -19,8 +19,7 @@ async def get_config(user_info=Depends(get_current_user)):
         return Result.success(data=None, msg="暂无配置，请先创建")
     
     try:
-        response_data = UserPushConfigSchema.model_validate(config_model)
-        return Result.success(data=response_data)
+        return Result.success(data=config_model)
     except Exception as e:
         # 如果映射失败（通常是因为 Schema 字段和 Model 属性名不匹配），捕获异常
         return Result.error(result_code=ResultCode.SYSTEM_ERROR, msg=f"数据格式化失败: {str(e)}")
@@ -32,9 +31,10 @@ async def insert_config(config: UserPushConfigSchema, user_info=Depends(get_curr
     
     service = UserPushConfigService()
     config.user_id = user_info.id
-    config_model = service.insert(config)
     try:
-        response_data = UserPushConfigResponseSchema.model_validate(config_model)
+        config_model = service.insert(config)
+
+        response_data = Result.success(data = config_model)
         return Result.success(data=response_data)
     except ValueError as e:
         # 如果映射失败（通常是因为 Schema 字段和 Model 属性名不匹配），捕获异常
@@ -52,10 +52,9 @@ async def update_config(config: UserPushConfigSchema, user_info=Depends(get_curr
     
     service = UserPushConfigService()
     config.user_id = user_info.id
-    config_model = service.update(config)
     try:
-        response_data = UserPushConfigResponseSchema.model_validate(config_model)
-        return Result.success(data=response_data)
+        config_model = service.update_by_user_id(config)
+        return Result.success(data=config_model)
     except Exception as e:
         # 如果映射失败（通常是因为 Schema 字段和 Model 属性名
         return Result.error(result_code=ResultCode.SYSTEM_ERROR, msg=f"数据格式化失败: {str(e)}")
