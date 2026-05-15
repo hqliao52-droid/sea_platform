@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Request,Body,Header,Depends
-from app.utils.jwt import create_access_token,hash_password,verify_password
+from fastapi import APIRouter, Depends
 from app.utils.result_response import Result
 from app.utils.result_response import ResultCode
 from app.schemas.user_push_config.user_push_config_schema import UserPushConfigSchema
@@ -36,9 +35,14 @@ async def insert_config(config: UserPushConfigSchema, user_info=Depends(get_curr
     try:
         response_data = UserPushConfigSchema.model_validate(config_model)
         return Result.success(data=response_data)
+    except ValueError as e:
+        # 如果映射失败（通常是因为 Schema 字段和 Model 属性名不匹配），捕获异常
+        error_msg = Result.format_validation_error(e)
+        return Result.error(result_code=ResultCode.SYSTEM_ERROR, msg=f"数据验证失败:  {error_msg}")
     except Exception as e:
         # 如果映射失败（通常是因为 Schema 字段和 Model 属性名不匹配），捕获异常
         return Result.error(result_code=ResultCode.SYSTEM_ERROR, msg=f"数据格式化失败: {str(e)}")
+    
 
 @router.put("/update_config", response_model=Result[UserPushConfigSchema])
 async def update_config(config: UserPushConfigSchema, user_info=Depends(get_current_user)):

@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import TypeVar, Generic, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel,ValidationError
 
 T = TypeVar("T")
 
@@ -57,3 +57,23 @@ class Result(BaseModel, Generic[T]):
             msg=msg or result_code.msg,
             data=None,
         )
+    
+    @staticmethod
+    def format_validation_error(e: ValidationError) -> str:
+        """格式化 Pydantic 验证错误为可读字符串"""
+        errors = []
+        for error in e.errors():
+            field_path = " -> ".join(str(loc) for loc in error["loc"])
+            error_type = error["type"]
+            error_msg = error["msg"]
+            
+            # 添加更多上下文
+            if "missing" in error_type:
+                errors.append(f"缺少必需字段: {field_path}")
+            elif "type_error" in error_type:
+                expected = error.get("ctx", {}).get("expected", "unknown")
+                errors.append(f"字段 {field_path} 类型错误，期望 {expected}")
+            else:
+                errors.append(f"字段 {field_path}: {error_msg}")
+        
+        return "; ".join(errors)
