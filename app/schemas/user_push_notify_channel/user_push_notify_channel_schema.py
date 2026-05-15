@@ -9,6 +9,6 @@ class UserPushNotifyChannelSchema(BaseModel):
     id: int = Field(None, description="id")
     is_enabled: int = Field(..., description="是否启用")
     priority: int = Field()
-    push_config_id: int = Field(..., description="推送配置表ID")
+    # push_config_id: int = Field(..., description="推送配置表ID")
 
     model_config = ConfigDict(from_attributes=True)
