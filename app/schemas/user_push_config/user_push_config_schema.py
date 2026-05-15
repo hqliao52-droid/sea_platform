@@ -42,3 +42,5 @@ class UserPushConfigResponseSchema(BaseModel):
         default_factory=list,
         description="通知渠道列表",
     )
+    class Config(ConfigDict):
+        from_attributes = True

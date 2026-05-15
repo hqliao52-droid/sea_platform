@@ -19,3 +19,4 @@ class UserPushCategoryWeightResponseSchema(BaseModel):
     category_id: int = Field(..., description="分类ID")
     category_name: str = Field(..., description="分类名称")
     weight: int = Field(..., description="分类权重")
+    model_config = ConfigDict(from_attributes=True)

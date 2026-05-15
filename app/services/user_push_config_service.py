@@ -28,11 +28,13 @@ class UserPushConfigService(BaseCRUD):
         try:
             new_config = self.config_crud.insert(db,obj)
             db.commit()
-            db.refresh(new_config)
+            # 插入成功后显式刷新子表的数据
+            db.refresh(new_config, attribute_names=['channels', 'weights'])
             return new_config
         except Exception as e:
             self.logger.error("插入用户推送配置失败:%s",str(e))
             db.rollback()
+            raise e
         finally:
             db.close()
         
@@ -49,7 +51,8 @@ class UserPushConfigService(BaseCRUD):
                 return None
             updated_obj = self.config_crud.update(db, db_obj, obj_in)
             db.commit()
-            db.refresh(updated_obj)
+            # 插入成功后显式刷新子表的数据
+            db.refresh(updated_obj, attribute_names=['channels', 'weights'])
             self.logger.info("用户推送配置更新成功: user_id=%d", user_id)
             return updated_obj
         except Exception as e:
