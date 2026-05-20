@@ -1,5 +1,6 @@
 import redis
 from jose import jwt, JWTError
+from typing import Any
 from app.config.settings import settings
 
 
@@ -16,6 +17,7 @@ class RedisConfig:
         )
         self.initialized = True
 
+    # access_token 处理
     def init_black_list_token(self,token):
         self.client.set(f"blackList:{token}","1",15*24*3600)
     
@@ -23,6 +25,8 @@ class RedisConfig:
         result = self.client.get(f"blackList:{token}")
         return result is not None
     
+
+    # 流式处理
     def append_stream(self,task_id:str,chunk:str):
         """追加流式内容"""
         key = f"stream:{task_id}"
@@ -95,10 +99,52 @@ class RedisConfig:
             "1",
             ex=ttl
         )
-
     def delete_stream(self,task_id:str):
         """删除流式内容"""
         key = f"stream:{task_id}"
         self.client.delete(key)
+
+    # 通用方法处理
+    def set_key(self,key_id: str, value: Any, ttl: int = None) -> bool:
+        """ 设置键值对
+
+        Args：
+            key_id: 键
+            value: 值
+            ttl: 过期时间（秒），默认 None
+        Returns：
+            bool: 设置成功返回 True，否则返回 False 
+        """
+        return self.client.set(key_id, value, ex=ttl) is True
+    
+    def get_key(self,key_id: str) -> Any:
+        """ 获取键值对
+
+        Args：
+            key_id: 键
+        Returns：
+            Any: 键对应的值
+        """
+        return self.client.get(key_id)
+    
+    def delete_key(self,key_id: str) -> bool:
+        """ 删除键值对
+
+        Args：
+            key_id: 键
+        Returns：
+            bool: 删除成功返回 True，否则返回 False
+        """
+        return bool(self.client.delete(key_id))
+    
+    def key_exists(self,key_id: str) -> bool:
+        """ 判断键是否存在
+
+        Args：
+            key_id: 键
+        Returns：
+            bool: 键存在返回 True，否则返回 False
+        """
+        return self.client.exists(key_id) > 0
 
 redis_client = RedisConfig()

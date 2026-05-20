@@ -58,6 +58,13 @@ class Settings(BaseSettings):
 
     LOG_DIR: str = "logs"
 
+    '''邮箱配置 SMTP配置'''
+    SMTP_HOST: str = "smtp.126.com"
+    SMTP_PORT: int = 465
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = ""
+
 
 '''settings = Settings() 实例化
     step:
