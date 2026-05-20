@@ -4,7 +4,7 @@ from typing import Optional
 
 class UserPushCategoryWeightSchema(BaseModel):
     id: int = Field(None, description="主键ID")
-    push_config_id: int = Field(..., description="推送表ID")
+    # push_config_id: int = Field(..., description="推送表ID")
     created_at: Optional[datetime] = Field(None, description="创建时间")
     category_id: int = Field(..., description="分类ID")
     category_name: str = Field(..., description="分类名称")
@@ -19,3 +19,4 @@ class UserPushCategoryWeightResponseSchema(BaseModel):
     category_id: int = Field(..., description="分类ID")
     category_name: str = Field(..., description="分类名称")
     weight: int = Field(..., description="分类权重")
+    model_config = ConfigDict(from_attributes=True)
