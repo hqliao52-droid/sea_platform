@@ -1,29 +1,24 @@
-# 使用 slim 版本减小镜像体积
 FROM python:3.10-slim
 
 WORKDIR /app
 
-# 安装基础工具（Playwright 的系统依赖会由 --with-deps 自动安装）
+# 这一层很少变化
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件
+# 【关键】这一层只有在 requirements.txt 变化时才重新安装
 COPY requirements.txt .
-
-# 安装 Python 依赖（使用清华镜像）
 RUN pip install --no-cache-dir \
     -i https://pypi.tuna.tsinghua.edu.cn/simple \
-    --default-timeout=1000 \
     -r requirements.txt
 
-# 安装 Playwright Chromium 浏览器及其系统依赖
-# 如果 requirements.txt 中没有 playwright，这一步会失败
-RUN python -m playwright install --with-deps chromium
+# 【关键】这一层很少重新执行（除非上面的层变化）
+ENV PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright/
+RUN python -m playwright install --with-deps chromium  # 会被缓存！
 
-# 复制项目代码
+# 这一层经常变化
 COPY . .
 
-# 启动 FastAPI（2 workers 适配原因： 2 核 2G 腾讯云服务器）
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
