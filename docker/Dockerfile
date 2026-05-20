@@ -3,7 +3,7 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# 安装基础工具
+# 安装基础工具（Playwright 的系统依赖会由 --with-deps 自动安装）
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
@@ -18,14 +18,12 @@ RUN pip install --no-cache-dir \
     --default-timeout=1000 \
     -r requirements.txt
 
-# 【关键】设置 Playwright 使用国内镜像
-ENV PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright/
-
 # 安装 Playwright Chromium 浏览器及其系统依赖
+# 如果 requirements.txt 中没有 playwright，这一步会失败
 RUN python -m playwright install --with-deps chromium
 
 # 复制项目代码
 COPY . .
 
-# 启动 FastAPI
+# 启动 FastAPI（2 workers 适配原因： 2 核 2G 腾讯云服务器）
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
