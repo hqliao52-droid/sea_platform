@@ -9,6 +9,7 @@ from app.schemas.user.user_response_schema import UserResponseSchema
 from app.models.user_model import UserModel
 from app.config.redis_config import RedisConfig
 from app.core.user_deps import get_current_user
+from datetime import datetime
 
 router = APIRouter()
 
@@ -41,7 +42,7 @@ async def login(
     
     ip = get_real_ip(request)
     if ip:
-        update_data = {"last_login_ip": ip}
+        update_data = {"last_login_ip": ip,"last_login_time": datetime.now()}
         user_service.update_user(user_id,update_data)
         stored_user.last_login_ip = ip
     
