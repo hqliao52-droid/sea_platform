@@ -129,6 +129,7 @@ def run_llm_task(self,task_id:str,ai_msg_id:str,user_dialog_id,req:dict):
     chat_session_operator = ChatSessionOperator()
     news_detail = NewsDetailOperator()
     try:
+        redis_client.append_stream(task_id, "[[STATUS:analyzing]]")
         logger.info(f"LLM处理开始:{req['query']}")
         refer_data = []
         if req.get("news_ids"):
@@ -139,8 +140,10 @@ def run_llm_task(self,task_id:str,ai_msg_id:str,user_dialog_id,req:dict):
 
         dialog_history = []
         if req.get("user_id") and req.get("session_id"):
+            redis_client.append_stream(task_id, "[[STATUS:retrieving]]")
             dialog_history = chat_message_operator.get_dialog_history(req.get("user_id"),req.get("session_id"),user_dialog_id)
 
+        redis_client.append_stream(task_id, "[[STATUS:generating]]")
         chunks = []
         for chunk in fake_llm_stream(req.get("query"), refer_data, dialog_history):
             redis_client.append_stream(task_id,chunk)
