@@ -9,7 +9,7 @@ router = APIRouter()
 async def send_code(reqEmail: EmailRequest,user_info=Depends(get_current_user)):
     user_id = user_info.id
     user_name = user_info.username
-    EmailService.send_verification_code(reqEmail,user_id=user_id,user_name=user_name)
+    EmailService.send_verification_code(reqEmail.email,user_id=user_id,user_name=user_name)
     return Result.success(data="验证码已发送！",msg="验证码已发送！")
 
 @router.post("/verify_code", response_model=Result)
