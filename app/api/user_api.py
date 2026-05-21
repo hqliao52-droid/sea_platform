@@ -39,7 +39,6 @@ async def login(
     user_id = user_info["user"].id
     print(f"用户ID：{user_id}")
         
-    
     ip = get_real_ip(request)
     if ip:
         update_data = {"last_login_ip": ip,"last_login_time": datetime.now()}

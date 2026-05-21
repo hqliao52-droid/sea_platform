@@ -190,7 +190,10 @@ class UserPushConfigCRUD(BaseCRUD):
         #
         #    由于 cascade="all, delete-orphan"：
         #        原子对象会自动标记为 DELETE
+        # 4. 清空旧的分类权重
         db_obj.channels.clear()
+        db_obj.weights.clear()
+        db.flush()
 
         # 3. 重建通知渠道
         for channel_schema in obj_in.channels:
@@ -200,12 +203,7 @@ class UserPushConfigCRUD(BaseCRUD):
                 is_enabled=getattr(channel_schema, "is_enabled", 1),
                 priority=getattr(channel_schema, "priority", 1),
             )
-
             db_obj.channels.append(channel)
-
-        # 4. 清空旧的分类权重
-        db_obj.weights.clear()
-
         # 5. 重建分类权重
         for weight_schema in obj_in.weights:
             weight = UserPushCategoryWeightModel(
