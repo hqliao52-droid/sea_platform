@@ -53,7 +53,7 @@ async def update_config(config: UserPushConfigSchema, user_info=Depends(get_curr
     service = UserPushConfigService()
     config.user_id = user_info.id
     try:
-        config_model = service.update_by_user_id(config)
+        config_model = service.update_by_user_id(user_info.id,config)
         return Result.success(data=config_model)
     except Exception as e:
         # 如果映射失败（通常是因为 Schema 字段和 Model 属性名
