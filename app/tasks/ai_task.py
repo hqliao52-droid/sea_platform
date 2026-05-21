@@ -19,7 +19,7 @@ from app.config.llm_config import llm_config
 
 logger = Logger.setup_logger(f"llm_task_celery_{time.strftime('%Y_%m_%d')}")
 
-def fake_llm_stream(user_input: str, refer_data: list = None, history_messages: list = None):
+def fake_llm_stream(task_id,user_input: str, refer_data: list = None, history_messages: list = None):
     """LLM的流式输出
     分层上下文架构：
         短期上下文（Recent Messages） N轮
@@ -58,6 +58,7 @@ def fake_llm_stream(user_input: str, refer_data: list = None, history_messages: 
                 # 返回对象：[NewsDetail]仅查title和对应的content
                 retrieved_article = news_detail.get_news_detail_by_ids(item.llm_refer_data_id)
                 if retrieved_article:
+                    redis_client.append_stream(task_id, "[[STATUS:reading]]")
                     retrieved_articles = AgentPrompt.build_retrieved_context(retrieved_article)
                     logger.info(f"构建文章引用状态:{retrieved_articles[:30]}")
                     messages.append(SystemMessage(content=retrieved_articles))
@@ -145,7 +146,7 @@ def run_llm_task(self,task_id:str,ai_msg_id:str,user_dialog_id,req:dict):
 
         redis_client.append_stream(task_id, "[[STATUS:generating]]")
         chunks = []
-        for chunk in fake_llm_stream(req.get("query"), refer_data, dialog_history):
+        for chunk in fake_llm_stream(task_id,req.get("query"), refer_data, dialog_history):
             redis_client.append_stream(task_id,chunk)
             chunks.append(chunk)
         
