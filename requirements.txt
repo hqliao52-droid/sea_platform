@@ -75,6 +75,7 @@ tqdm==4.66.5
 # RSS -  RFC 2822 时间处理
 python-dateutil
 qrcode[pil]
+email-validator>=2.0.0
 
 # =========================
 # Data Processing
