@@ -32,7 +32,7 @@ class UserPushConfigResponseSchema(BaseModel):
     max_push_amount: int = Field(None, description="分类名称")
     is_enabled: int =  Field(None, description="分类权重")
     created_at: Optional[datetime] = Field(None, description="创建时间")
-    updated_at: Optional[datetime] = Field()
+    updated_at: Optional[datetime] = Field(None, description="更新时间")
 
     weights: List[UserPushCategoryWeightResponseSchema] = Field(
         default_factory=list,
