@@ -15,10 +15,10 @@ RUN pip install --no-cache-dir \
     -r requirements.txt
 
 # 使用国内镜像下载 Playwright 浏览器
-ENV PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright/
+# ENV PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright/
 
 # 安装 Chromium 浏览器（不自动安装大量系统依赖，速度更快）
-RUN python -m playwright install chromium
+# RUN python -m playwright install chromium
 
 # 复制项目代码（代码变化时只会重新执行这一层及之后的层）
 COPY . .
