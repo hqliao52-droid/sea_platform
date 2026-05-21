@@ -14,10 +14,12 @@ class UserPushConfigSchema(BaseModel):
     updated_at: Optional[datetime] = Field(None, description="更新时间")
 
     weights: List[UserPushCategoryWeightSchema] = Field(
+        None,
         default_factory=list,
         description="分类权重列表",
     )
     channels: List[UserPushNotifyChannelSchema] = Field(
+        None,
         default_factory=list,
         description="通知渠道列表",
     )

@@ -3,11 +3,12 @@ from datetime import datetime
 from typing import Optional
 
 class UserPushNotifyChannelSchema(BaseModel):
-    channel_address: str = Field(..., description="通知地址")
-    channel_type: str = Field(..., description="通知方式")
+    channel_address: str = Field(None, description="通知地址")
+    channel_type: str = Field(None, description="通知方式")
     created_at: Optional[datetime] = Field(None, description="创建时间")
+    updated_at: Optional[datetime] = Field(None, description="上次修改时间")
     id: int = Field(None, description="id")
-    is_enabled: int = Field(..., description="是否启用")
+    is_enabled: int = Field(None, description="是否启用")
     priority: int = Field()
     # push_config_id: int = Field(..., description="推送配置表ID")
 
@@ -17,6 +18,7 @@ class UserPushNotifyChannelResponseSchema(BaseModel):
     channel_address: str = Field(..., description="通知地址")
     channel_type: str = Field(..., description="通知方式")
     created_at: Optional[datetime] = Field(None, description="创建时间")
+    updated_at: Optional[datetime] = Field(None, description="上次修改时间")
     id: int = Field(None, description="id")
     is_enabled: int = Field(..., description="是否启用")
     priority: int = Field()

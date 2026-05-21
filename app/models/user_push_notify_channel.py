@@ -17,6 +17,7 @@ class UserPushNotifyChannelModel(Base):
     is_enabled = Column(SmallInteger, nullable=False, default=1, comment='是否启用')
     priority = Column(Integer, nullable=False, default=1, comment='优先级 1~5  1：最高优先级  5：最低优先级')
     created_at = Column(DateTime, default=datetime.now, comment='创建时间')
+    updated_at = Column(DateTime, default=datetime.now, comment='修改时间')
 
     '''
     回到父对象

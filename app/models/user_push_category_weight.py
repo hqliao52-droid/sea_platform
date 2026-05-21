@@ -15,6 +15,7 @@ class UserPushCategoryWeightModel(Base):
     category_name = Column(String(50), nullable=False, comment='分类名称')
     weight = Column(DECIMAL(5, 2), nullable=False, default=0.00, comment='分类权重')
     created_at = Column(DateTime, default=datetime.now, comment='创建时间')
+    updated_at = Column(DateTime, default=datetime.now, comment='修改时间')
 
     config = relationship(
         "UserPushConfigModel",
