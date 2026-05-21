@@ -28,5 +28,5 @@ class EmailService:
         if stored_code != code:
             return False
         
-        redis_client.delete_key(key)
+        # redis_client.delete_key(key)
         return True
