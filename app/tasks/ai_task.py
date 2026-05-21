@@ -19,7 +19,7 @@ from app.config.llm_config import llm_config
 
 logger = Logger.setup_logger(f"llm_task_celery_{time.strftime('%Y_%m_%d')}")
 
-def fake_llm_stream(task_id,user_input: str, refer_data: list = None, history_messages: list = None):
+def fake_llm_stream(user_input: str, refer_data: list = None, history_messages: list = None,push_status=None):
     """LLM的流式输出
     分层上下文架构：
         短期上下文（Recent Messages） N轮
@@ -29,6 +29,9 @@ def fake_llm_stream(task_id,user_input: str, refer_data: list = None, history_me
         工具定义（Tools Schema）
         运行状态（Workflow State）
     """
+    def _push(status):
+        if push_status:
+            push_status(status)
     llm_normal = llm_config.get_chat_llm(streaming=True)
     
     # 1. 获取基础 System Prompt
@@ -58,7 +61,7 @@ def fake_llm_stream(task_id,user_input: str, refer_data: list = None, history_me
                 # 返回对象：[NewsDetail]仅查title和对应的content
                 retrieved_article = news_detail.get_news_detail_by_ids(item.llm_refer_data_id)
                 if retrieved_article:
-                    redis_client.append_stream(task_id, "[[STATUS:reading]]")
+                    _push("reading")
                     retrieved_articles = AgentPrompt.build_retrieved_context(retrieved_article)
                     logger.info(f"构建文章引用状态:{retrieved_articles[:30]}")
                     messages.append(SystemMessage(content=retrieved_articles))
@@ -90,7 +93,7 @@ def fake_llm_stream(task_id,user_input: str, refer_data: list = None, history_me
         logger.info("-" * 80)
 
     logger.info("=" * 80)
-    
+    _push("generating")
     for chunk in llm_normal.stream(messages):
         if chunk.content:
             yield chunk.content
@@ -139,14 +142,15 @@ def run_llm_task(self,task_id:str,ai_msg_id:str,user_dialog_id,req:dict):
                 logger.info(f"用户当前引用的文章{news.title}")
                 refer_data.append(news)
 
+        redis_client.append_stream(task_id, "[[STATUS:retrieving]]")
         dialog_history = []
         if req.get("user_id") and req.get("session_id"):
-            redis_client.append_stream(task_id, "[[STATUS:retrieving]]")
             dialog_history = chat_message_operator.get_dialog_history(req.get("user_id"),req.get("session_id"),user_dialog_id)
 
-        redis_client.append_stream(task_id, "[[STATUS:generating]]")
+        def push_status(status):
+            redis_client.append_stream(task_id, f"[[STATUS:{status}]]")
         chunks = []
-        for chunk in fake_llm_stream(task_id,req.get("query"), refer_data, dialog_history):
+        for chunk in fake_llm_stream(req.get("query"), refer_data, dialog_history,push_status=push_status):
             redis_client.append_stream(task_id,chunk)
             chunks.append(chunk)
         
