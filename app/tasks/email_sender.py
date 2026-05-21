@@ -8,6 +8,9 @@ def send_email(to_email: str, subject: str, content: str):
     msg["From"] = settings.SMTP_USER
     msg["To"] = to_email
 
+    print(f"登录邮箱：{settings.SMTP_USER}")
+    print(f"授权码：{settings.SMTP_PASSWORD}")
+
     with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT) as smtp:
         smtp.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
         smtp.send_message(msg)
