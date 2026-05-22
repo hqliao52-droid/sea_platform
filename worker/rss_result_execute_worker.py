@@ -99,7 +99,7 @@ def news_execute(entry, llm_result, llm_json):
             news_detail.ai_origin_output = llm_json
             news_detail.summary = entry.get("summary", "")
             news_detail.origin_entry = entry
-            news_detail.publiced_at = entry.get("published_at", "")
+            news_detail.published_at = entry.get("published_at", "")
             
             full_context = fetch_full_text(entry.get("url") or entry.get("link"))
             news_detail.in_full_page = full_context.get("content") if full_context.get("status") == "success" else None
@@ -129,6 +129,7 @@ def handle_message(message):
     try:
         news_operator = NewsOperator()
         status = news_operator.is_news_exits(message["url"], message["published_at"])
+        logger.info(f"处理的数据 {message}")
         if status["status"] == "exists":
             logger.info("数据已存在，跳过...")
             return
