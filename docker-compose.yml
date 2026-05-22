@@ -235,3 +235,5 @@ services:
       - ./logs:/app/logs
 
 # 注意：因为使用了宿主机绝对路径，不再需要定义volumes
+volumes:
+  playwright-cache:

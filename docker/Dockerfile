@@ -16,6 +16,9 @@ RUN pip install --no-cache-dir \
 
 # 不在 build 阶段装浏览器
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+# 然后在容器里执行一次
+# docker compose exec api bash
+# python -m playwright install chromium
 
 COPY . .
 
