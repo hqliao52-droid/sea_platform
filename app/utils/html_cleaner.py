@@ -3,13 +3,16 @@
 from bs4 import BeautifulSoup
 import bleach
 
+# ALLOWED_TAGS = [
+#     'p', 'br', 'div',
+#     'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+#     'strong', 'b', 'em', 'i', 'u', 'del',
+#     'ul', 'ol', 'li',
+#     'img', 'a',
+#     'blockquote'
+# ]
 ALLOWED_TAGS = [
-    'p', 'br', 'div',
-    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'strong', 'b', 'em', 'i', 'u', 'del',
-    'ul', 'ol', 'li',
-    'img', 'a',
-    'blockquote'
+    'img', 'a'
 ]
 ALLOWED_ATTRIBUTES = {
     'a': ['href', 'title'],
