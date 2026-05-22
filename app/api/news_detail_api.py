@@ -58,6 +58,9 @@ def get_news_detail(
     else:
         # 处理缺失的情况
         total = 0
+
+    # 对resp做排序：排序字段：published_at
+    resp.sort(key=lambda x: x.published_at, reverse=True)
     
     r = NewsDetailsPageSchema()
     r.page = page
