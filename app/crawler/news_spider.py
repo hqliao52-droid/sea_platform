@@ -21,7 +21,7 @@ def crawl_all_rss_sources(url):
         news = {
             "title": title,
             "url": entry.get("link", ""),
-            "published_at": parse_rss_date(entry.get("published")),
+            "published_at": parse_rss_date(entry.get("published_at")),
             "content": safe_content,
             "origin_msg": entry, 
             "source": url,
