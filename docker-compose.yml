@@ -202,7 +202,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     container_name: sea_ai_celery
-    command: celery -A app.tasks.celery_app worker -l info --concurrency=2
+    command: celery -A app.tasks.celery_app worker -l info --concurrency=10
     depends_on:
       - rabbitmq
       - redis
@@ -220,11 +220,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.8'
-          memory: 512M
+          cpus: '2'
+          memory: 1024M
         reservations:
-          cpus: '0.3'
-          memory: 384M
+          cpus: '0.5'
+          memory: 512M
     logging:
       driver: "json-file"
       options:

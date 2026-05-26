@@ -35,6 +35,16 @@ class UserService:
             self.logger.error("查询用户失败:%s",str(e))
         finally:
             db.close()
+    def verify_phone(self,phone:int):
+        db = self.db_session()
+        try:
+            user = self.user_crud.get_user_by_phone(db,phone)
+            return user
+        except Exception as e:
+            self.logger.error("查询用户失败:%s",str(e))
+            return None
+        finally:
+            db.close()
     
     def update_user_password(self,id:int,new_password:str):
         db = db_session()

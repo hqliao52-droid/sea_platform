@@ -100,3 +100,4 @@ black==24.8.0
 # File Management
 # =========================
 python-multipart
+pymupdf

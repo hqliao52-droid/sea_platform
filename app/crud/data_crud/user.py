@@ -9,4 +9,5 @@ class UserCRUD(BaseCRUD):
     def get_user_by_username(self,db:Session,username):
         return db.query(UserModel).filter(UserModel.username==username).first()
     
-    
+    def get_user_by_phone(self,db:Session,phone):
+        return db.query(UserModel).filter(UserModel.phone==phone).first()

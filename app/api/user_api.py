@@ -4,7 +4,7 @@ from app.services.user_service import UserService
 from app.utils.result_response import Result
 from app.utils.result_response import ResultCode
 from app.utils.ip_util import get_real_ip
-from app.schemas.user.user_schema import UserSchema,UserUpdateSchema
+from app.schemas.user.user_schema import UserSchema,UserUpdateSchema,UserInfoVerifySchema
 from app.schemas.user.user_response_schema import UserResponseSchema
 from app.models.user_model import UserModel
 from app.config.redis_config import RedisConfig
@@ -143,7 +143,20 @@ async def logout(authorization: str = Header(None)):
     redis.init_black_list_token(token)
     return Result.success()
 
+@router.post("/verify")
+async def verify(req:UserInfoVerifySchema):
+    user_service = UserService()
+    if req.phone:
+        user = user_service.verify_phone(req.phone)
+        if user:
+            return Result.error(ResultCode.PARAM_ERROR,msg="手机号已存在")
+    
+    if req.username:
+        user = user_service.get_user_by_username(req.username)
+        if user.get("user"):
+            return Result.error(ResultCode.PARAM_ERROR,msg="注册账号已存在")
 
+    return Result.success(True)
 
 
 

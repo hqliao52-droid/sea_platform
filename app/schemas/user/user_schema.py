@@ -33,3 +33,7 @@ class UserUpdateSchema(BaseModel):
     city: Optional[str]  = None
     avatar: Optional[str]  = None
     # status: Optional[int]  = None
+
+class UserInfoVerifySchema(BaseModel):
+    username: Optional[str]  = None
+    phone: Optional[str]  = None
