@@ -8,95 +8,17 @@ from langchain_core.messages import (
 )
 
 from app.tasks.celery_app import celery_app
-from app.config.redis_config import redis_client
+from app.config.redis_config import RedisConfig
 from app.services.chat_message_service import ChatMessageOperator
 from app.services.news_detail_service import NewsDetailOperator
 from app.services.chat_session_service import ChatSessionOperator
+from app.rag.pipelines.chat_pipeline import ChatRagPipeline
 from app.schemas.chat_message.chat_message import ChatMsg
 from app.utils.logger import Logger
-from app.prompt.agent_prompt import prompt as AgentPrompt
+from app.rag.prompt.agent_prompt import prompt as AgentPrompt
+from app.rag.status_node.chat_node import ChatNode
 from app.config.llm_config import llm_config
 
-logger = Logger.setup_logger(f"llm_task_celery_{time.strftime('%Y_%m_%d')}")
-
-def fake_llm_stream(user_input: str, refer_data: list = None, history_messages: list = None,push_status=None):
-    """LLM的流式输出
-    分层上下文架构：
-        短期上下文（Recent Messages） N轮
-        长期记忆（Conversation Memory Summary） N轮前的记忆
-        用户画像（User Profile） 
-        当前检索内容（RAG Retrieval）
-        工具定义（Tools Schema）
-        运行状态（Workflow State）
-    """
-    def _push(status):
-        if push_status:
-            push_status(status)
-    llm_normal = llm_config.get_chat_llm(streaming=True)
-    
-    # 1. 获取基础 System Prompt
-    base_system_prompt = AgentPrompt.doubao_service_system_prompt()
-    logger.info(f"构建基础System Prompt:{base_system_prompt[:20]}")
-
-    messages = [SystemMessage(content=base_system_prompt)]
-    
-    # 2.  构建会话级文章引用状态
-    conversation_state = AgentPrompt.build_conversation_state(refer_data)
-    logger.info(f"构建会话级文章引用状态:{conversation_state[:30]}")
-
-    if conversation_state:
-        messages.append(SystemMessage(content=conversation_state))
-
-    refer_data_status = True
-    # 3. 构建历史上下文（短期）
-    if history_messages and len(history_messages) > 0:
-        # 历史对话中用户主动提出的引用文章列表
-        news_detail = NewsDetailOperator()
-        for item in history_messages:
-            logger.info(f"获取用户引用文章列表:{item}")
-            # 数据库该字段存储样式：[ids],null,空
-            if refer_data_status and item.llm_refer_data_id and item.llm_refer_data_id != "null":
-                # 只找最近用户引用文章
-                refer_data_status = False
-                # 返回对象：[NewsDetail]仅查title和对应的content
-                retrieved_article = news_detail.get_news_detail_by_ids(item.llm_refer_data_id)
-                if retrieved_article:
-                    _push("reading")
-                    retrieved_articles = AgentPrompt.build_retrieved_context(retrieved_article)
-                    logger.info(f"构建文章引用状态:{retrieved_articles[:30]}")
-                    messages.append(SystemMessage(content=retrieved_articles))
-
-        # 由于查询出来对话历史是最近几条，为倒序，需要按照ID重新排序
-        history_messages.sort(key=lambda x: x.id)
-        for item in history_messages:
-            if item.message_type == 1:
-                messages.append(HumanMessage(content=item.content))
-            elif item.message_type == 2:
-                messages.append(AIMessage(content=item.content))
-            # elif item.message_type == 4:
-            #     messages.append(ToolMessage(content=item.content))
-    # 当前用户对话
-    messages.append(HumanMessage(content=user_input))
-
-    logger.info("=" * 80)
-    logger.info("最终发送给 LLM 的 messages：")
-
-    for i, msg in enumerate(messages, start=1):
-        role = msg.__class__.__name__
-        content = msg.content if msg.content else ""
-
-        # 防止日志过长，只打印前 500 个字符
-        preview = content[:500]
-
-        logger.info(f"[{i}] {role}")
-        logger.info(preview)
-        logger.info("-" * 80)
-
-    logger.info("=" * 80)
-    _push("generating")
-    for chunk in llm_normal.stream(messages):
-        if chunk.content:
-            yield chunk.content
 
 def session_topic_generator(user_input:str):
     llm = llm_config.summary_llm()
@@ -128,12 +50,15 @@ def run_llm_task(self,task_id:str,ai_msg_id:str,user_dialog_id,req:dict):
     2、WebSocket 推送（redis）
     3、更新mysql
     """
-    
     chat_message_operator = ChatMessageOperator()
-    chat_session_operator = ChatSessionOperator()
     news_detail = NewsDetailOperator()
+    redis_client = RedisConfig()
+    pipeline = ChatRagPipeline()
+    status_node = ChatNode()
+    logger = Logger.setup_logger(f"llm_task_celery_{time.strftime('%Y_%m_%d')}")
+    
     try:
-        redis_client.append_stream(task_id, "[[STATUS:analyzing]]")
+        status_node.analyzing(task_id)
         logger.info(f"LLM处理开始:{req['query']}")
         refer_data = []
         if req.get("news_ids"):
@@ -142,15 +67,12 @@ def run_llm_task(self,task_id:str,ai_msg_id:str,user_dialog_id,req:dict):
                 logger.info(f"用户当前引用的文章{news.title}")
                 refer_data.append(news)
 
-        redis_client.append_stream(task_id, "[[STATUS:retrieving]]")
+        status_node.retrieving(task_id)
         dialog_history = []
         if req.get("user_id") and req.get("session_id"):
             dialog_history = chat_message_operator.get_dialog_history(req.get("user_id"),req.get("session_id"),user_dialog_id)
-
-        def push_status(status):
-            redis_client.append_stream(task_id, f"[[STATUS:{status}]]")
         chunks = []
-        for chunk in fake_llm_stream(req.get("query"), refer_data, dialog_history,push_status=push_status):
+        for chunk in pipeline.run_stream(req.get("query"),task_id, refer_data, dialog_history):
             redis_client.append_stream(task_id,chunk)
             chunks.append(chunk)
         
@@ -158,34 +80,41 @@ def run_llm_task(self,task_id:str,ai_msg_id:str,user_dialog_id,req:dict):
         full_text = "".join(chunks)
         
         # 结束标识
-        redis_client.append_stream(task_id,"\n[[END]]")
+        status_node.end(task_id)
         redis_client.client.expire(f"stream:{task_id}", 300)
-
         chat_message = chat_message_operator.get_chat_message_by_id(ai_msg_id)
-
-        chat_session = chat_session_operator.get_chat_session_by_id(req["session_id"])
-        logger.info(f"会话信息{chat_session}")
-        if chat_session.session_topic == "新会话":
-            session_topic = session_topic_generator(req["query"])
-            logger.info(f"会话主题生成成功：{session_topic}")
-            topic = {"session_topic":session_topic["content"]}
-            obj = chat_session_operator.update_session(req["session_id"],topic)
-            logger.info(f"会话主题更新：{obj}")
 
         if chat_message:
             update_data = {
                 "status": "done",
                 "content": full_text
             }
-            updated = chat_message_operator.update_by_id(ai_msg_id,update_data)
-            if updated:
-                return "success"
+            chat_message_operator.update_by_id(ai_msg_id,update_data)
     except Exception as e:
         msg = chat_message_operator.get_chat_message_by_id(ai_msg_id)
         if msg:
             update_data = {"status":"error"}
-            updated = chat_message_operator.update_by_id(ai_msg_id,update_data)
+            chat_message_operator.update_by_id(ai_msg_id,update_data)
 
         logger.error(f"LLM处理失败{str(e)}")
-        redis_client.append_stream(task_id,"\n[[ERROR]]")
-        raise e
+        status_node.error(task_id)
+
+
+@celery_app.task(bind=True, name="ai.run_llm_task_session_topic")
+def run_llm_task_session_topic(self, session_id:int, query:str):
+    """判断当前会话是否为新会话，如果是，则更新会话主题"""
+    chat_session_operator = ChatSessionOperator()
+    logger = Logger.setup_logger(f"llm_task_celery_{time.strftime('%Y_%m_%d')}")
+
+    try:
+        chat_session = chat_session_operator.get_chat_session_by_id(session_id)
+        logger.info(f"会话信息{chat_session}")
+        if chat_session.session_topic == "新会话":
+            session_topic = session_topic_generator(query)
+            logger.info(f"会话主题生成成功：{session_topic}")
+            topic = {"session_topic":session_topic["content"]}
+            obj = chat_session_operator.update_session(session_id,topic)
+            logger.info(f"会话主题更新：{obj}")
+    
+    except Exception as e:
+        logger.error(f"会话主题更新失败：{str(e)}")

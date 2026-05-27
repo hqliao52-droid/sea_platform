@@ -13,7 +13,7 @@ from app.services.chat_session_service import ChatSessionOperator
 from app.services.news_detail_service import NewsDetailOperator
 from app.models.chat_message import ChatMessage
 from app.utils.logger import Logger
-from app.tasks.ai_task import run_llm_task
+from app.tasks.ai_task import run_llm_task,run_llm_task_session_topic
 from app.config.redis_config import redis_client
 
 
@@ -80,6 +80,7 @@ async def insert_message(req:ChatMsg):
     # 发送celery任务
     req_dict = req.model_dump() 
     run_llm_task.delay(task_id, ai_msg.id,user_msg.id, req_dict)
+    run_llm_task_session_topic.delay(req.session_id,req.query)
 
     return Result.success(data={"task_id":task_id,"ai_msg_id":ai_msg.id})
 

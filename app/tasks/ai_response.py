@@ -1,6 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser,JsonOutputParser
-from app.prompt.agent_prompt import prompt as AgentPrompt
+from app.rag.prompt.agent_prompt import prompt as AgentPrompt
 from app.config.llm_config import llm_config
 from app.schemas.news.news_analysis import NewsAnalysis
 
@@ -9,7 +9,6 @@ def llm_check_outreach_news(title: str, content: str) -> dict:
         # Prompt
         prompt = ChatPromptTemplate.from_messages([
             ("system", llm_prompt),
-
             ("user", "标题：{title}\n内容：{content}")
         ])
 
