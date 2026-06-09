@@ -53,7 +53,8 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str
 
     ''' SERVER_HOST: str = "192.168.110.218" '''
-    SERVER_HOST: str = "106.52.97.98"
+    # SERVER_HOST: str = "106.52.97.98"
+    SERVER_HOST: str = "43.136.130.244"
     SERVER_PORT: int = 8000
 
     LOG_DIR: str = "logs"

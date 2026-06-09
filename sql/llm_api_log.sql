@@ -1,17 +1,17 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : sea_mysql
+ Source Server         : sea_platform
  Source Server Type    : MySQL
- Source Server Version : 80045 (8.0.45)
- Source Host           : localhost:3307
+ Source Server Version : 80046 (8.0.46)
+ Source Host           : 106.52.97.98:3306
  Source Schema         : sea_data
 
  Target Server Type    : MySQL
- Target Server Version : 80045 (8.0.45)
+ Target Server Version : 80046 (8.0.46)
  File Encoding         : 65001
 
- Date: 24/04/2026 18:20:28
+ Date: 08/06/2026 15:29:19
 */
 
 SET NAMES utf8mb4;
@@ -39,7 +39,7 @@ CREATE TABLE `llm_api_log`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_message_id`(`message_id` ASC) USING BTREE,
   INDEX `idx_session_id`(`session_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of llm_api_log

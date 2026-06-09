@@ -1,17 +1,17 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : sea_mysql
+ Source Server         : sea_platform
  Source Server Type    : MySQL
- Source Server Version : 80045 (8.0.45)
- Source Host           : localhost:3307
+ Source Server Version : 80046 (8.0.46)
+ Source Host           : 106.52.97.98:3306
  Source Schema         : sea_data
 
  Target Server Type    : MySQL
- Target Server Version : 80045 (8.0.45)
+ Target Server Version : 80046 (8.0.46)
  File Encoding         : 65001
 
- Date: 24/04/2026 18:20:47
+ Date: 08/06/2026 15:29:55
 */
 
 SET NAMES utf8mb4;

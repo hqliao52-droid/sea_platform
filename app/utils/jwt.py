@@ -40,7 +40,7 @@ def hash_password(password: str) -> str:
     """ 对密码进行哈希处理
     password: 需要处理的密码
     """
-    # print("🔥 进入新的 hash_password")
+    # print("进入新的 hash_password")
     # hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
     # print("原始长度:", len(password.encode('utf-8')))
     # print("sha256长度:", len(hashed_password.encode('utf-8')))

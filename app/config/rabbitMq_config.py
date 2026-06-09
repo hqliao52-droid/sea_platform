@@ -44,7 +44,7 @@ class MQClient:
         self.connection = pika.BlockingConnection(self.connection_params)
         self.channel = self.connection.channel()
 
-        # ⭐⭐⭐ 核心优化：限制消费速度（解决 worker 吃爆）
+        #  限制消费速度（解决 worker 吃爆）
         self.channel.basic_qos(prefetch_count=3)
 
         self.channel.queue_declare(
@@ -74,13 +74,13 @@ class MQClient:
         connection.close()
 
     # =========================
-    # consume（🔥关键修改）
+    # consume
     # =========================
     def consume(self, callback):
         """
-        ✔ 改成推模式消费
-        ✔ 支持 qos
-        ✔ 不再轮询
+         改成推模式消费
+         支持 qos
+         不再轮询
         """
         self.connect()
 
@@ -88,7 +88,7 @@ class MQClient:
             message = json.loads(body.decode())
             callback(ch,method,message)
 
-            # ⭐ 手动 ack（非常重要）
+            #  手动 ack
             # ch.basic_ack(delivery_tag=method.delivery_tag)
 
         self.channel.basic_consume(

@@ -1,17 +1,17 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : sea_mysql
+ Source Server         : sea_platform
  Source Server Type    : MySQL
- Source Server Version : 80045 (8.0.45)
- Source Host           : localhost:3307
+ Source Server Version : 80046 (8.0.46)
+ Source Host           : 106.52.97.98:3306
  Source Schema         : sea_data
 
  Target Server Type    : MySQL
- Target Server Version : 80045 (8.0.45)
+ Target Server Version : 80046 (8.0.46)
  File Encoding         : 65001
 
- Date: 24/04/2026 18:20:05
+ Date: 08/06/2026 15:29:00
 */
 
 SET NAMES utf8mb4;
@@ -29,7 +29,7 @@ CREATE TABLE `category`  (
   `created_at` datetime NULL DEFAULT NULL COMMENT '创建时间',
   `example` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '子类别举例，顿号分割。eg:整车出口、海外建厂、充电桩、电池、锂电池、固态电池、回收利用、太阳能板、户用储能、工商业储能、电动摩托、电单车',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '类别/栏目' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 23 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '类别/栏目' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of category
@@ -48,6 +48,7 @@ INSERT INTO `category` VALUES (16, '食品与农业出海', 1, '2026-04-15 17:30
 INSERT INTO `category` VALUES (17, '文化与IP出海', 1, '2026-04-15 17:30:24', '2026-04-15 17:30:24', '文化IP、数字文化、文化服务');
 INSERT INTO `category` VALUES (18, '硬件与半导体出海', 1, '2026-04-15 17:30:24', '2026-04-15 17:30:24', '半导体、智能硬件、硬件供应链');
 INSERT INTO `category` VALUES (19, '跨境支付与金融配套', 1, '2026-04-15 17:30:24', '2026-04-15 17:30:24', '跨境支付、融资服务、金融配套');
-INSERT INTO `category` VALUES (20, '其他', 1, '2026-04-15 17:47:30', '2026-04-15 17:47:38', '其他');
+INSERT INTO `category` VALUES (21, '金融领域', 1, '2026-05-13 11:58:00', '2026-05-13 11:57:53', '股票、期货、债券、贵金属等');
+INSERT INTO `category` VALUES (22, '其他', 1, '2026-05-15 09:14:19', '2026-04-15 17:47:38', '其他');
 
 SET FOREIGN_KEY_CHECKS = 1;
