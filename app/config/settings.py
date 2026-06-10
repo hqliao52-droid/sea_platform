@@ -66,6 +66,8 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM: str = ""
 
+    APK_PATH: str = ""
+
 
 '''settings = Settings() 实例化
     step:
