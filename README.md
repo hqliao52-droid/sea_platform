@@ -16,6 +16,7 @@
 企业登录账号后，可以使用今日出海资讯、AI问答、个性化内容推送……
 
 目录架构：
+```text
 sea_ai_platform
 ├── Qdrant_data_dev     # Qdrant数据集合，个人demo直接放在项目中即可
 │   ├── aliases
@@ -199,6 +200,7 @@ sea_ai_platform
 │   └── users.sql
 └── worker                            # 异步 RSS 网页爬取执行器
     └── rss_result_execute_worker.py
+```
 
 ## 启动整个项目：
     项目目录执行： 
