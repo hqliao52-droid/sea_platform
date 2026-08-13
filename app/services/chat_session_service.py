@@ -64,11 +64,11 @@ class ChatSessionOperator:
         finally:
             db.close()
     
-    def get_new_chat_session_by_user_id(self,db:Session,user_id:int) -> ChatSessionSchema:
+    async def get_new_chat_session_by_user_id(self,db:Session,user_id:int) -> ChatSessionSchema:
         try:
             chat_session = self.chat_session_curd.get_new_chat_session_by_user_id(db,user_id)
             if chat_session: # 存在会话，进一步查询该会话是否为空消息
-                has_msg = self.chat_message_curd.get_chat_message_by_session_id(db,chat_session.id)
+                has_msg = await self.chat_message_curd.get_chat_message_by_session_id(db,chat_session.id)
                 if not has_msg: # 空会话，直接返回该会话信息
                     return ChatSessionSchema.from_orm(chat_session)
 

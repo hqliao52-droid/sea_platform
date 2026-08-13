@@ -28,7 +28,7 @@ logger = Logger.setup_logger(Logger.set_file_date())
 async def get_by_session_id(session_id:int):
     """通过session id查用户历史消息"""
     try:
-        chat_message = chat_msg.get_chat_message_by_session_id(session_id)
+        chat_message = await chat_msg.get_chat_message_by_session_id(session_id)
         result = [ChatMessageSchema.from_orm(item) for item in chat_message]
         logger.info(f"通过session_id:{session_id}查询用户历史消息成功")
         return Result.success(result)

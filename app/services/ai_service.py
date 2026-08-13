@@ -1,6 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate
 from app.config.llm_config import llm_config
-from app.prompt.agent_prompt import prompt as AgentPrompt
+from app.rag.prompt.agent_prompt import prompt as AgentPrompt
 from app.utils.logger import Logger
 
 
@@ -10,7 +10,6 @@ class AIService:
         self.llm_normal = llm_config.get_chat_llm(streaming=True)
 
     async def DouBaoSeedLite(self,query:str):
-
         prompt = ChatPromptTemplate.from_messages([
             ("system", AgentPrompt.doubao_service_system_prompt()),
             ("user", "{query}")

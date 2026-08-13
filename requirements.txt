@@ -36,7 +36,7 @@ pika
 # Data Validation
 # =========================
 pydantic==2.9.2
-pydantic-settings==2.5.2.
+pydantic-settings==2.5.2
 cryptography
 
 # =========================

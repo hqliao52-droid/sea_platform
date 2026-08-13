@@ -108,7 +108,7 @@ sea_ai_platform
 │   │   │   └── email_smtp_schema.py
 │   │   ├── file
 │   │   │   └── file_schema.py
-│   │   ├── llm_api_log.py
+│   │   ├── llm_api_log
 │   │   │   └── llm_api_log.py
 │   │   ├── news
 │   │   │   ├── new_schema.py
@@ -203,7 +203,8 @@ sea_ai_platform
 ```
 
 ## 启动整个项目：
-    项目目录执行： 
+项目目录执行： 
+    docker 一键启动会自动装配项目的基础设施：mysql, redis, rabbitMQ, Qdrant，以及创建mysql之后自动导入`/sql/*.sql`文件并运行，创建表结构
         docker compose up --build （生产环境）
         docker-compose -f docker-dev-compose.yml up --build （开发环境）
 

@@ -13,8 +13,8 @@ class ChatMessageCRUD(BaseCRUD):
     def get_chat_message_by_user_id(self,db:Session,user_id:int) -> List[ChatMessage]:
         return db.query(ChatMessage).filter(ChatMessage.user_id == user_id).all()
     
-    def get_chat_message_by_session_id(self,db:Session,session_id:int) -> List[ChatMessage]:
-        return db.query(ChatMessage).filter(ChatMessage.session_id == session_id).all()
+    async def get_chat_message_by_session_id(self,db:Session,session_id:int) -> List[ChatMessage]:
+        return await db.query(ChatMessage).filter(ChatMessage.session_id == session_id).all()
     
     def get_chat_message_by_pre_id(self,db:Session,pre_id:int) -> ChatMessage:
         return db.query(ChatMessage).filter(ChatMessage.pre_id == pre_id).first()

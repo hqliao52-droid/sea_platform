@@ -44,10 +44,10 @@ class ChatMessageOperator:
         finally:
             db.close()
     
-    def get_chat_message_by_session_id(self,session_id:int) -> List[ChatMessage]:
+    async def get_chat_message_by_session_id(self,session_id:int) -> List[ChatMessage]:
         db = db_session()
         try:
-            chat_message = self.chat_message_curd.get_chat_message_by_session_id(db,session_id)
+            chat_message = await self.chat_message_curd.get_chat_message_by_session_id(db,session_id)
             return chat_message
         except Exception as e:
             self.logger.error(e)

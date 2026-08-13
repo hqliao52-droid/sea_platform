@@ -4,7 +4,7 @@ from datetime import date
 import logging.handlers
 import queue
 
-# 全局队列（关键！所有 logger 共用）
+# 全局队列（所有 logger 共用）
 log_queue = queue.Queue(-1)
 
 # 全局 listener（只启动一次）
