@@ -6,7 +6,7 @@ class CategoryCRUD(BaseCRUD):
     def __init__(self):
         super().__init__(category)
 
-    def get_category_is_active(self, db: Session):
-        return db.query(category).filter(category.is_active == 1).all()
+    async def get_category_is_active(self, db: Session):
+        return await db.query(category).filter(category.is_active == 1).all()
 
         

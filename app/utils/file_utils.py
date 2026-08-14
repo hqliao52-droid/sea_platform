@@ -38,13 +38,13 @@ class FileUtils:
         return mapping[file_type]
 
     @staticmethod
-    def save_file(file:UploadFile) -> str:
+    async def save_file(file:UploadFile) -> str:
         """保存文件 返回访问URL"""
         file_type = FileUtils.get_file_type(file.filename)
         save_dir = FileUtils.get_save_dir(file_type)
 
         # 创建目录
-        os.makedirs(save_dir, exist_ok=True)
+        await os.makedirs(save_dir, exist_ok=True)
 
         # 生成唯一文件名
         ext = file.filename.split(".")[-1]
@@ -53,7 +53,7 @@ class FileUtils:
         file_path = save_dir/new_filename
 
         with open(file_path, "wb") as f:
-            f.write(file.file.read())
+            await f.write(file.file.read())
 
         # 返回URL
         relative_path = f"attach/{file_type}/{new_filename}"

@@ -12,7 +12,7 @@ class QRCodeUtils:
     """
 
     @staticmethod
-    def generate_qrcode(content: str, save_path: Path) -> Path:
+    async def generate_qrcode(content: str, save_path: Path) -> Path:
         """
         根据字符串生成二维码图片
 
@@ -41,9 +41,9 @@ class QRCodeUtils:
         img = qr.make_image(fill_color="black", back_color="white")
 
         # 确保目录存在
-        save_path.parent.mkdir(parents=True, exist_ok=True)
+        await save_path.parent.mkdir(parents=True, exist_ok=True)
 
         # 保存图片
-        img.save(save_path)
+        await img.save(save_path)
 
         return save_path

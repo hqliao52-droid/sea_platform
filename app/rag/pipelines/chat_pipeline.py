@@ -12,7 +12,7 @@ class ChatRagPipeline:
         self.prompt_builder = ChatPromptBuilder()
         self.status_node = ChatNode()
      
-    def run_stream(self,user_input: str,task_id:str, refer_data: list = None, history_messages: list = None):
+    async def run_stream(self,user_input: str,task_id:str, refer_data: list = None, history_messages: list = None):
         """LLM的流式输出
         分层上下文架构：
             短期上下文（Recent Messages） N轮
@@ -23,9 +23,9 @@ class ChatRagPipeline:
             运行状态（Workflow State）
         """
 
-        llm_normal = llm_config.get_chat_llm(streaming=True)
+        llm_normal = await llm_config.get_chat_llm(streaming=True)
         
-        messages = self.prompt_builder.build_messages(user_input,task_id,history_messages,refer_data)
+        messages = await self.prompt_builder.build_messages(user_input,task_id,history_messages,refer_data)
 
         self.logger.info("=" * 80)
         self.logger.info("最终发送给 LLM 的 messages：")

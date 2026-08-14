@@ -9,29 +9,29 @@ class BaseCRUD:
     def __init__(self, model):
         self.model = model
 
-    def insert(self, db: Session, obj):
+    async def insert(self, db: Session, obj):
         if isinstance(obj, dict):
             obj = self.model(**obj)
 
-        db.add(obj)
-        db.commit()
-        db.refresh(obj)
+        await db.add(obj)
+        await db.commit()
+        await db.refresh(obj)
         return obj
 
-    def update(self, db: Session, obj_id: int, update_data: dict):
-        obj = db.query(self.model).filter(self.model.id == obj_id).first()
+    async def update(self, db: Session, obj_id: int, update_data: dict):
+        obj = await db.query(self.model).filter(self.model.id == obj_id).first()
         if not obj:
             return None
 
         for k, v in update_data.items():
             setattr(obj, k, v)
 
-        db.commit()
-        db.refresh(obj)
+        await db.commit()
+        await db.refresh(obj)
         return obj
     
-    def update_segment(self, db: Session, id: int, update_data: dict):
-        obj = db.query(self.model).filter(self.model.id == id).first()
+    async def update_segment(self, db: Session, id: int, update_data: dict):
+        obj = await db.query(self.model).filter(self.model.id == id).first()
         if not obj:
             return None
         
@@ -40,19 +40,19 @@ class BaseCRUD:
             if hasattr(obj, key):
                 setattr(obj, key, value)
         
-        db.commit()
-        db.refresh(obj)
+        await db.commit()
+        await db.refresh(obj)
         return obj
 
-    def delete(self, db: Session, obj_id: int):
-        obj = db.query(self.model).filter(self.model.id == obj_id).first()
+    async def delete(self, db: Session, obj_id: int):
+        obj = await db.query(self.model).filter(self.model.id == obj_id).first()
         if obj:
-            db.delete(obj)
-            db.commit()
+            await db.delete(obj)
+            await db.commit()
         return obj
     
-    def get(self, db: Session, obj_id: int):
-        return db.query(self.model).filter(self.model.id == obj_id).first()
+    async def get(self, db: Session, obj_id: int):
+        return await db.query(self.model).filter(self.model.id == obj_id).first()
 
-    def get_all(self, db: Session):
-        return db.query(self.model).all()
+    async def get_all(self, db: Session):
+        return await db.query(self.model).all()

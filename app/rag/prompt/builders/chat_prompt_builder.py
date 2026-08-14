@@ -17,7 +17,7 @@ class ChatPromptBuilder:
         self.news_retriever = NewsRetriever()
         self.status_node = ChatNode()
 
-    def build_messages(self, user_input:str,task_id:str, refer_data: list = None, history_messages: list = None):
+    async def build_messages(self, user_input:str,task_id:str, refer_data: list = None, history_messages: list = None):
         # 1. 获取基础 System Prompt
         base_system_prompt = AgentPrompt.doubao_service_system_prompt()
         self.logger.info(f"构建基础System Prompt:{base_system_prompt[:20]}")
@@ -43,7 +43,7 @@ class ChatPromptBuilder:
                     refer_data_status = False
                     # 返回对象：[NewsDetail]仅查title和对应的content
                     self.status_node.reading(task_id)
-                    retrieved_articles = self.news_retriever.retrieve_by_ids(item.llm_refer_data_id)
+                    retrieved_articles = await self.news_retriever.retrieve_by_ids(item.llm_refer_data_id)
                     self.logger.info(f"构建文章引用状态:{retrieved_articles[:30]}")
                     messages.append(SystemMessage(content=retrieved_articles))
 

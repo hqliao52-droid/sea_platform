@@ -14,7 +14,7 @@ router = APIRouter()
 logger = Logger.setup_logger(Logger.set_file_date())
 
 @router.get("/get_news_detail", response_model=Result[NewsDetailsPageSchema])
-def get_news_detail(
+async def get_news_detail(
     request: Request,
     page:int = Query(1, gt=0, description="页码，从1开始"),
     page_size:int = Query(10, gt=0, le=100, description="每页数量，最大100"),
@@ -30,8 +30,8 @@ def get_news_detail(
     if news_detail_list["status"] == 200:
         news_service = NewsOperator()
         for item in news_detail_list["news_detail_list"]:
-            news_data = news_service.get_news_by_id(item.news_id)
-            rss_data = rss_service.get_rss_detail_by_url(news_data.source)
+            news_data = await news_service.get_news_by_id(item.news_id)
+            rss_data = await rss_service.get_rss_detail_by_url(news_data.source)
 
             result = NewsDetailResponse()
             result.id = item.id
@@ -71,12 +71,12 @@ def get_news_detail(
     return Result.success(r)
 
 @router.get("/get_detail_by_id", response_model=Result[NewsDetailsSchema])
-def get_detail_by_id(
+async def get_detail_by_id(
     request: Request,
     id:int,
 ):
     detail_service = NewsDetailOperator()
-    news_detail = detail_service.get_news_detail_by_id(id)
+    news_detail = await detail_service.get_news_detail_by_id(id)
 
     result = NewsDetailsSchema.parse_obj(news_detail)
 

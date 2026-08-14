@@ -8,25 +8,25 @@ class ArticleStorageService:
         self.logger = Logger.setup_logger(Logger.set_file_date())
         self.category_curd = ArticleStorageCRUD()
 
-    def insert_article(self,article:ArticleStorage):
+    async def insert_article(self,article:ArticleStorage):
         db = db_session()
         try:
-            db.add(article)
-            db.commit()
-            db.refresh(article)
+            await db.add(article)
+            await db.commit()
+            await db.refresh(article)
             return {"id":article.id,"status":"success"}
         except Exception as e:
-            db.rollback()
+            await db.rollback()
             return {"id":None,"status":"fail","error":str(e)}
         finally:
-            db.close()
+            await db.close()
     
-    def get_by_article_name(self,article_name:str) -> ArticleStorage:
+    async def get_by_article_name(self,article_name:str) -> ArticleStorage:
         db = db_session()
         try:
-            result = self.category_curd.get_by_article_name(db,article_name)
+            result = await self.category_curd.get_by_article_name(db,article_name)
             return result
         except Exception as e:
             raise e
         finally:
-            db.close()
+            await db.close()

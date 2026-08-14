@@ -22,7 +22,7 @@ logger = Logger.setup_logger(Logger.set_file_name("worker"))
 # 并发线程池
 executor = ThreadPoolExecutor(max_workers=3)
 
-def news_execute(entry, llm_result, llm_json):
+async def news_execute(entry, llm_result, llm_json):
     logger.info(f"是否政策：{llm_result}")
     logger.info(f"AI 输出：{llm_json}")
 
@@ -35,7 +35,7 @@ def news_execute(entry, llm_result, llm_json):
 
     # 每次都重新获取最新分类！！！
     category_operator = CategoryOperator()
-    categories = category_operator.get_category_is_active()
+    categories = await category_operator.get_category_is_active()
     tags = [categoryBase(**tag.__dict__) for tag in categories]
     logger.info(f"当前有效分类：{tags}")
     result = None
@@ -72,14 +72,14 @@ def news_execute(entry, llm_result, llm_json):
                         # 匹配成功：找到就 break
                         break
             
-            result = news_operator.insert_news(news)
+            result = await news_operator.insert_news(news)
 
             if result.get("status") == "success":
                 logger.info("news表插入成功")
                 article_storage_model.article_name = entry.get("title","")
                 article_storage_model.origin_input = entry.get("origin_input","")
                 article_storage_model.news_id = result.get("id")
-                article_result = article_storage_service.insert_article(article_storage_model)
+                article_result = await article_storage_service.insert_article(article_storage_model)
             else:
                 logger.error("news表插入失败")
 
@@ -101,10 +101,10 @@ def news_execute(entry, llm_result, llm_json):
             news_detail.origin_entry = entry
             news_detail.published_at = entry.get("published_at", "")
             
-            full_context = fetch_full_text(entry.get("url") or entry.get("link"))
+            full_context = await fetch_full_text(entry.get("url") or entry.get("link"))
             news_detail.in_full_page = full_context.get("content") if full_context.get("status") == "success" else None
 
-            obj = news_detail_operator.insert_news_detail(news_detail)
+            obj = await news_detail_operator.insert_news_detail(news_detail)
 
         
         if result["status"] == "success":
@@ -125,49 +125,49 @@ def news_execute(entry, llm_result, llm_json):
     except Exception as e:
         logger.error({"status":500,"msg":f"插入失败:{str(e)}"})
 
-def handle_message(message):
+async def handle_message(message):
     try:
         news_operator = NewsOperator()
-        status = news_operator.is_news_exits(message["url"], message["published_at"])
+        status = await news_operator.is_news_exits(message["url"], message["published_at"])
         logger.info(f"处理的数据 {message}")
         if status["status"] == "exists":
             logger.info("数据已存在，跳过...")
             return
         
-        result = llm_check_outreach_news(message["title"],message["content"])
+        result = await llm_check_outreach_news(message["title"],message["content"])
         ai_json = None
         
         if result == "1" or result == 1:
             category_operator = CategoryOperator()
-            tags = category_operator.get_category_is_active()
+            tags = await category_operator.get_category_is_active()
 
             tags_description = "\n".join(f"{t.tag_name}: {t.example}" for t in tags)
 
-            ai_json = llm_analyze_news(message["title"],message["content"],tags_description)
+            ai_json = await llm_analyze_news(message["title"],message["content"],tags_description)
         
-        news_execute(message, result, ai_json)
+        await news_execute(message, result, ai_json)
     except Exception as e:
         logger.error({"status":500,"msg":f"处理失败:{str(e)}"})
 
-def worker():
+async def worker():
     mq_client = MQClient()
     print("Worker 启动成功，开始消费消息...")
     
-    def handle(ch,method,message):
-        future = executor.submit(handle_message, message)
-        def callback(fut):
+    async def handle(ch,method,message):
+        future = await executor.submit(handle_message, message)
+        async def callback(fut):
             try:
                 # 有异常就抛出去
                 fut.result()
                 # 消费成功后才ack
-                ch.connection.add_callback_threadsafe(lambda: ch.basic_ack(delivery_tag=method.delivery_tag))
+                await ch.connection.add_callback_threadsafe(lambda: ch.basic_ack(delivery_tag=method.delivery_tag))
             except Exception as e:
                 logger.error({"status":500,"msg":f"处理失败:{str(e)}"})
                 # 失败后重新入队
-                ch.connection.add_callback_threadsafe(lambda: ch.basic_nack(delivery_tag=method.delivery_tag,requeue=True))
+                await ch.connection.add_callback_threadsafe(lambda: ch.basic_nack(delivery_tag=method.delivery_tag,requeue=True))
         future.add_done_callback(callback)
     # 消息处理
-    mq_client.consume(handle)
+    await mq_client.consume(handle)
             
 
 if __name__ == "__main__":

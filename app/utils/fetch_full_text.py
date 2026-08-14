@@ -4,9 +4,9 @@ from bs4 import BeautifulSoup
 import re
 
 
-def fetch_full_text(url):
+async def fetch_full_text(url):
     # 1. 先尝试 requests
-    result = fetch_by_requests(url)
+    result = await fetch_by_requests(url)
 
     # 2. 成功则直接返回
     if result and result["status"] == "success":
@@ -14,10 +14,10 @@ def fetch_full_text(url):
 
     # 3. requests 失败，自动使用 Playwright
     print("requests 抓取失败，切换 Playwright...")
-    return fetch_by_playwright(url)
+    return await fetch_by_playwright(url)
 
 
-def fetch_by_requests(url):
+async def fetch_by_requests(url):
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -27,7 +27,7 @@ def fetch_by_requests(url):
     }
 
     try:
-        resp = requests.get(url, headers=headers, timeout=12)
+        resp = await requests.get(url, headers=headers, timeout=12)
         resp.raise_for_status()
         resp.encoding = resp.apparent_encoding or "utf-8"
         html = resp.text
@@ -43,7 +43,7 @@ def fetch_by_requests(url):
         return {"status": "fail", "content": str(e)}
 
 
-def fetch_by_playwright(url):
+async def fetch_by_playwright(url):
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(
@@ -53,7 +53,7 @@ def fetch_by_playwright(url):
                 ]
             )
 
-            page = browser.new_page(
+            page = await browser.new_page(
                 user_agent=(
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                     "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -61,11 +61,11 @@ def fetch_by_playwright(url):
                 )
             )
 
-            page.goto(url, wait_until="networkidle", timeout=60000)
+            await page.goto(url, wait_until="networkidle", timeout=60000)
 
             html = page.content()
 
-            browser.close()
+            await browser.close()
 
         if "百度安全验证" in html or "captcha" in html.lower() or "安全验证" in html:
             return {

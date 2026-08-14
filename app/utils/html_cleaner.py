@@ -20,7 +20,7 @@ ALLOWED_ATTRIBUTES = {
 }
 DENY_TAGS = ['script', 'iframe', 'frame', 'object', 'embed', 'style', 'link', 'svg', 'math']
 
-def clean_html_to_text(html: str) -> str:
+async def clean_html_to_text(html: str) -> str:
     """
     去除HTML标签，只保留文本内容
     将HTML转换为纯文本（用于AI处理）
@@ -46,7 +46,7 @@ def clean_html_to_text(html: str) -> str:
     return "\n".join(lines)
 
 
-def clean_html_for_all_platform(html_content):
+async def clean_html_for_all_platform(html_content):
     if not html_content:
         return ""
 

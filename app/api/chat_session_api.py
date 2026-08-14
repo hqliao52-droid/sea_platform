@@ -17,7 +17,7 @@ logger = Logger.setup_logger(Logger.set_file_date())
 @chat_session_router.get("/get_sessions", response_model=Result[List[ChatSessionSchema]])
 async def get_chat_session_by_llm_id(user_id: int):
     """通过userID获取会话列表"""
-    session = chat_session_operator.get_chat_session_by_user_id(user_id)
+    session = await chat_session_operator.get_chat_session_by_user_id(user_id)
     if session is not None:
         return Result.success(session)
     else:
@@ -38,5 +38,3 @@ async def new_session(user=Depends(get_current_user)):
     except Exception as e:
         logger.error(e)
         return Result.error(ResultCode.SYSTEM_ERROR)
-    finally:
-        db.close()

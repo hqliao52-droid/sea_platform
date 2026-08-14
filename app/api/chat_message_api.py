@@ -46,7 +46,7 @@ async def insert_message(req:ChatMsg):
     refer_data = []
     if req.news_ids:
         for id in req.news_ids:
-            news = news_detail.get_news_detail_by_id(id)
+            news = await news_detail.get_news_detail_by_id(id)
             refer_data.append(news.title)
 
     user_message = ChatMessage()
@@ -60,7 +60,7 @@ async def insert_message(req:ChatMsg):
     user_message.llm_refer_data = refer_data or None
     user_message.llm_refer_data_id = req.news_ids or None
     user_message.status = "done"
-    user_msg = chat_msg.insert_chat_message(user_message)
+    user_msg = await chat_msg.insert_chat_message(user_message)
 
     ai_message = ChatMessage()
     ai_message.task_id = task_id
@@ -72,15 +72,15 @@ async def insert_message(req:ChatMsg):
     ai_message.session_id = req.session_id
     ai_message.status = "streaming"
     ai_message.created_time = now_time
-    ai_msg = chat_msg.insert_chat_message(ai_message)
+    ai_msg = await chat_msg.insert_chat_message(ai_message)
 
     update_time = {"update_time":now_time}
-    chat_session.update_session(req.session_id,update_time)
+    await chat_session.update_session(req.session_id,update_time)
 
     # 发送celery任务
     req_dict = req.model_dump() 
-    run_llm_task.delay(task_id, ai_msg.id,user_msg.id, req_dict)
-    run_llm_task_session_topic.delay(req.session_id,req.query)
+    await run_llm_task.delay(task_id, ai_msg.id,user_msg.id, req_dict)
+    await run_llm_task_session_topic.delay(req.session_id,req.query)
 
     return Result.success(data={"task_id":task_id,"ai_msg_id":ai_msg.id})
 
@@ -91,7 +91,7 @@ async def stream(task_id: str):
         last_len = 0
 
         while True:
-            content = redis_client.get_stream(task_id) or ""
+            content = await redis_client.get_stream(task_id) or ""
 
             # 有新内容
             if len(content) > last_len:
@@ -115,7 +115,7 @@ async def stream(task_id: str):
             headers={
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
-                "X-Accel-Buffering": "no",  # 🔥 关键（Nginx）
+                "X-Accel-Buffering": "no",  # Nginx
             }
         )
 
@@ -127,7 +127,7 @@ async def ws_chat(websocket: WebSocket, task_id: str):
 
     try:
         while True:
-            content = redis_client.get_stream(task_id) or ""
+            content = await redis_client.get_stream(task_id) or ""
 
             if len(content) > last_len:
                 delta = content[last_len:]
@@ -140,5 +140,6 @@ async def ws_chat(websocket: WebSocket, task_id: str):
 
             await asyncio.sleep(0.05)
 
-    except WebSocketDisconnect:
+    except WebSocketDisconnect as e:
+        logger.error(f"/ws/chat/{task_id} 轮询接口出错：{str(e)}")
         print("客户端断开")

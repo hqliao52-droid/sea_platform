@@ -17,32 +17,32 @@ class CategoryOperator:
         self.category_curd = CategoryCRUD()
 
 
-    def insert_category(self, news_detail_data: category):
+    async def insert_category(self, news_detail_data: category):
         db = db_session()
         try:
-            result = self.category_curd.insert(db, news_detail_data)
+            result = await self.category_curd.insert(db, news_detail_data)
             return result
         except Exception as e:
-            db.rollback()
+            await db.rollback()
             raise e
         finally:
-            db.close()
+            await db.close()
     
-    def get_category_is_active(self) -> list[category]:
+    async def get_category_is_active(self) -> list[category]:
         db = db_session()
         try:
-            return self.category_curd.get_category_is_active(db)
+            return await self.category_curd.get_category_is_active(db)
         except Exception as e:
             raise e
         finally:
-            db.close()
+            await db.close()
     
-    def get_category_by_id(self,id: int) -> category:
+    async def get_category_by_id(self,id: int) -> category:
         db = db_session()
         try:
-            return self.category_curd.get(db,id)
+            return await self.category_curd.get(db,id)
         except Exception as e:
             raise e
         finally:
-            db.close()
+            await db.close()
     

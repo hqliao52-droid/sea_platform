@@ -10,48 +10,48 @@ class RssSourceOperator:
         self.logger = Logger.setup_logger(Logger.set_file_date())
         self.rss_source_crud = RssSourceCRUD()
 
-    def get_active_rss_sources(self) -> list[RssSource]:
+    async def get_active_rss_sources(self) -> list[RssSource]:
         """获取所有激活的 rss 源"""
         db = db_session()
         try:
-            list = self.rss_source_crud.get_all_active(db)
+            list = await self.rss_source_crud.get_all_active(db)
             result = [RssSchema.from_orm(item) for item in list]
             return result
         except Exception as e:
             raise e
         finally:
-            db.close()
+            await db.close()
 
-    def get_all_rss_sources(self) -> list[RssSource]:
+    async def get_all_rss_sources(self) -> list[RssSource]:
         """获取所有的 rss 源"""
         db = db_session()
         try:
-            list = self.rss_source_crud.get_all(db)
+            list = await self.rss_source_crud.get_all(db)
             result = [RssSchema.from_orm(item) for item in list]
             return result
         except Exception as e:
             raise e
         finally:
-            db.close()
+            await db.close()
 
-    def get_rss_detail_by_url(self,url:str)-> RssSource:
+    async def get_rss_detail_by_url(self,url:str)-> RssSource:
         """根据url获取rss源详情"""
         db = db_session()
         try:
-            result = self.rss_source_crud.get_by_url(db,url)
+            result = await self.rss_source_crud.get_by_url(db,url)
             return RssSchema.from_orm(result)
         except Exception as e:
             raise e
         finally:
-            db.close()
+            await db.close()
     
-    def get_by_id(self,id:int)-> RssSource:
+    async def get_by_id(self,id:int)-> RssSource:
         """根据id获取rss源详情"""
         db = db_session()
         try:
-            result = self.rss_source_crud.get(db,id)
+            result = await self.rss_source_crud.get(db,id)
             return RssSchema.from_orm(result)
         except Exception as e:
             raise e
         finally:
-            db.close()
+            await db.close()

@@ -38,7 +38,7 @@ async def health_check():
 
 @app.get("/docs", include_in_schema=False)
 async def custom_swagger_ui_html():
-    return get_swagger_ui_html(
+    return await get_swagger_ui_html(
         openapi_url="/openapi.json",
         title="API 文档",
         swagger_js_url="https://cdn.bootcdn.net/ajax/libs/swagger-ui/5.10.5/swagger-ui-bundle.js",  # 使用国内 CDN

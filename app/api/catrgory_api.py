@@ -12,7 +12,7 @@ logger = Logger.setup_logger(Logger.set_file_date())
 async def get_category_is_active():
     """获取所有有效的分类"""
     category_operator = CategoryOperator()
-    data = category_operator.get_category_is_active()
+    data = await category_operator.get_category_is_active()
     result = [categorySchema.from_orm(item) for item in data]
 
     return Result.success(result)
@@ -21,7 +21,7 @@ async def get_category_is_active():
 async def get_category_by_id(id: int):
     """根据id获取分类"""
     category_operator = CategoryOperator()
-    data = category_operator.get_category_by_id(id)
+    data = await category_operator.get_category_by_id(id)
     result = categorySchema.from_orm(data)
 
     return Result.success(result)

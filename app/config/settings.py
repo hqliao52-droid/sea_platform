@@ -46,6 +46,31 @@ class Settings(BaseSettings):
     LLM_API_KEY_DouBaoSeedLite: str | None = None
     LLM_BASE_URL_DouBaoSeedLite: str | None = None
     LLM_MODEL_DouBaoSeedLite: str | None = None
+    LLM_DouBaoSeedList_THINK: bool | None = None
+
+    #  ==================
+    #  通用 agent 配置
+    #  ==================
+    # 前端展示的 LLM 名称
+    DISPLAY_NAME: str | None = None
+    # LLM 模型厂商地址（必填）
+    BASE_URL: str
+    # LLM 模型名称（必填）
+    BASE_MODEL: str
+    # LLM 模型 API KEY（必填）
+    API_KEY: str
+    # LLM 提供商类型 (不同的 Provider 有不同的 API 鉴权方式（Header 不同）、错误重试策略、速率限制逻辑和 Token 计价公式)
+    PROVIDER: str | None = None
+    # 思考模式
+    THINKING_ENABLED: bool | bool = False
+    # 是否支持思考模型
+    SUPPORTED_THINKING: bool | bool = False
+    # 控制思考深度（ low / medium / high ）high 表示模型会进行更长时间的推理链计算。
+    REASONING_EFFORT: str | str = "low"
+    # 扩展字典，用于存放额外的元信息（如计费单价、并发限制、负载均衡权重、标签分类等）
+    METADATA: dict | dict = {}
+    # 温度
+    TEMPERATURE: float | float = 0.7
 
     # jwt
     JWT_SECRET_KEY: str

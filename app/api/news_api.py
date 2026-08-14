@@ -11,21 +11,21 @@ router = APIRouter()
 logger = Logger.setup_logger(Logger.set_file_date())
 
 @router.get("/get_news")
-def get_news(
+async def get_news(
     # 分页参数：页码，默认第1页
     page: int = Query(1, gt=0, description="页码，从1开始"),
     # 分页参数：每页条数，默认10条
     page_size: int = Query(10, gt=0, le=100, description="每页数量，最大100"),
 ):
     service = NewsOperator()
-    service_data = service.get_pages_news(page, page_size)
+    service_data = await service.get_pages_news(page, page_size)
     logger.info("请求数据：",service_data)
     resp = []
     operator = RssSourceOperator()
     if service_data["status"] == 200:
         for item in service_data["news_list"]:
             data_schema = NewsSchema.parse_obj(item)
-            rss_data = operator.get_rss_detail_by_url(data_schema.source)
+            rss_data = await operator.get_rss_detail_by_url(data_schema.source)
 
             # 填充数据-基本信息
             result = NewsDetailResponse()

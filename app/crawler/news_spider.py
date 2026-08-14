@@ -7,7 +7,7 @@ from app.utils.html_cleaner import clean_html_for_all_platform
 logger = Logger.setup_logger(Logger.set_file_date())
 mq_client = MQClient()
 
-def crawl_all_rss_sources(url):
+async def crawl_all_rss_sources(url):
     feed = feedparser.parse(url)
     entries = feed.entries
     news_list = []
@@ -16,7 +16,7 @@ def crawl_all_rss_sources(url):
         title = entry.get("title", "")
         content = entry.get("summary", "")
 
-        safe_content = clean_html_for_all_platform(content)
+        safe_content = await clean_html_for_all_platform(content)
 
         news = {
             "title": title,
@@ -30,5 +30,5 @@ def crawl_all_rss_sources(url):
         }
         logger.info(entry)
         news_list.append(news)
-        mq_client.publish(news)
+        await mq_client.publish(news)
     return news_list

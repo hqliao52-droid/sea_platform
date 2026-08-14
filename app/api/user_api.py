@@ -22,7 +22,7 @@ async def login(
     request: Request = None
 ):
     user_service = UserService()
-    user_info = user_service.get_user_by_username(username)
+    user_info = await user_service.get_user_by_username(username)
 
     print(f"用户信息：{user_info}")
 
@@ -42,7 +42,7 @@ async def login(
     ip = get_real_ip(request)
     if ip:
         update_data = {"last_login_ip": ip,"last_login_time": datetime.now()}
-        user_service.update_user(user_id,update_data)
+        await user_service.update_user(user_id,update_data)
         stored_user.last_login_ip = ip
     
     token = create_access_token({"sub": str(user_id),"username": username})
@@ -56,7 +56,7 @@ async def login(
 async def register(user: UserSchema,
              request: Request = None):
     user_service = UserService()
-    user_info = user_service.get_user_by_username(user.username)
+    user_info = await user_service.get_user_by_username(user.username)
     if user_info["status"] == "success":
         return Result.error(ResultCode.USER_EXIST_ERROR)
     
@@ -74,7 +74,7 @@ async def register(user: UserSchema,
     user_model.status = 1
     user_model.role = "user"
 
-    result = user_service.insert_user(user_model)
+    result = await user_service.insert_user(user_model)
 
     if result["status"] == "success":
         return Result.success(data={"message": "注册成功"})
@@ -83,10 +83,10 @@ async def register(user: UserSchema,
 
 @router.put("/update_info",response_model=Result[UserResponseSchema])
 async def update_user_info(user: UserUpdateSchema,
-            user_info = Depends(get_current_user)):
+            user_info:UserModel = Depends(get_current_user)):
     user_service = UserService()
 
-    result = user_service.update_user_info(user_info.id,user)
+    result = await user_service.update_user_info(user_info.id, user)
 
     if result["status"] == "success":
         user_response = UserResponseSchema.model_validate(result["user"])
@@ -97,13 +97,13 @@ async def update_user_info(user: UserUpdateSchema,
 @router.put("/update_password")
 async def update_password(
         user: UserUpdateSchema,
-        user_info=Depends(get_current_user),
+        user_info:UserModel = Depends(get_current_user),
         authorization: str = Header(None)
 ):
     user_service = UserService()
 
     # 查询最新用户
-    stored_user = user_service.get_user_by_id(user_info.id)
+    stored_user = await user_service.get_user_by_id(user_info.id)
 
     if not stored_user:
         return Result.error(ResultCode.USER_NOT_EXIST_ERROR)
@@ -119,7 +119,7 @@ async def update_password(
     hashed_pwd = hash_password(user.new_password)
 
     # 更新数据库密码
-    result = user_service.update_user_password(
+    result = await user_service.update_user_password(
         user_info.id,
         hashed_pwd
     )
@@ -132,7 +132,7 @@ async def update_password(
     '''
     if authorization:
         token = authorization.replace("Bearer ", "")
-        redis.add_black_list_token(token)
+        await redis.add_black_list_token(token)
 
     return Result.success(msg="密码修改成功，请重新登录")
 
@@ -140,19 +140,19 @@ async def update_password(
 @router.post("/logout")
 async def logout(authorization: str = Header(None)):
     token = authorization.replace("Bearer ", "")
-    redis.init_black_list_token(token)
+    await redis.init_black_list_token(token)
     return Result.success()
 
 @router.post("/verify")
 async def verify(req:UserInfoVerifySchema):
     user_service = UserService()
     if req.phone:
-        user = user_service.verify_phone(req.phone)
+        user = await user_service.verify_phone(req.phone)
         if user:
             return Result.error(ResultCode.PARAM_ERROR,msg="手机号已存在")
     
     if req.username:
-        user = user_service.get_user_by_username(req.username)
+        user = await user_service.get_user_by_username(req.username)
         if user.get("user"):
             return Result.error(ResultCode.PARAM_ERROR,msg="注册账号已存在")
 

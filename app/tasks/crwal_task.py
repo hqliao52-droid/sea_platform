@@ -7,9 +7,9 @@ from app.crawler.news_spider import crawl_all_rss_sources
 rss_sources = RssSourceOperator()
 # baidu_rss_sources = BaiduRssSourceOperator()
 logger = Logger.setup_logger(Logger.set_file_date())
-def spider_rss():
+async def spider_rss():
     ## rss源列表
-    rss_list = rss_sources.get_active_rss_sources()
+    rss_list = await rss_sources.get_active_rss_sources()
 
     ## 清空旧任务
     scheduler.remove_all_jobs()
@@ -31,5 +31,5 @@ def spider_rss():
         logger.info(f"已调度：{rss_name} 每 {minutes} 分钟爬取一次！")
     
     for rss in rss_list:
-        crawl_all_rss_sources(rss.url)
+        await crawl_all_rss_sources(rss.url)
 

@@ -54,7 +54,7 @@ class UserPushConfigCRUD(BaseCRUD):
     # 查询
     # ==========================================================
 
-    def get_by_user_id(
+    async def get_by_user_id(
         self,
         db: Session,
         user_id: int,
@@ -75,7 +75,7 @@ class UserPushConfigCRUD(BaseCRUD):
             2. SELECT * FROM user_push_notify_channel WHERE push_config_id IN (...)
             3. SELECT * FROM user_push_category_weight WHERE push_config_id IN (...)
         """
-        return (
+        return await (
             db.query(UserPushConfigModel)
             .options(
                 selectinload(UserPushConfigModel.channels),
@@ -85,7 +85,7 @@ class UserPushConfigCRUD(BaseCRUD):
             .first()
         )
 
-    def insert(
+    async def insert(
         self,
         db: Session,
         obj_in: UserPushConfigSchema,
@@ -140,17 +140,17 @@ class UserPushConfigCRUD(BaseCRUD):
             config.weights.append(weight)
 
         # 4. 加入 Session
-        db.add(config)
+        await db.add(config)
 
         # 5. flush:
         #    立即执行 INSERT，
         #    获取自增主键 config.id，
         #    但事务尚未提交。
-        db.flush()
+        await db.flush()
 
         return config
 
-    def update(
+    async def update(
         self,
         db: Session,
         db_obj: UserPushConfigModel,
@@ -193,7 +193,7 @@ class UserPushConfigCRUD(BaseCRUD):
         # 4. 清空旧的分类权重
         db_obj.channels.clear()
         db_obj.weights.clear()
-        db.flush()
+        await db.flush()
 
         # 3. 重建通知渠道
         for channel_schema in obj_in.channels:
@@ -216,12 +216,12 @@ class UserPushConfigCRUD(BaseCRUD):
 
         # 6. flush:
         #    立即同步到数据库，但不提交事务
-        db.flush()
+        await db.flush()
 
         return db_obj
 
     # 删除
-    def remove(
+    async def remove(
         self,
         db: Session,
         db_obj: UserPushConfigModel,
@@ -239,5 +239,5 @@ class UserPushConfigCRUD(BaseCRUD):
         注意:
             不调用 commit()
         """
-        db.delete(db_obj)
-        db.flush()
+        await db.delete(db_obj)
+        await db.flush()

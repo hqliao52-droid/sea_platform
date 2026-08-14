@@ -9,9 +9,9 @@ class FileService:
     ANDROID_APK_NAME = "sea_platform_latest.apk"
 
     @staticmethod
-    def upload_file(file: UploadFile) -> str:
+    async def upload_file(file: UploadFile) -> str:
         """上传文件"""
-        url = FileUtils.save_file(file)
+        url = await FileUtils.save_file(file)
 
         return {"filename":file.filename,
                 "url":url}
@@ -27,7 +27,7 @@ class FileService:
         return FileUtils.get_ios_download_url()
     
     @classmethod
-    def android_generate_qrcode(cls) -> str:
+    async def android_generate_qrcode(cls) -> str:
         """
         如果二维码已存在，则直接返回；
         不存在时才生成。
@@ -37,20 +37,20 @@ class FileService:
 
         if not save_path.exists():
             download_url = cls.get_android_download_url()
-            QRCodeUtils.generate_qrcode(download_url, save_path)
+            await QRCodeUtils.generate_qrcode(download_url, save_path)
         
         return FileUtils.get_android_rqcode()
 
 
     @classmethod
-    def ios_generate_qrcode(cls) -> str:
+    async def ios_generate_qrcode(cls) -> str:
         """生成二维码"""
         path = "attach/images/ios_qrcode.png"
         save_path = Path(path)
 
         if not save_path.exists():
             download_url = cls.get_ios_download_url()
-            QRCodeUtils.generate_qrcode(download_url, save_path)
+            await QRCodeUtils.generate_qrcode(download_url, save_path)
 
         return FileUtils.get_ios_rqcode()
     

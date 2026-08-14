@@ -3,14 +3,14 @@ from services.news_service import NewsOperator
 from utils.convert_json import rss_date_convert
 from utils.html_cleaner import clean_html_to_text
 
-def spider_techcrunch():
-    techcrunch = feedparser.parse("https://techcrunch.com/feed/")
+async def spider_techcrunch():
+    techcrunch = await feedparser.parse("https://techcrunch.com/feed/")
     if techcrunch.entries == [] : return None
 
     for t in techcrunch.entries:
         published_at = rss_date_convert(t["published_parsed"])
         
-        r = clean_html_to_text(t["summary"])
+        r = await clean_html_to_text(t["summary"])
 
         news_data = {"title": t.title,
                     "url": t.link,
@@ -26,7 +26,7 @@ def spider_techcrunch():
         
         print("打印信息",news_data)
     
-    return NewsOperator.insert_news(news_data)
+    return await NewsOperator.insert_news(news_data)
 
 def spider_rss(req_url):
     rss_result = feedparser.parse(req_url)

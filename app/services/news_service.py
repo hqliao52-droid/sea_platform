@@ -16,45 +16,45 @@ class NewsOperator:
         self.logger = Logger.setup_logger(Logger.set_file_date())
         self.news_crud = NewsCRUD()
     
-    def get_news_by_id(self,news_id: int):
+    async def get_news_by_id(self,news_id: int):
         db = db_session()
         try:
-            return self.news_crud.get_news_by_id(db,news_id)
+            return await self.news_crud.get_news_by_id(db,news_id)
         except Exception as e:
             self.logger.error(f"查询失败:{e}")
             return None
         finally:
-            db.close()
+            await db.close()
 
-    def get_pages_news(self,page: int, page_size: int) -> list[News]:
+    async def get_pages_news(self,page: int, page_size: int) -> list[News]:
         db = db_session()
         try:
             # 获取分页数据
-            return self.news_crud.get_pages_news(db,page, page_size)
+            return await self.news_crud.get_pages_news(db,page, page_size)
         except Exception as e:
             self.logger.error(f"查询失败:{e}")
             return {"status":500,"news_list":None,"total":0}
         finally:
-            db.close()
+            await db.close()
 
 
-    def insert_news(self, news: News):
+    async def insert_news(self, news: News):
         db = db_session()
         try:
-            db.add(news)
-            db.commit()
-            db.refresh(news)
+            await db.add(news)
+            await db.commit()
+            await db.refresh(news)
             return {"id": news.id, "status": "success"}
         except Exception as e:
-            db.rollback()
+            await db.rollback()
             return {"id": None, "status": "fail", "error": str(e)}
         finally:
-            db.close()
+            await db.close()
     
-    def is_news_exits(self, url: str, published_at):
+    async def is_news_exits(self, url: str, published_at):
         db = db_session()
         try:
-            result = db.query(News.id).filter(
+            result = await db.query(News.id).filter(
                 News.url == url,
                 News.published_at == published_at
             ).first()
@@ -64,5 +64,5 @@ class NewsOperator:
 
             return {"id": None, "status": "NotExists"}
         finally:
-            db.close()
+            await db.close()
             

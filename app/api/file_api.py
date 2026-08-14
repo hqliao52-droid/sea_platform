@@ -7,7 +7,7 @@ router = APIRouter()
 
 @router.post("/upload_file")
 async def upload_file(file: UploadFile = File(...)):
-    result = FileService().upload_file(file)
+    result = await FileService().upload_file(file)
     return Result.success(result)
 
 @router.get("/download/app/latest")
@@ -19,7 +19,7 @@ async def get_app_download_url():
     android_qrcode = None
     try:
         android_file = FileService.get_android_download_url()
-        android_qrcode = FileService.android_generate_qrcode()
+        android_qrcode = await FileService.android_generate_qrcode()
     except Exception as e:
         return Result.error(ResultCode.FILE_NOT_FOUND, msg=f"Android安装部未找到{str(e)}")
     
@@ -27,7 +27,7 @@ async def get_app_download_url():
     ios_qrcode = None
     try:
         ios = FileService.get_ios_download_url()
-        ios_qrcode = FileService.ios_generate_qrcode()
+        ios_qrcode = await FileService.ios_generate_qrcode()
     except Exception as e:
         return Result.error(ResultCode.FILE_NOT_FOUND, msg=f"IOS安装包未找到{str(e)}")
     android_url = {

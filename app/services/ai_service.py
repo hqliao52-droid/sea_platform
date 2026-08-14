@@ -9,7 +9,7 @@ class AIService:
         self.logger = Logger.setup_logger(Logger.set_logger_file_llm())
         self.llm_normal = llm_config.get_chat_llm(streaming=True)
 
-    async def DouBaoSeedLite(self,query:str):
+    async def doubao_seed_lite(self,query:str):
         prompt = ChatPromptTemplate.from_messages([
             ("system", AgentPrompt.doubao_service_system_prompt()),
             ("user", "{query}")

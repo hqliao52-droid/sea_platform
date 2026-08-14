@@ -15,87 +15,87 @@ class ChatSessionOperator:
         self.chat_session_curd = ChatSessionCRUD()
         self.chat_message_curd = ChatMessageCRUD()
     
-    def get_chat_session_by_id(self,id:int) -> ChatSessionSchema:
+    async def get_chat_session_by_id(self,id:int) -> ChatSessionSchema:
         db = db_session()
         try:
-            chat_session = self.chat_session_curd.get(db,id)
+            chat_session = await self.chat_session_curd.get(db,id)
             chat_session_result = ChatSessionSchema.from_orm(chat_session)
             return chat_session_result
         except Exception as e:
             self.logger.error(e)
             return None
         finally:
-            db.close()
+            await db.close()
 
-    def get_chat_session_by_llm_id(self,llm_id:int) -> List[ChatSessionSchema]:
+    async def get_chat_session_by_llm_id(self,llm_id:int) -> List[ChatSessionSchema]:
         db = db_session()
         try:
-            chat_session = self.chat_session_curd.get_chat_session_by_llm_id(db,llm_id)
+            chat_session = await self.chat_session_curd.get_chat_session_by_llm_id(db,llm_id)
             chat_session_result = [ChatSessionSchema.from_orm(item) for item in chat_session]
             return chat_session_result
         except Exception as e:
             self.logger.error(e)
             return None
         finally:
-            db.close()
+            await db.close()
 
-    def get_chat_session_by_user_id(self,user_id:int) -> List[ChatSessionSchema]:
+    async def get_chat_session_by_user_id(self,user_id:int) -> List[ChatSessionSchema]:
         db = db_session()
         try:
-            chat_session = self.chat_session_curd.get_chat_session_by_user_id(db,user_id)
+            chat_session = await self.chat_session_curd.get_chat_session_by_user_id(db,user_id)
             chat_session_result = [ChatSessionSchema.from_orm(item) for item in chat_session]
             return chat_session_result
         except Exception as e:
             self.logger.error(e)
             return None
         finally:
-            db.close()
+            await db.close()
 
-    def new_session(self,user_id:int) -> ChatSessionSchema:
+    async def new_session(self,user_id:int) -> ChatSessionSchema:
         db = db_session()
         try:
             new_session = ChatSession(user_id=user_id,llm_id=1,session_topic="新会话")
-            chat_session_result = self.chat_session_curd.insert(db,new_session)
+            chat_session_result = await self.chat_session_curd.insert(db,new_session)
             self.logger.info(f"新的会话创建成功：{chat_session_result}")
             return ChatSessionSchema.from_orm(chat_session_result)
         except Exception as e:
             self.logger.error(e)
             return None
         finally:
-            db.close()
+            await db.close()
     
     async def get_new_chat_session_by_user_id(self,db:Session,user_id:int) -> ChatSessionSchema:
         try:
-            chat_session = self.chat_session_curd.get_new_chat_session_by_user_id(db,user_id)
+            chat_session = await self.chat_session_curd.get_new_chat_session_by_user_id(db,user_id)
             if chat_session: # 存在会话，进一步查询该会话是否为空消息
                 has_msg = await self.chat_message_curd.get_chat_message_by_session_id(db,chat_session.id)
                 if not has_msg: # 空会话，直接返回该会话信息
                     return ChatSessionSchema.from_orm(chat_session)
 
             new_session = ChatSession(user_id=user_id,llm_id=1,session_topic="新会话")
-            chat_session_result = self.chat_session_curd.insert(db,new_session)
+            chat_session_result = await self.chat_session_curd.insert(db,new_session)
             self.logger.info(f"新的会话创建成功：{chat_session_result}")
 
             return ChatSessionSchema.from_orm(chat_session_result)
         
         except Exception as e:
-            db.rollback()
+            await db.rollback()
             self.logger.error(e)
             return None
         finally:
-            db.close()
+            await db.close()
 
-    def update_session(self,session_id:int,session_data:dict):
+    async def update_session(self,session_id:int,session_data:dict):
         db = db_session()
         try:
-            result = self.chat_session_curd.update(db,session_id,session_data)
+            result = await self.chat_session_curd.update(db,session_id,session_data)
             self.logger.info(f"更新会话成功：{result}")
             return result
         except Exception as e:
-            db.rollback()
+            await db.rollback()
             self.logger.error(f"更新失败：{str(e)}")
         finally:
-            db.close()
+            await db.close()
 
 
             

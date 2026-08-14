@@ -6,9 +6,9 @@ class CategoryCRUD(BaseCRUD):
     def __init__(self):
         super().__init__(ArticleStorage)
 
-    def get_by_id(self, db: Session, obj_id: int) -> ArticleStorage:
-        return db.query(ArticleStorage).filter(ArticleStorage.id == obj_id).first()
+    async def get_by_id(self, db: Session, obj_id: int) -> ArticleStorage:
+        return await db.query(ArticleStorage).filter(ArticleStorage.id == obj_id).first()
 
-    def get_by_article_name(self, db: Session, article_name: str) -> ArticleStorage:
-        return db.query(ArticleStorage).filter(ArticleStorage.article_name == article_name).first()
+    async def get_by_article_name(self, db: Session, article_name: str) -> ArticleStorage:
+        return await db.query(ArticleStorage).filter(ArticleStorage.article_name == article_name).first()
     

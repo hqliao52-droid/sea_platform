@@ -55,7 +55,7 @@ class MQClient:
     # =========================
     # publish（保留）
     # =========================
-    def publish(self, message: dict):
+    async def publish(self, message: dict):
         connection = pika.BlockingConnection(self.connection_params)
         channel = connection.channel()
         channel.queue_declare(
@@ -76,26 +76,26 @@ class MQClient:
     # =========================
     # consume
     # =========================
-    def consume(self, callback):
+    async def consume(self, callback):
         """
          改成推模式消费
          支持 qos
          不再轮询
         """
-        self.connect()
+        await self.connect()
 
-        def _handler(ch, method, properties, body):
+        async def _handler(ch, method, properties, body):
             message = json.loads(body.decode())
             callback(ch,method,message)
 
             #  手动 ack
             # ch.basic_ack(delivery_tag=method.delivery_tag)
 
-        self.channel.basic_consume(
+        await self.channel.basic_consume(
             queue=self.queue_name,
             on_message_callback=_handler,
             auto_ack=False
         )
 
         print("MQ consumer started...")
-        self.channel.start_consuming()
+        await self.channel.start_consuming()

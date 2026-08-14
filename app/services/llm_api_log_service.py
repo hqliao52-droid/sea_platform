@@ -10,40 +10,40 @@ class LlmApiLogOperator:
         self.logger = Logger.setup_logger(Logger.set_file_date())
         self.llm_api_log_curd = LlmApiLogCRUD()
 
-    def get_info_by_id(self,id:int) -> LlmApiLog:
+    async def get_info_by_id(self,id:int) -> LlmApiLog:
         db = db_session()
         try:
-            result = self.llm_api_log_curd.get_llm_api_log_by_id(db,id)
+            result = await self.llm_api_log_curd.get_llm_api_log_by_id(db,id)
             self.logger.info(f"查询成功:{result}")
             return result
         except Exception as e:
             self.logger.error(f"查询失败:{e}")
             return None
         finally:
-            db.close()
+            await db.close()
     
-    def get_info_by_message_id(self,message_id:int) -> LlmApiLog:
+    async def get_info_by_message_id(self,message_id:int) -> LlmApiLog:
         db = db_session()
         try:
-            result = self.llm_api_log_curd.get_llm_api_log_by_message_id(db,message_id)
+            result = await self.llm_api_log_curd.get_llm_api_log_by_message_id(db,message_id)
             self.logger.info(f"查询成功:{result}")
             return result
         except Exception as e:
             self.logger.error(f"查询失败:{e}")
             return None
         finally:
-            db.close()
+            await db.close()
     
-    def get_info_by_model_name(self,model_name:str) -> List[LlmApiLog]:
+    async def get_info_by_model_name(self,model_name:str) -> List[LlmApiLog]:
         db = db_session()
         try:
-            result = self.llm_api_log_curd.get_llm_api_log_by_model_name(db,model_name)
+            result = await self.llm_api_log_curd.get_llm_api_log_by_model_name(db,model_name)
             self.logger.info(f"查询成功:{result}")
             return result
         except Exception as e:
             self.logger.error(f"查询失败:{e}")
             return None
         finally:
-            db.close()
+            await db.close()
 
 
