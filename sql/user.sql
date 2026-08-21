@@ -43,6 +43,6 @@ CREATE TABLE `user`  (
 -- ----------------------------
 -- Records of user
 -- ----------------------------
-INSERT INTO `user` VALUES (1, 'admin', '$argon2id$v=19$m=65536,t=3,p=4$bY2RUso5p/S+F6KUEuI8Zw$TASu1ww8kd+Yv9rezpHjpdQD5HlWyzughkYzakorWDU', 'qqq', '13265489765', NULL, NULL, NULL, 1, 'user', '2026-05-08 15:39:55', '2026-05-21 11:54:35', NULL, '110.191.203.5');
+INSERT INTO `user` VALUES (1, 'admin', '$argon2id$v=19$m=65536,t=3,p=4$bY2RUso5p/S+F6KUEuI8Zw$TASu1ww8kd+Yv9rezpHjpdQD5HlWyzughkYzakorWDU', 'qqq', '133333333333', NULL, NULL, NULL, 1, 'admin', '2026-05-08 15:39:55', '2026-05-21 11:54:35', NULL, '110.191.203.5');
 
 SET FOREIGN_KEY_CHECKS = 1;
