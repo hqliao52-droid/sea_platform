@@ -1,13 +1,13 @@
 # app/database/mysql.py
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base,scoped_session
+from collections.abc import AsyncGenerator
 from app.config.settings import settings
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 
 # 数据库URL
 DATABASE_URL = (
-    f"mysql+pymysql://{settings.MYSQL_USER}:"
+    f"mysql+aiomysql://{settings.MYSQL_USER}:"
     f"{settings.MYSQL_PASSWORD}@"
     f"{settings.MYSQL_HOST}:"
     f"{settings.MYSQL_PORT}/"
@@ -15,47 +15,45 @@ DATABASE_URL = (
 )
 
 # 创建数据库引擎
-engine = create_engine(
+engine = create_async_engine(
     DATABASE_URL,
-    echo=True,  # 开发阶段可以改为True，开启SQL日志
-    pool_pre_ping=True, 
+    echo=True,
+    pool_pre_ping=False,
     pool_size=10,
     max_overflow=10,
-    pool_timeout=30, 
-    future=True,  # 使用SQLAlchemy 2.0风格
+    pool_timeout=30,
     pool_recycle=3600,
-    connect_args={"charset": "utf8mb4"} 
 )
 
 # Session 会话工厂
-SessionLocal = sessionmaker(
+AsyncSessionLocal = async_sessionmaker(
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
     autocommit=False,
     autoflush=False,
-    bind=engine
 )
 
 
-# ORM模型基类 Base 作用：所有数据库表都必须继承 Base，因为：Base.metadata会收集所有表结构
-"""后面 FastAPI 启动时：Base.metadata.create_all(bind=engine)
-    SQLAlchemy 就会：
-        扫描所有 Base 子类
-        找到表结构
-        自动创建数据库表
-
-    ORM 的底层机制：SQLAlchemy
-    Python类
-    ↓
-    ORM映射
-    ↓
-    SQL语句
-    ↓
-    MySQL执行
-    例如：db.query(News).all()
-    就会执行：SELECT * FROM news
-"""
+# ORM 模型基类 Base
+# 所有数据库表模型都必须继承 Base，因为：
+#   1. Base.metadata 会自动收集所有继承它的子类定义的表结构
+#   2. 通过 Base.metadata.create_all() 可以一键创建所有表
+#
+# 异步模式下创建表（在应用启动时执行）：
+#   async with engine.begin() as conn:
+#       await conn.run_sync(Base.metadata.create_all)
+#   （run_sync 用于在异步环境中调用同步的 create_all 方法）
+#
+# ORM 映射流程：
+#   Python 类  →  SQLAlchemy ORM  →  SQL 语句  →  数据库执行
+#   例如：await session.execute(select(News))   →  SELECT * FROM news
+#
+# 查询方式（SQLAlchemy 2.0 风格）：
+#   使用 select(模型).where(条件) 构建查询，
+#   然后 await session.execute(stmt) 执行，
+#   通过 scalars() 或 scalar_one_or_none() 获取结果。
 Base = declarative_base()
-# 线程安全
-db_session = scoped_session(SessionLocal)
 
 
 # FastAPI依赖
@@ -72,13 +70,25 @@ db_session = scoped_session(SessionLocal)
             except StopIteration:
                 pass                    # 生成器正常结束
 """
-async def get_db():
-    print("1. 创建会话")
-    db = SessionLocal()
-    try:
-        print("2. 将会话交给调用者")
-        yield db
-        print("4. 调用者使用完毕，继续执行")
-    finally:
-        print("5. 关闭会话")
-        db.close()
+
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            # 如果没有异常，在离开上下文时自动提交
+            # await session.commit() # async with 自动处理
+        except Exception:
+            # 发生异常时回滚
+            await session.rollback()
+            raise
+        finally:
+            # 会话会在退出 async with 块时自动关闭
+            # await session.close()  # 无需显式调用
+            pass
+
+
+async def init_db():
+    """在应用启动时调用，创建所有表"""
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)

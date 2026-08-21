@@ -47,10 +47,7 @@ async def fetch_by_playwright(url):
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(
-                headless=True,
-                args=[
-                    "--disable-blink-features=AutomationControlled"
-                ]
+                headless=True, args=["--disable-blink-features=AutomationControlled"]
             )
 
             page = await browser.new_page(
@@ -68,10 +65,7 @@ async def fetch_by_playwright(url):
             await browser.close()
 
         if "百度安全验证" in html or "captcha" in html.lower() or "安全验证" in html:
-            return {
-                "status": "fail",
-                "content": "Playwright 仍触发安全验证"
-            }
+            return {"status": "fail", "content": "Playwright 仍触发安全验证"}
 
         return extract_content(html)
 
@@ -107,8 +101,8 @@ def extract_content(html):
         "#main",
         ".box-content",
         ".article-body",
-        ".bjh-content",   # 百家号常见选择器
-        ".mainContent"
+        ".bjh-content",  # 百家号常见选择器
+        ".mainContent",
     ]
 
     content = None
@@ -157,15 +151,28 @@ def clean_baijiahao_text(text: str) -> str:
     lines = text.split("\n")
 
     bad_keywords = [
-        "百度首页", "登录", "搜索", "复制",
-        "相关搜索", "评论", "发表",
-        "作者最新文章", "换一换",
-        "举报/反馈", "收藏", "分享",
-        "微信好友", "新浪微博",
-        "扫码", "设为首页",
-        "©", "Baidu",
-        "热", "新",
-        "阅读", "分钟前",
+        "百度首页",
+        "登录",
+        "搜索",
+        "复制",
+        "相关搜索",
+        "评论",
+        "发表",
+        "作者最新文章",
+        "换一换",
+        "举报/反馈",
+        "收藏",
+        "分享",
+        "微信好友",
+        "新浪微博",
+        "扫码",
+        "设为首页",
+        "©",
+        "Baidu",
+        "热",
+        "新",
+        "阅读",
+        "分钟前",
         "关注",
     ]
 

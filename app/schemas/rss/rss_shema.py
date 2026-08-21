@@ -1,7 +1,8 @@
 # app/schemas/rss_schema.py
-from pydantic import BaseModel,ConfigDict
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
+
 
 class RssSchema(BaseModel):
     id: int

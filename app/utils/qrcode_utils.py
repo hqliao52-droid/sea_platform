@@ -26,9 +26,9 @@ class QRCodeUtils:
 
         # 创建二维码对象
         qr = qrcode.QRCode(
-            version=1,          # 自动控制二维码尺寸
-            box_size=10,        # 每个小格子的像素大小
-            border=4            # 外边框宽度
+            version=1,  # 自动控制二维码尺寸
+            box_size=10,  # 每个小格子的像素大小
+            border=4,  # 外边框宽度
         )
 
         # 添加内容

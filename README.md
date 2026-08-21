@@ -216,3 +216,5 @@ sea_ai_platform
         如果改动了代码：
             `docker compose up --build api` 或者 `docker compose build api`
 
+    用户初始账号密码：
+        admin/admin123

@@ -4,11 +4,13 @@ from app.config.mysql_config import Base
 
 # 声明基类（项目中通常统一放在一个base.py文件中）
 
+
 class NewsDetail(Base):
     """
     新闻详情表 ORM 模型
     对应数据库表：news_details（建议表名小写+下划线，符合数据库规范）
     """
+
     __tablename__ = "news_detail"
 
     # 主键ID

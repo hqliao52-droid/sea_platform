@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List
 
+
 class NewsAnalysis(BaseModel):
     summary: str = Field(description="一句话速读")
     abstract: str = Field(description="3-5句话的详细摘要")

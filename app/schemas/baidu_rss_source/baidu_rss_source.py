@@ -2,8 +2,10 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 
+
 class BaiduRssSourceSchema(BaseModel):
     """RSS数据源模型"""
+
     id: Optional[int] = Field(None, description="主键ID")
     name: Optional[str] = Field(None, description="目标网站名称")
     url: Optional[str] = Field(None, description="目标网站URL")

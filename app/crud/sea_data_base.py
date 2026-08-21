@@ -1,58 +1,56 @@
-from sqlalchemy.orm import Session
-from app.config.mysql_config import SessionLocal
+from typing import Any, Optional
+
+from sqlalchemy import select, update, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+
 
 class BaseCRUD:
     """
     通用数据库操作基类
     所有模型的CRUD都继承这个类，自动获得 insert, update, delete, get 等方法
+    注意：
+        基类CRUD中不做任何异常处理，所有的异常都由service处理（事务回滚等）
     """
+
     def __init__(self, model):
         self.model = model
 
-    async def insert(self, db: Session, obj):
+    async def insert(self, db: AsyncSession, obj) -> Optional[Any]:
         if isinstance(obj, dict):
             obj = self.model(**obj)
 
-        await db.add(obj)
-        await db.commit()
+        db.add(obj)
+        await db.flush()
         await db.refresh(obj)
         return obj
 
-    async def update(self, db: Session, obj_id: int, update_data: dict):
-        obj = await db.query(self.model).filter(self.model.id == obj_id).first()
+    async def update(
+        self, db: AsyncSession, obj_id: int, update_data: dict
+    ) -> Optional[Any]:
+        obj = await self.get(db, obj_id)
         if not obj:
             return None
 
         for k, v in update_data.items():
-            setattr(obj, k, v)
+            if hasattr(obj, k):
+                setattr(obj, k, v)
 
-        await db.commit()
-        await db.refresh(obj)
-        return obj
-    
-    async def update_segment(self, db: Session, id: int, update_data: dict):
-        obj = await db.query(self.model).filter(self.model.id == id).first()
-        if not obj:
-            return None
-        
-        # 遍历字典，只更新存在的键值对
-        for key,value in update_data.items():
-            if hasattr(obj, key):
-                setattr(obj, key, value)
-        
-        await db.commit()
+        await db.flush()
         await db.refresh(obj)
         return obj
 
-    async def delete(self, db: Session, obj_id: int):
-        obj = await db.query(self.model).filter(self.model.id == obj_id).first()
+    async def delete(self, db: AsyncSession, obj_id: int) -> Optional[Any]:
+        obj = await self.get(db, obj_id)
         if obj:
             await db.delete(obj)
-            await db.commit()
         return obj
-    
-    async def get(self, db: Session, obj_id: int):
-        return await db.query(self.model).filter(self.model.id == obj_id).first()
 
-    async def get_all(self, db: Session):
-        return await db.query(self.model).all()
+    async def get(self, db: AsyncSession, obj_id: int) -> Optional[Any]:
+        stmt = select(self.model).where(self.model.id == obj_id)
+        result = await db.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_all(self, db: AsyncSession):
+        stmt = select(self.model)
+        result = await db.execute(stmt)
+        return result.scalar().all()

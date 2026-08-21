@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import TypeVar, Generic, Optional
-from pydantic import BaseModel,ValidationError
+from pydantic import BaseModel, ValidationError
 
 T = TypeVar("T")
 
@@ -22,8 +22,9 @@ class ResultCode(Enum):
 
     FILE_NOT_FOUND = ("5007", "文件不存在")
 
-    MSG_NOT_EXIST_ERROR = ("6001", "消息不存在")
+    DATA_NOT_EXIST_ERROR = ("6000", "数据不存在")
 
+    MSG_NOT_EXIST_ERROR = ("6001", "消息不存在")
 
     JSON_ERROR = ("6000", "JSON解析错误")
 
@@ -32,7 +33,6 @@ class ResultCode(Enum):
         self.msg = msg
 
 
-# 对应 Java 的 Result<T>
 class Result(BaseModel, Generic[T]):
     code: str
     msg: str | list
@@ -57,7 +57,7 @@ class Result(BaseModel, Generic[T]):
             msg=msg or result_code.msg,
             data=None,
         )
-    
+
     @staticmethod
     def format_validation_error(e: ValidationError) -> str:
         """格式化 Pydantic 验证错误为可读字符串"""
@@ -66,7 +66,7 @@ class Result(BaseModel, Generic[T]):
             field_path = " -> ".join(str(loc) for loc in error["loc"])
             error_type = error["type"]
             error_msg = error["msg"]
-            
+
             # 添加更多上下文
             if "missing" in error_type:
                 errors.append(f"缺少必需字段: {field_path}")
@@ -75,5 +75,5 @@ class Result(BaseModel, Generic[T]):
                 errors.append(f"字段 {field_path} 类型错误，期望 {expected}")
             else:
                 errors.append(f"字段 {field_path}: {error_msg}")
-        
+
         return "; ".join(errors)

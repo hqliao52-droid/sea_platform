@@ -5,10 +5,12 @@ from app.schemas.news.new_schema import NewsSchema
 from app.schemas.news_detail.news_detail_response_schema import NewsDetailResponse
 from app.utils.logger import Logger
 from app.services.rss_service import RssSourceOperator
+
 # from app.services.baidu_rss_service import BaiduRssSourceOperator
 
 router = APIRouter()
 logger = Logger.setup_logger(Logger.set_file_date())
+
 
 @router.get("/get_news")
 async def get_news(
@@ -19,10 +21,11 @@ async def get_news(
 ):
     service = NewsOperator()
     service_data = await service.get_pages_news(page, page_size)
-    logger.info("请求数据：",service_data)
+    logger.info("请求数据：", service_data)
     resp = []
     operator = RssSourceOperator()
     if service_data["status"] == 200:
+        logger.info("status:200")
         for item in service_data["news_list"]:
             data_schema = NewsSchema.parse_obj(item)
             rss_data = await operator.get_rss_detail_by_url(data_schema.source)
@@ -37,28 +40,12 @@ async def get_news(
             result.rss_tag = rss_data.name
             result.rss_id = rss_data.id
             result.published_at = data_schema.published_at
-            if data_schema.is_policy == 1:
-                # AI分析
-                result.industry_category = data_schema.ai_json_output["industry_category"] or None
-                result.one_sentence_summary = data_schema.ai_json_output["summary"] or None
-                result.ai_summary = data_schema.ai_json_output["abstract"] or None
-                result.keywords = data_schema.ai_json_output["keywords"] or None
-                result.policy_risk = data_schema.ai_json_output["policy_risk"]["market_risk"] or None
-                result.policy_compliance = data_schema.ai_json_output["policy_risk"]["policy_compliance"] or None
-                
-            resp.append(result)
-            
-    total = service_data["total"]
-        
 
-    
+            resp.append(result)
+
+    total = service_data["total"]
+
     # 返回带分页信息的成功结果
     return Result.success(
-        data={
-            "list": resp,
-            "page": page,
-            "page_size": page_size,
-            "total": total
-        }
+        data={"list": resp, "page": page, "page_size": page_size, "total": total}
     )
-

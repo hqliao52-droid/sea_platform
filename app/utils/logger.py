@@ -10,32 +10,34 @@ log_queue = queue.Queue(-1)
 # 全局 listener（只启动一次）
 listener = None
 
+
 class Logger:
     def set_file_date():
         today = date.today()
         str_date = f"{today.year}_{today.month:02d}_{today.day:02d}_log"
         return str_date
-    
-    def set_file_name(description:str):
+
+    def set_file_name(description: str):
         today = date.today()
         str_date = f"{today.year}_{today.month:02d}_{today.day:02d}_{description}_log"
         return str_date
-    
+
     def set_logger_file_llm():
         today = date.today()
         str_date = f"{today.year}_{today.month:02d}_{today.day:02d}_llm"
         return str_date
-    
+
     @staticmethod
-    def setup_logger(name: str, log_dir: str=None):
+    def setup_logger(name: str, log_dir: str = None):
         def logs_path():
             # 获取当前文件所在目录
             current_dir = os.path.dirname(os.path.abspath(__file__))
             # 向上两级到达 项目 目录
             pro_root = os.path.dirname(os.path.dirname(current_dir))
             # 拼接 logs 目录
-            logs_dir = os.path.join(pro_root, 'logs')
+            logs_dir = os.path.join(pro_root, "logs")
             return logs_dir
+
         log_dir = log_dir or logs_path()
 
         global listener
@@ -69,10 +71,7 @@ class Logger:
             console_handler.setFormatter(file_formatter)
 
             listener = logging.handlers.QueueListener(
-                log_queue,
-                file_handler,
-                console_handler,
-                respect_handler_level=True
+                log_queue, file_handler, console_handler, respect_handler_level=True
             )
             listener.start()
 

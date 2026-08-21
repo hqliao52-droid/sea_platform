@@ -3,7 +3,9 @@ Qdrant 核心配置文件
 统一管理连接信息、向量模型、集合命名规则
 支持后续扩展多集合配置
 """
+
 from app.config.settings import settings
+
 
 class QdrantConfig:
     # 服务连接配置

@@ -7,18 +7,18 @@ uvicorn[standard]==0.30.6
 # =========================
 # Scheduler task
 # =========================
-apscheduler
+apscheduler==3.11.3
 
 # =========================
 # Database
 # =========================
 # mysql
 sqlalchemy==2.0.35
-pymysql==1.1.1
+aiomysql==0.3.2
 alembic==1.13.2
 mysql-connector-python
 # qdrant
-qdrant-client
+qdrant-client==1.19.0
 
 # =========================
 # Cache
@@ -30,14 +30,14 @@ redis==5.0.8
 # =========================
 celery==5.4.0
 kombu==5.4.0
-pika
+aio-pika
 
 # =========================
 # Data Validation
 # =========================
 pydantic==2.9.2
 pydantic-settings==2.5.2
-cryptography
+cryptography==50.0.0
 
 # =========================
 # HTTP Requests
@@ -48,8 +48,9 @@ requests==2.32.3
 # =========================
 # AI API Clients
 # =========================
-langchain
-langchain-openai
+langchain==1.3.1
+langchain-openai==1.3.3
+langchain-deepseek==1.1.0
 
 # =========================
 # Web Crawling
@@ -57,15 +58,15 @@ langchain-openai
 beautifulsoup4==4.12.3
 lxml==5.3.0
 feedparser==6.0.11
-bleach
-playwright
+bleach==6.4.0
+playwright==1.62.0
 
 # =========================
 # Async Tools
 # =========================
 aiofiles==24.1.0
-sse-starlette
-python-dotenv
+sse-starlette==3.0.3
+python-dotenv==1.2.2
 
 # =========================
 # Utils
@@ -73,7 +74,7 @@ python-dotenv
 loguru==0.7.2
 tqdm==4.66.5
 # RSS -  RFC 2822 时间处理
-python-dateutil
+python-dateutil==2.9.0.post0
 qrcode[pil]
 email-validator>=2.0.0
 
@@ -99,5 +100,5 @@ black==24.8.0
 # =========================
 # File Management
 # =========================
-python-multipart
-pymupdf
+python-multipart==0.0.32
+pymupdf==1.28.2

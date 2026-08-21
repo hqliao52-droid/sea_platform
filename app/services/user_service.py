@@ -1,114 +1,102 @@
 from app.utils.logger import Logger
 from app.models.user_model import UserModel
 from app.crud.data_crud.user import UserCRUD
-from app.config.mysql_config import db_session
+from app.config.mysql_config import AsyncSessionLocal
 from app.schemas.user.user_schema import UserSchema
+
 
 class UserService:
     def __init__(self):
         self.logger = Logger.setup_logger(Logger.set_file_date())
         self.user_crud = UserCRUD()
 
-    async def insert_user(self,user:UserModel):
-        db = db_session()
-        try:
-            self.logger.info("插入用户:%s",user.username)
-            id = await self.user_crud.insert(db,user)
-            if id:
-                return {"id":id,"status":"success"}
-            else:
-                return {"id":None,"status":"fail"}
-        except Exception as e:
-            self.logger.error("插入用户失败:%s",str(e))
-        finally:
-            await db.close()
-    
-    async def get_user_by_username(self,username:str) -> dict:
-        db = db_session()
-        try:
-            user:UserModel = await self.user_crud.get_user_by_username(db,username)
-            if user:
-                return {"user":user,"status":"success"}
-            else:
-                return {"user":None,"status":"fail"}
-        except Exception as e:
-            self.logger.error("查询用户失败:%s",str(e))
-        finally:
-            await db.close()
-    async def verify_phone(self,phone:int):
-        db = db_session()
-        try:
-            user = await self.user_crud.get_user_by_phone(db,phone)
-            return user
-        except Exception as e:
-            self.logger.error("查询用户失败:%s",str(e))
-            return None
-        finally:
-            await db.close()
-    
-    async def update_user_password(self,id:int,new_password:str):
-        db = db_session()
-        try:
-            self.logger.info("更新用户密码:%s",id)
-            updated_id = await self.user_crud.update(db,id,{"password":new_password})
-            if updated_id:
-                return True
-            else:
-                return False
-        except Exception as e:
-            self.logger.error("更新用户密码失败:%s",str(e))
-        finally:
-            await db.close()
-
-
-    async def get_user_by_id(self,id:int) -> UserModel:
-        db = db_session()
-        try: 
-            user:UserModel = await self.user_crud.get(db,id)
-            if user:
+    async def insert_user(self, user: UserModel) -> dict:
+        async with AsyncSessionLocal() as db:
+            try:
+                self.logger.info("插入用户:%s", user.username)
+                user = await self.user_crud.insert(db, user)
+                await db.commit()
                 return user
-            else:
+            except Exception as e:
+                self.logger.error("插入用户失败:%s", str(e))
+                await db.rollback()
                 return None
-        except Exception as e:
-            self.logger.error("查询用户失败:%s",str(e))
-        finally:
-            await db.close()
+    async def get_user_by_username(self, username: str) -> dict:
+        async with AsyncSessionLocal() as db:
+            try:
+                user: UserModel = await self.user_crud.get_user_by_username(
+                    db, username
+                )
+                if user:
+                    return {"user": user, "status": "success"}
+                else:
+                    return {"user": None, "status": "fail"}
+            except Exception as e:
+                self.logger.error("查询用户失败:%s", str(e))
+                return {"user": None, "status": "fail"}
 
+    async def verify_phone(self, phone: int) -> UserModel | None:
+        async with AsyncSessionLocal() as db:
+            try:
+                user = await self.user_crud.get_user_by_phone(db, phone)
+                return user
+            except Exception as e:
+                self.logger.error("查询用户失败:%s", str(e))
+                return None
 
-    async def update_user(self,id:int,user_data:dict):
+    async def update_user_password(self, id: int, new_password: str) -> bool:
+        async with AsyncSessionLocal() as db:
+            try:
+                self.logger.info("更新用户密码:%s", id)
+                updated_id = await self.user_crud.update(
+                    db, id, {"password": new_password}
+                )
+                await db.commit()
+                return updated_id
+            except Exception as e:
+                await db.rollback()
+                self.logger.error("更新用户密码失败:%s", str(e))
+                return False
+
+    async def get_user_by_id(self, id: int) -> UserModel | None:
+        async with AsyncSessionLocal() as db:
+            try:
+                user: UserModel = await self.user_crud.get(db, id)
+                if user:
+                    return user
+                else:
+                    return None
+            except Exception as e:
+                self.logger.error("查询用户失败:%s", str(e))
+                return None
+
+    async def update_user(self, id: int, user_data: dict):
         """更新（部分更新）"""
-        db = db_session()
-        try:
-            updated_id  = await self.user_crud.update_segment(db,id,user_data)
-            if updated_id:
-                self.logger.info("更新用户成功:%s",updated_id)
-                return {"id":updated_id,"status":"success"}
-            else:
-                return {"id":None,"status":"fail"}
-        except Exception as e:
-            self.logger.error("更新用户失败:%s",str(e))
-            await db.rollback()
-            return {"id":None,"status":"fail"}
-        finally:
-            await db.close()
+        async with AsyncSessionLocal() as db:
+            try:
+                updated_id = await self.user_crud.update(db, id, user_data)
+                self.logger.info("更新用户成功:%s", updated_id)
+                await db.commit()
+                return {"id": updated_id, "status": "success"}
+            except Exception as e:
+                self.logger.error("更新用户失败:%s", str(e))
+                await db.rollback()
+                return {"id": None, "status": "fail"}
 
-    async def update_user_info(self,id:int,user_data:dict):
-        db = db_session()
-        self.logger.info("更新用户信息:%s",user_data)
-        try:
-            user = await self.user_crud.get(db,id)
-            if not user:
-                return {"user":None,"status":"fail","msg":"用户不存在"}
-            
-            update_date = user_data.model_dump(exclude_unset=True)
-            updated = await self.user_crud.update_segment(db,id,update_date)
+    async def update_user_info(self, id: int, user_data: dict):
+        async with AsyncSessionLocal() as db:
+            self.logger.info("更新用户信息:%s", user_data)
+            try:
+                user = await self.user_crud.get(db, id)
+                if not user:
+                    return {"user": None, "status": "fail", "msg": "用户不存在"}
 
-            return {"user":updated,"status":"success","msg":"更新成功"}
-        except Exception as e:
-            self.logger.error("更新用户失败:%s",str(e))
-            await db.rollback()
-            return {"user":None,"status":"fail","msg":f"出现异常：{str(e)}"}
-        
-        finally:
-            await db.close()
+                update_date = user_data.model_dump(exclude_unset=True)
+                updated = await self.user_crud.update(db, id, update_date)
 
+                await db.commit()
+                return {"user": updated, "status": "success", "msg": "更新成功"}
+            except Exception as e:
+                self.logger.error("更新用户失败:%s", str(e))
+                await db.rollback()
+                return {"user": None, "status": "fail", "msg": f"出现异常：{str(e)}"}

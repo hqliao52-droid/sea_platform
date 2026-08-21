@@ -1,4 +1,4 @@
-import redis
+import redis.asyncio as redis
 from jose import jwt, JWTError
 from typing import Any
 from app.config.settings import settings
@@ -18,25 +18,24 @@ class RedisConfig:
         self.initialized = True
 
     # access_token 处理
-    async def init_black_list_token(self,token):
-        await self.client.set(f"blackList:{token}","1",15*24*3600)
-    
-    async def check_black_list_token(self,token):
+    async def init_black_list_token(self, token):
+        await self.client.set(f"blackList:{token}", "1", 15 * 24 * 3600)
+
+    async def check_black_list_token(self, token):
         result = await self.client.get(f"blackList:{token}")
         return result is not None
-    
 
     # 流式处理
-    async def append_stream(self,task_id:str,chunk:str):
+    async def append_stream(self, task_id: str, chunk: str):
         """追加流式内容"""
         key = f"stream:{task_id}"
-        await self.client.append(key,chunk)
+        await self.client.append(key, chunk)
 
-    async def get_stream(self,task_id:str):
+    async def get_stream(self, task_id: str):
         """获取流式内容"""
         key = f"stream:{task_id}"
         return await self.client.get(key)
-    
+
     async def add_black_list_token(self, token: str):
         """
         将 JWT Token 加入 Redis 黑名单
@@ -77,6 +76,7 @@ class RedisConfig:
             else:
                 # 当前时间戳
                 import time
+
                 now = int(time.time())
 
                 # 计算剩余有效时间
@@ -94,31 +94,28 @@ class RedisConfig:
         # key   = blackList:<token>
         # value = "1"
         # ex    = ttl（秒）
-        await self.client.set(
-            f"blackList:{token}",
-            "1",
-            ex=ttl
-        )
-    async def delete_stream(self,task_id:str):
+        await self.client.set(f"blackList:{token}", "1", ex=ttl)
+
+    async def delete_stream(self, task_id: str):
         """删除流式内容"""
         key = f"stream:{task_id}"
         await self.client.delete(key)
 
     # 通用方法处理
-    async def set_key(self,key_id: str, value: Any, ttl: int = None) -> bool:
-        """ 设置键值对
+    async def set_key(self, key_id: str, value: Any, ttl: int = None) -> bool:
+        """设置键值对
 
         Args：
             key_id: 键
             value: 值
             ttl: 过期时间（秒），默认 None
         Returns：
-            bool: 设置成功返回 True，否则返回 False 
+            bool: 设置成功返回 True，否则返回 False
         """
         return await self.client.set(key_id, value, ex=ttl) is True
-    
-    async def get_key(self,key_id: str) -> Any:
-        """ 获取键值对
+
+    async def get_key(self, key_id: str) -> Any:
+        """获取键值对
 
         Args：
             key_id: 键
@@ -126,9 +123,9 @@ class RedisConfig:
             Any: 键对应的值
         """
         return await self.client.get(key_id)
-    
-    async def delete_key(self,key_id: str) -> bool:
-        """ 删除键值对
+
+    async def delete_key(self, key_id: str) -> bool:
+        """删除键值对
 
         Args：
             key_id: 键
@@ -136,9 +133,9 @@ class RedisConfig:
             bool: 删除成功返回 True，否则返回 False
         """
         return bool(await self.client.delete(key_id))
-    
-    async def key_exists(self,key_id: str) -> bool:
-        """ 判断键是否存在
+
+    async def key_exists(self, key_id: str) -> bool:
+        """判断键是否存在
 
         Args：
             key_id: 键
@@ -146,5 +143,6 @@ class RedisConfig:
             bool: 键存在返回 True，否则返回 False
         """
         return await self.client.exists(key_id) > 0
+
 
 redis_client = RedisConfig()

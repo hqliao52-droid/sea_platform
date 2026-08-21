@@ -1,14 +1,16 @@
-from fastapi import APIRouter,UploadFile,File
+from fastapi import APIRouter, UploadFile, File
 from app.services.file_service import FileService
 from app.utils.result_response import Result
 from app.utils.result_response import ResultCode
 
 router = APIRouter()
 
+
 @router.post("/upload_file")
 async def upload_file(file: UploadFile = File(...)):
     result = await FileService().upload_file(file)
     return Result.success(result)
+
 
 @router.get("/download/app/latest")
 async def get_app_download_url():
@@ -21,8 +23,10 @@ async def get_app_download_url():
         android_file = FileService.get_android_download_url()
         android_qrcode = await FileService.android_generate_qrcode()
     except Exception as e:
-        return Result.error(ResultCode.FILE_NOT_FOUND, msg=f"Android安装部未找到{str(e)}")
-    
+        return Result.error(
+            ResultCode.FILE_NOT_FOUND, msg=f"Android安装部未找到{str(e)}"
+        )
+
     ios = None
     ios_qrcode = None
     try:
@@ -34,22 +38,18 @@ async def get_app_download_url():
         "platform": "android",
         "version": "latest",
         "url": android_file,
-        "qrcode": android_qrcode
+        "qrcode": android_qrcode,
     }
-    ios_url = {
-        "platform": "ios",
-        "version": "latest",
-        "url": ios,
-        "qrcode": ios_qrcode
-    }
+    ios_url = {"platform": "ios", "version": "latest", "url": ios, "qrcode": ios_qrcode}
     result = {"android": android_url, "ios": ios_url}
     return Result.success(result)
+
 
 # @router.get("/download/android")
 # async def download_android():
 #     """
 #     Android 下载接口（直接跳转到 APK 文件）
-    
+
 #     用户访问：
 #         /file/download/android
 

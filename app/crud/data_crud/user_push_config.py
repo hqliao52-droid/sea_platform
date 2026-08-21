@@ -26,7 +26,9 @@ user_push_config_crud.py
             raise
 """
 
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.sea_data_base import BaseCRUD
 
@@ -50,13 +52,10 @@ class UserPushConfigCRUD(BaseCRUD):
         """
         super().__init__(UserPushConfigModel)
 
-    # ==========================================================
     # 查询
-    # ==========================================================
-
     async def get_by_user_id(
         self,
-        db: Session,
+        db: AsyncSession,
         user_id: int,
     ) -> UserPushConfigModel | None:
         """
@@ -75,19 +74,21 @@ class UserPushConfigCRUD(BaseCRUD):
             2. SELECT * FROM user_push_notify_channel WHERE push_config_id IN (...)
             3. SELECT * FROM user_push_category_weight WHERE push_config_id IN (...)
         """
-        return await (
-            db.query(UserPushConfigModel)
+        stmt = (
+            select(UserPushConfigModel)
             .options(
                 selectinload(UserPushConfigModel.channels),
                 selectinload(UserPushConfigModel.weights),
             )
-            .filter(UserPushConfigModel.user_id == user_id)
-            .first()
+            .where(UserPushConfigModel.user_id == user_id)
+            .limit(1)
         )
+        result = await db.execute(stmt)
+        return result.scalar_one_or_none()
 
     async def insert(
         self,
-        db: Session,
+        db: AsyncSession,
         obj_in: UserPushConfigSchema,
     ) -> UserPushConfigModel:
         """
@@ -152,7 +153,7 @@ class UserPushConfigCRUD(BaseCRUD):
 
     async def update(
         self,
-        db: Session,
+        db: AsyncSession,
         db_obj: UserPushConfigModel,
         obj_in: UserPushConfigSchema,
     ) -> UserPushConfigModel:
@@ -223,7 +224,7 @@ class UserPushConfigCRUD(BaseCRUD):
     # 删除
     async def remove(
         self,
-        db: Session,
+        db: AsyncSession,
         db_obj: UserPushConfigModel,
     ) -> None:
         """
@@ -235,9 +236,5 @@ class UserPushConfigCRUD(BaseCRUD):
         自动删除来源：
             1. ORM: cascade="all, delete-orphan"
             2. MySQL: FOREIGN KEY ... ON DELETE CASCADE
-
-        注意:
-            不调用 commit()
         """
         await db.delete(db_obj)
-        await db.flush()

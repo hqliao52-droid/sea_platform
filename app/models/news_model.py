@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
 from app.config.mysql_config import Base
 
+
 class News(Base):
     """
     新闻资讯表
@@ -11,24 +12,24 @@ class News(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
 
-    category_id = Column(Integer,nullable=False,comment="分类ID")
+    category_id = Column(Integer, nullable=False, comment="分类ID")
 
-    category_name = Column(String(255),nullable=False,comment="分类名称")
+    category_name = Column(String(255), nullable=False, comment="分类名称")
 
     # 新闻标题
-    title = Column(String(255), nullable=False,comment="新闻标题")
+    title = Column(String(255), nullable=False, comment="新闻标题")
 
     # url原始链接
-    url = Column(String(255), nullable=False,comment="新闻URL")
+    url = Column(String(255), nullable=False, comment="新闻URL")
 
     # RSS来源
-    source = Column(String(255),comment="RSS来源")
+    source = Column(String(255), comment="RSS来源")
 
     # 发布时间
-    published_at = Column(DateTime,comment="发布时间")
+    published_at = Column(DateTime, comment="发布时间")
 
     # 创建时间
-    created_at = Column(DateTime, default=datetime.now,comment="创建时间")
+    created_at = Column(DateTime, default=datetime.now, comment="创建时间")
 
     # 是否是政策类
-    is_policy = Column(Integer, default=0,comment="是否是政策类")
+    is_policy = Column(Integer, default=0, comment="是否是政策类")

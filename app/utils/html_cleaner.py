@@ -11,14 +11,23 @@ import bleach
 #     'img', 'a',
 #     'blockquote'
 # ]
-ALLOWED_TAGS = [
-    'img', 'a'
-]
+ALLOWED_TAGS = ["img", "a"]
 ALLOWED_ATTRIBUTES = {
-    'a': ['href', 'title'],
-    'img': ['src', 'alt'],
+    "a": ["href", "title"],
+    "img": ["src", "alt"],
 }
-DENY_TAGS = ['script', 'iframe', 'frame', 'object', 'embed', 'style', 'link', 'svg', 'math']
+DENY_TAGS = [
+    "script",
+    "iframe",
+    "frame",
+    "object",
+    "embed",
+    "style",
+    "link",
+    "svg",
+    "math",
+]
+
 
 async def clean_html_to_text(html: str) -> str:
     """
@@ -50,7 +59,7 @@ async def clean_html_for_all_platform(html_content):
     if not html_content:
         return ""
 
-    soup = BeautifulSoup(html_content, 'html.parser')
+    soup = BeautifulSoup(html_content, "html.parser")
     for tag in DENY_TAGS:
         for t in soup.find_all(tag):
             t.decompose()  # 彻底移除
@@ -60,6 +69,6 @@ async def clean_html_for_all_platform(html_content):
         tags=ALLOWED_TAGS,
         attributes=ALLOWED_ATTRIBUTES,
         strip=True,
-        strip_comments=True
+        strip_comments=True,
     )
     return cleaned.strip()

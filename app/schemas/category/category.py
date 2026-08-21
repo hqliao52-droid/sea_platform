@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 
+
 # --- 基础 Schema ---
 class categoryBase(BaseModel):
     id: Optional[int] = Field(None, description="主键ID")

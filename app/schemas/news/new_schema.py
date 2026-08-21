@@ -1,12 +1,12 @@
 # app/schemas/new_schema.py
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
-from typing import Optional,Union
+from typing import Optional, Union
 
 
 class NewsSchema(BaseModel):
     id: int
-    category_id: Optional[str] = None
+    category_id: Optional[int] = None
     category_name: Optional[str] = None
     title: str
     url: Optional[str] = None

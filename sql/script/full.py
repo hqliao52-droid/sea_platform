@@ -2,7 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
-def fetch_full_text(url,rss_url):
+
+def fetch_full_text(url, rss_url):
     """
     【通用版】爬取任意网页的文章正文（支持新闻、政府、资讯、博客等所有网站）
     不绑定任何域名，自动识别正文，适配 28+ RSS 源
@@ -25,21 +26,30 @@ def fetch_full_text(url,rss_url):
 
         content = None
 
-
         # ==============================================
         # 第一层：匹配全行业最常见的正文容器（覆盖80%网站）
         # 政府、新闻、门户、公众号、地方站通用
         # ==============================================
         common_selectors = [
-            "article",                        # 标准HTML5文章标签
-            ".article", "#article",
-            ".content", "#content",
-            ".post", ".entry", ".story",      # 博客/新闻通用
-            ".main-content", ".article-content",
-            ".text", ".detail", ".news-content",
-            ".pages_content", ".TRS_Editor",  # 兼容旧政府网
-            ".main", "#main",
-            ".box-content", ".article-body",
+            "article",  # 标准HTML5文章标签
+            ".article",
+            "#article",
+            ".content",
+            "#content",
+            ".post",
+            ".entry",
+            ".story",  # 博客/新闻通用
+            ".main-content",
+            ".article-content",
+            ".text",
+            ".detail",
+            ".news-content",
+            ".pages_content",
+            ".TRS_Editor",  # 兼容旧政府网
+            ".main",
+            "#main",
+            ".box-content",
+            ".article-body",
             "#app main article",
             "#app .article-content",
             "#app .content-detail",
@@ -63,22 +73,25 @@ def fetch_full_text(url,rss_url):
         # ==============================================
         if not content:
             p_tags = soup.find_all("p")
-            paragraphs = [p.get_text(strip=True) for p in p_tags if p.get_text(strip=True)]
+            paragraphs = [
+                p.get_text(strip=True) for p in p_tags if p.get_text(strip=True)
+            ]
             paragraphs = [p for p in paragraphs if len(p) > 10]  # 过滤短行
             content = "\n".join(paragraphs)
 
         # 最终清理
         content = clean_text(content)
         if len(content.strip()) > 50:
-            result = {"content":content,"status":"success"}
+            result = {"content": content, "status": "success"}
         else:
-            result = {"content":"文本长度过短！","status":"fail"}
-            
+            result = {"content": "文本长度过短！", "status": "fail"}
+
         return result
 
     except Exception as e:
         print(f"[爬取失败] {url} | 错误：{str(e)[:50]}")
         return None
+
 
 # ===================== 以下是工具函数，让通用爬取更稳定 =====================
 def get_proper_encoding(resp):
@@ -87,10 +100,12 @@ def get_proper_encoding(resp):
         return resp.apparent_encoding
     return "utf-8"
 
+
 def clean_soup(soup):
     """删除广告、导航、脚本、样式"""
     for tag in soup(["script", "style", "nav", "footer", "header", "aside", "iframe"]):
         tag.decompose()
+
 
 def auto_detect_article(soup):
     """自动找文字密度最高的div（最核心的通用识别算法）"""
@@ -103,6 +118,7 @@ def auto_detect_article(soup):
             best_div = div
     return best_div.get_text(strip=True, separator="\n") if best_div else None
 
+
 def clean_text(text):
     """清理多余空格、换行、制表符"""
     text = re.sub(r"\n+", "\n", text)
@@ -113,5 +129,5 @@ def clean_text(text):
 if __name__ == "__main__":
     url = "https://www.oschina.net/news/420244"
     rss_url = "https://www.oschina.net/news/rss"
-    result = fetch_full_text(url,rss_url)
+    result = fetch_full_text(url, rss_url)
     print(result)

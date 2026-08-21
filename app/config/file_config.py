@@ -1,8 +1,10 @@
 from pathlib import Path
 from app.config.settings import settings
 
+
 class FileConfig:
     """文件上传配置"""
+
     # 项目根目录（sea_ai_platform）
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -22,4 +24,5 @@ class FileConfig:
     # 访问host(生产环境需改为nginx域名)
     FILE_HOST = f"http://{settings.SERVER_HOST}:{settings.SERVER_PORT}"
 
-file_config = FileConfig()  
+
+file_config = FileConfig()

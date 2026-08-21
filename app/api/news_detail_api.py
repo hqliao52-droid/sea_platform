@@ -8,21 +8,25 @@ from app.schemas.news_detail.news_detail_schema import NewsDetailsSchema
 from app.schemas.news_detail.news_detail_page_resp import NewsDetailsPageSchema
 from app.utils.logger import Logger
 from app.services.rss_service import RssSourceOperator
+
 # from app.services.baidu_rss_service import BaiduRssSourceOperator
 
 router = APIRouter()
 logger = Logger.setup_logger(Logger.set_file_date())
 
+
 @router.get("/get_news_detail", response_model=Result[NewsDetailsPageSchema])
 async def get_news_detail(
     request: Request,
-    page:int = Query(1, gt=0, description="页码，从1开始"),
-    page_size:int = Query(10, gt=0, le=100, description="每页数量，最大100"),
+    page: int = Query(1, gt=0, description="页码，从1开始"),
+    page_size: int = Query(10, gt=0, le=100, description="每页数量，最大100"),
     category_id: Optional[int] = Query(None, description="分类ID"),
 ):
     detail_service = NewsDetailOperator()
-    logger.info(f"收到请求参数: page={page}, page_size={page_size}, category_id={category_id}")
-    news_detail_list = detail_service.get_pages_news(page, page_size, category_id)
+    logger.info(
+        f"收到请求参数: page={page}, page_size={page_size}, category_id={category_id}"
+    )
+    news_detail_list: dict = await detail_service.get_pages_news(page, page_size, category_id)
 
     rss_service = RssSourceOperator()
     resp = []
@@ -42,8 +46,12 @@ async def get_news_detail(
             result.one_sentence_summary = item.ai_origin_output["summary"] or None
             result.ai_summary = item.ai_origin_output["abstract"] or None
             result.keywords = item.ai_origin_output["keywords"] or None
-            result.policy_risk = item.ai_origin_output["policy_risk"]["market_risk"] or None
-            result.policy_compliance = item.ai_origin_output["policy_risk"]["policy_compliance"] or None
+            result.policy_risk = (
+                item.ai_origin_output["policy_risk"]["market_risk"] or None
+            )
+            result.policy_compliance = (
+                item.ai_origin_output["policy_risk"]["policy_compliance"] or None
+            )
             result.rss_id = rss_data.id
             result.rss_tag = rss_data.name
             result.published_at = news_data.published_at
@@ -61,7 +69,7 @@ async def get_news_detail(
 
     # 对resp做排序：排序字段：published_at
     resp.sort(key=lambda x: x.published_at, reverse=True)
-    
+
     r = NewsDetailsPageSchema()
     r.page = page
     r.page_size = page_size
@@ -70,10 +78,11 @@ async def get_news_detail(
     logger.info(f"返回数据：{resp}")
     return Result.success(r)
 
+
 @router.get("/get_detail_by_id", response_model=Result[NewsDetailsSchema])
 async def get_detail_by_id(
     request: Request,
-    id:int,
+    id: int,
 ):
     detail_service = NewsDetailOperator()
     news_detail = await detail_service.get_news_detail_by_id(id)
@@ -81,4 +90,3 @@ async def get_detail_by_id(
     result = NewsDetailsSchema.parse_obj(news_detail)
 
     return Result.success(result)
-            

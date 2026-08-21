@@ -1,6 +1,6 @@
-import time,asyncio
-from fastapi import APIRouter,WebSocket, WebSocketDisconnect
-from fastapi.responses  import StreamingResponse
+import time, asyncio
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi.responses import StreamingResponse
 from typing import List
 from uuid import uuid4
 from datetime import datetime
@@ -8,12 +8,12 @@ from datetime import datetime
 from app.utils.result_response import Result
 from app.utils.result_response import ResultCode
 from app.services.chat_message_service import ChatMessageOperator
-from app.schemas.chat_message.chat_message import ChatMessageSchema,ChatMsg
+from app.schemas.chat_message.chat_message import ChatMessageSchema, ChatMsg
 from app.services.chat_session_service import ChatSessionOperator
 from app.services.news_detail_service import NewsDetailOperator
 from app.models.chat_message import ChatMessage
 from app.utils.logger import Logger
-from app.tasks.ai_task import run_llm_task,run_llm_task_session_topic
+from app.tasks.ai_task import run_llm_task, run_llm_task_session_topic
 from app.config.redis_config import redis_client
 
 
@@ -24,8 +24,11 @@ news_detail = NewsDetailOperator()
 
 logger = Logger.setup_logger(Logger.set_file_date())
 
-@chat_message_router.get("/get_by_session_id",response_model = Result[List[ChatMessageSchema]])
-async def get_by_session_id(session_id:int):
+
+@chat_message_router.get(
+    "/get_by_session_id", response_model=Result[List[ChatMessageSchema]]
+)
+async def get_by_session_id(session_id: int):
     """通过session id查用户历史消息"""
     try:
         chat_message = await chat_msg.get_chat_message_by_session_id(session_id)
@@ -33,11 +36,14 @@ async def get_by_session_id(session_id:int):
         logger.info(f"通过session_id:{session_id}查询用户历史消息成功")
         return Result.success(result)
     except Exception as e:
-        logger.error(f"通过session_id:{session_id}查询用户历史消息失败，错误信息：{str(e)}")
+        logger.error(
+            f"通过session_id:{session_id}查询用户历史消息失败，错误信息：{str(e)}"
+        )
         return Result.error(ResultCode.SYSTEM_ERROR)
-    
+
+
 @chat_message_router.put("/insert_message")
-async def insert_message(req:ChatMsg):
+async def insert_message(req: ChatMsg):
     """发送对话 - 写入用户消息"""
     logger.info(f"当前({datetime.now}),客户发送销售：{req.news_ids}")
     task_id = str(uuid4())
@@ -74,15 +80,15 @@ async def insert_message(req:ChatMsg):
     ai_message.created_time = now_time
     ai_msg = await chat_msg.insert_chat_message(ai_message)
 
-    update_time = {"update_time":now_time}
-    await chat_session.update_session(req.session_id,update_time)
+    update_time = {"update_time": now_time}
+    await chat_session.update_session(req.session_id, update_time)
 
     # 发送celery任务
-    req_dict = req.model_dump() 
-    await run_llm_task.delay(task_id, ai_msg.id,user_msg.id, req_dict)
-    await run_llm_task_session_topic.delay(req.session_id,req.query)
+    req_dict = req.model_dump()
+    await run_llm_task.delay(task_id, ai_msg.id, user_msg.id, req_dict)
+    await run_llm_task_session_topic.delay(req.session_id, req.query)
 
-    return Result.success(data={"task_id":task_id,"ai_msg_id":ai_msg.id})
+    return Result.success(data={"task_id": task_id, "ai_msg_id": ai_msg.id})
 
 
 @chat_message_router.get("/chat_stream/{task_id}")
@@ -107,17 +113,16 @@ async def stream(task_id: str):
                 if "[[ERROR]]" in delta:
                     break
 
-            await asyncio.sleep(0.05)
-
     return StreamingResponse(
-            event_generator(),
-            media_type="text/event-stream",
-            headers={
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
-                "X-Accel-Buffering": "no",  # Nginx
-            }
-        )
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # Nginx
+        },
+    )
+
 
 @chat_message_router.websocket("/ws/chat/{task_id}")
 async def ws_chat(websocket: WebSocket, task_id: str):
@@ -137,8 +142,6 @@ async def ws_chat(websocket: WebSocket, task_id: str):
 
                 if "[[END]]" in delta:
                     break
-
-            await asyncio.sleep(0.05)
 
     except WebSocketDisconnect as e:
         logger.error(f"/ws/chat/{task_id} 轮询接口出错：{str(e)}")

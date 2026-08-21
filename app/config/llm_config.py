@@ -36,19 +36,20 @@ class DeepSeekReasoningContentMixin:
                 payload_message["reasoning_content"] = reasoning_content
         return payload
 
+
 class LLMConfig:
     def __init__(self):
         # 一次性初始化豆包（兼容 OpenAI 格式）
         pass
-    async def get_chat_llm(self,streaming:bool = True):
+
+    async def get_chat_llm(self, streaming: bool = True) -> ChatOpenAI:
         return await ChatOpenAI(
             model=settings.LLM_MODEL_DouBaoSeedLite,
             api_key=settings.LLM_API_KEY_DouBaoSeedLite,
             base_url=settings.LLM_BASE_URL_DouBaoSeedLite,
             temperature=0.7,
-            streaming=streaming
+            streaming=streaming,
         )
-
 
     async def category_llm(self):
         return await ChatOpenAI(
@@ -67,32 +68,16 @@ class LLMConfig:
         )
 
     def create_agent(self):
+        model = settings.BASE_MODEL or settings.LLM_BASE_MODEL_DeepSeek
         kwargs = {
-            "model": settings.LLM_MODEL_DouBaoSeedLite,
-            "temperature": 0.7,
-            "stream_usage": True,
-        }
-        api_key = settings.LLM_API_KEY_DouBaoSeedLite
-        if api_key:
-            kwargs["api_key"] = api_key
-        base_url = settings.LLM_BASE_URL_DouBaoSeedLite
-        if base_url:
-            kwargs["base_url"] = base_url
-        if settings.LLM_DouBaoSeedList_THINK:
-            # thinking 参数只对显式声明支持的模型传递，避免普通模型拒绝未知字段。
-            kwargs["extra_body"] = {"thinking": {"type": "enabled"}}
-        return ChatOpenAI(**kwargs)
-
-    def create_agent(self):
-        kwargs = {
-            "model": settings.BASE_MODEL,
+            "model": model,
             "temperature": settings.TEMPERATURE,
             "stream_usage": True,
         }
-        api_key = settings.API_KEY
+        api_key = settings.API_KEY or settings.LLM_API_KEY_DeepSeek
         if api_key:
             kwargs["api_key"] = api_key
-        base_url = settings.BASE_URL
+        base_url = settings.BASE_URL or settings.LLM_BASE_URL_DeepSeek
         if base_url:
             kwargs["base_url"] = base_url
         if settings.SUPPORTED_THINKING and settings.THINKING_ENABLED:
@@ -100,14 +85,15 @@ class LLMConfig:
             kwargs["extra_body"] = {"thinking": {"type": "enabled"}}
             if settings.REASONING_EFFORT:
                 kwargs["reasoning_effort"] = settings.REASONING_EFFORT
-        if "deepseek" in settings.BASE_MODEL.lower():
+        if "deepseek" in model.lower():
             from langchain_deepseek import ChatDeepSeek
 
             return type(
-                "HarnessChatDeepSeek",
+                "ChatDeepSeek",
                 (DeepSeekReasoningContentMixin, ChatDeepSeek),
                 {},
             )(**kwargs)
         return ChatOpenAI(**kwargs)
-    
+
+
 llm_config = LLMConfig()

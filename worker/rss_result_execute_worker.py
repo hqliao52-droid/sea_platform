@@ -1,13 +1,13 @@
-import sys,json
+import sys, json
+import asyncio
 from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent)) 
 
-from concurrent.futures import ThreadPoolExecutor
+sys.path.append(str(Path(__file__).parent.parent))
 
 from app.config.rabbitMq_config import MQClient
 from app.utils.logger import Logger
 from app.utils.fetch_full_text import fetch_full_text
-from app.tasks.ai_response import llm_check_outreach_news,llm_analyze_news
+from app.tasks.ai_response import llm_check_outreach_news, llm_analyze_news
 from app.services.news_service import NewsOperator
 from app.services.news_detail_service import NewsDetailOperator
 from app.services.category_service import CategoryOperator
@@ -19,8 +19,6 @@ from app.schemas.category.category import categoryBase
 
 news_detail_operator = NewsDetailOperator()
 logger = Logger.setup_logger(Logger.set_file_name("worker"))
-# 并发线程池
-executor = ThreadPoolExecutor(max_workers=3)
 
 async def news_execute(entry, llm_result, llm_json):
     logger.info(f"是否政策：{llm_result}")
@@ -42,13 +40,11 @@ async def news_execute(entry, llm_result, llm_json):
 
     try:
         if entry:
-            news.title = entry.get("title","")
+            news.title = entry.get("title", "")
             news.url = entry.get("url") or entry.get("link")
-            news.source = entry.get("source","")
-            news.published_at = entry.get("published_at","")
+            news.source = entry.get("source", "")
+            news.published_at = entry.get("published_at", "")
             news.is_policy = 1 if llm_result == "1" else 0
-
-
 
             # 默认值
             news.category_name = "其他"
@@ -63,7 +59,7 @@ async def news_execute(entry, llm_result, llm_json):
                 for tag in tags:
                     if industry in tag.tag_name or industry in tag.example:
                         logger.info(f"匹配成功：{tag}, 匹配对象：{industry}")
-                        
+
                         news.category_id = tag.id
                         news.category_name = tag.tag_name
 
@@ -71,27 +67,32 @@ async def news_execute(entry, llm_result, llm_json):
                         news_detail.category_name = tag.tag_name
                         # 匹配成功：找到就 break
                         break
-            
+
             result = await news_operator.insert_news(news)
 
             if result.get("status") == "success":
                 logger.info("news表插入成功")
-                article_storage_model.article_name = entry.get("title","")
-                article_storage_model.origin_input = entry.get("origin_input","")
+                article_storage_model.article_name = entry.get("title", "")
+                article_storage_model.origin_input = entry.get("origin_input", "")
                 article_storage_model.news_id = result.get("id")
-                article_result = await article_storage_service.insert_article(article_storage_model)
+                article_result = await article_storage_service.insert_article(
+                    article_storage_model
+                )
             else:
                 logger.error("news表插入失败")
 
-
         else:
-            return 
-    
-        if (llm_result == "1" or llm_result == 1) and result is not None and result["status"] == "success":
+            return
+
+        if (
+            (llm_result == "1" or llm_result == 1)
+            and result is not None
+            and result["status"] == "success"
+        ):
             logger.info("需求类数据，详情插入...")
             news_detail.news_id = result.get("id")
-            news_detail.title = entry.get("title","")
-            
+            news_detail.title = entry.get("title", "")
+
             news_detail.authors = entry.get("authors", "")
             news_detail.content = entry.get("content", "")
             news_detail.url = entry.get("url") or entry.get("link")
@@ -100,75 +101,72 @@ async def news_execute(entry, llm_result, llm_json):
             news_detail.summary = entry.get("summary", "")
             news_detail.origin_entry = entry
             news_detail.published_at = entry.get("published_at", "")
-            
+
             full_context = await fetch_full_text(entry.get("url") or entry.get("link"))
-            news_detail.in_full_page = full_context.get("content") if full_context.get("status") == "success" else None
+            news_detail.in_full_page = (
+                full_context.get("content")
+                if full_context.get("status") == "success"
+                else None
+            )
 
             obj = await news_detail_operator.insert_news_detail(news_detail)
 
-        
         if result["status"] == "success":
-            logger.info({
-                "status": 200,
-                "msg": "插入成功",
-                "news_id": result["id"],
-                "news_detail":obj if obj else None,
-                "article_id":article_result["id"]
-            })
+            logger.info(
+                {
+                    "status": 200,
+                    "msg": "插入成功",
+                    "news_id": result["id"],
+                    "news_detail": obj if obj else None,
+                    "article_id": article_result["id"],
+                }
+            )
         else:
-            logger.error({
-                "status": 500,
-                "msg": "插入失败",
-                "error": result["error"]
-            })
-    
+            logger.error({"status": 500, "msg": "插入失败", "error": result["error"]})
+
     except Exception as e:
-        logger.error({"status":500,"msg":f"插入失败:{str(e)}"})
+        logger.error({"status": 500, "msg": f"插入失败:{str(e)}"})
+
 
 async def handle_message(message):
     try:
         news_operator = NewsOperator()
-        status = await news_operator.is_news_exits(message["url"], message["published_at"])
+        status = await news_operator.is_news_exits(
+            message["url"], message["published_at"]
+        )
         logger.info(f"处理的数据 {message}")
         if status["status"] == "exists":
             logger.info("数据已存在，跳过...")
             return
-        
-        result = await llm_check_outreach_news(message["title"],message["content"])
+
+        result = await llm_check_outreach_news(message["title"], message["content"])
         ai_json = None
-        
+
         if result == "1" or result == 1:
             category_operator = CategoryOperator()
             tags = await category_operator.get_category_is_active()
 
             tags_description = "\n".join(f"{t.tag_name}: {t.example}" for t in tags)
 
-            ai_json = await llm_analyze_news(message["title"],message["content"],tags_description)
-        
+            ai_json = await llm_analyze_news(
+                message["title"], message["content"], tags_description
+            )
+
         await news_execute(message, result, ai_json)
     except Exception as e:
-        logger.error({"status":500,"msg":f"处理失败:{str(e)}"})
+        logger.error({"status": 500, "msg": f"处理失败:{str(e)}"})
+
 
 async def worker():
     mq_client = MQClient()
     print("Worker 启动成功，开始消费消息...")
-    
-    async def handle(ch,method,message):
-        future = await executor.submit(handle_message, message)
-        async def callback(fut):
-            try:
-                # 有异常就抛出去
-                fut.result()
-                # 消费成功后才ack
-                await ch.connection.add_callback_threadsafe(lambda: ch.basic_ack(delivery_tag=method.delivery_tag))
-            except Exception as e:
-                logger.error({"status":500,"msg":f"处理失败:{str(e)}"})
-                # 失败后重新入队
-                await ch.connection.add_callback_threadsafe(lambda: ch.basic_nack(delivery_tag=method.delivery_tag,requeue=True))
-        future.add_done_callback(callback)
+
+    async def handle(message):
+        await handle_message(message)
+
     # 消息处理
     await mq_client.consume(handle)
-            
+
 
 if __name__ == "__main__":
-    worker()
+    asyncio.run(worker())

@@ -2,8 +2,10 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 
+
 class ArticleStorageSchema(BaseModel):
     """文章存储模型"""
+
     id: Optional[int] = Field(None, description="主键ID")
     news_id: Optional[int] = Field(None, description="新闻ID")
     origin_input: Optional[dict] = Field(None, description="原始URL")

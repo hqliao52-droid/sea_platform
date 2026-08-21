@@ -9,10 +9,12 @@ from app.rag.prompt.agent_prompt import prompt as AgentPrompt
 
 class NewsRetriever:
     def __init__(self):
-        self.logger = Logger.setup_logger(f"llm_task_celery_{time.strftime('%Y_%m_%d')}")
+        self.logger = Logger.setup_logger(
+            f"llm_task_celery_{time.strftime('%Y_%m_%d')}"
+        )
         self.news_detail = NewsDetailOperator()
-        
-    async def retrieve_by_ids(self,ids, push_status=None):
+
+    async def retrieve_by_ids(self, ids, push_status=None):
         # 返回对象：[NewsDetail]仅查title和对应的content
         retrieved_article = await self.news_detail.get_news_detail_by_ids(ids)
         if retrieved_article:

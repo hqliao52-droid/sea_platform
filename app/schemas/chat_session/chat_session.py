@@ -2,8 +2,10 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 
+
 class ChatSessionSchema(BaseModel):
     """会话模型"""
+
     id: Optional[int] = Field(None, description="会话ID(主键)")
     user_id: Optional[int] = Field(None, description="用户ID")
     llm_id: Optional[int] = Field(None, description="机器人ID")

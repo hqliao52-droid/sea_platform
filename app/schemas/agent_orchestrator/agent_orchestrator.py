@@ -1,6 +1,7 @@
 import json
 from app.config.redis_config import redis_client
 
+
 class AgentOrchestrator:
 
     def __init__(self, task_id):
@@ -9,26 +10,15 @@ class AgentOrchestrator:
     def emit_status(self, state, text):
         redis_client.client.lpush(
             f"stream:{self.task_id}",
-            json.dumps({
-                "type": "status",
-                "state": state,
-                "text": text
-            })
+            json.dumps({"type": "status", "state": state, "text": text}),
         )
 
     def emit_delta(self, chunk):
         redis_client.client.lpush(
-            f"stream:{self.task_id}",
-            json.dumps({
-                "type": "delta",
-                "content": chunk
-            })
+            f"stream:{self.task_id}", json.dumps({"type": "delta", "content": chunk})
         )
 
     def emit_done(self):
         redis_client.client.lpush(
-            f"stream:{self.task_id}",
-            json.dumps({
-                "type": "done"
-            })
+            f"stream:{self.task_id}", json.dumps({"type": "done"})
         )

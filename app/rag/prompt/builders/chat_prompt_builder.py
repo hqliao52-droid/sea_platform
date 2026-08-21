@@ -1,9 +1,4 @@
-
-from langchain_core.messages import (
-    SystemMessage,
-    HumanMessage,
-    AIMessage
-)
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
 from app.utils.logger import Logger
 from app.rag.prompt.agent_prompt import prompt as AgentPrompt
@@ -17,13 +12,19 @@ class ChatPromptBuilder:
         self.news_retriever = NewsRetriever()
         self.status_node = ChatNode()
 
-    async def build_messages(self, user_input:str,task_id:str, refer_data: list = None, history_messages: list = None):
+    async def build_messages(
+        self,
+        user_input: str,
+        task_id: str,
+        refer_data: list = None,
+        history_messages: list = None,
+    ):
         # 1. 获取基础 System Prompt
         base_system_prompt = AgentPrompt.doubao_service_system_prompt()
         self.logger.info(f"构建基础System Prompt:{base_system_prompt[:20]}")
 
         messages = [SystemMessage(content=base_system_prompt)]
-        
+
         # 2.  构建会话级文章引用状态
         conversation_state = AgentPrompt.build_conversation_state(refer_data)
         self.logger.info(f"构建会话级文章引用状态:{conversation_state[:30]}")
@@ -38,12 +39,18 @@ class ChatPromptBuilder:
             for item in history_messages:
                 self.logger.info(f"获取用户引用文章列表:{item}")
                 # 数据库该字段存储样式：[ids],null,空
-                if refer_data_status and item.llm_refer_data_id and item.llm_refer_data_id != "null":
+                if (
+                    refer_data_status
+                    and item.llm_refer_data_id
+                    and item.llm_refer_data_id != "null"
+                ):
                     # 只找最近用户引用文章
                     refer_data_status = False
                     # 返回对象：[NewsDetail]仅查title和对应的content
                     self.status_node.reading(task_id)
-                    retrieved_articles = await self.news_retriever.retrieve_by_ids(item.llm_refer_data_id)
+                    retrieved_articles = await self.news_retriever.retrieve_by_ids(
+                        item.llm_refer_data_id
+                    )
                     self.logger.info(f"构建文章引用状态:{retrieved_articles[:30]}")
                     messages.append(SystemMessage(content=retrieved_articles))
 

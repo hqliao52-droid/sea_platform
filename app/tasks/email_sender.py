@@ -2,6 +2,7 @@ import smtplib
 from email.mime.text import MIMEText
 from app.config.settings import settings
 
+
 def send_email(to_email: str, subject: str, content: str):
     msg = MIMEText(content, "plain", "utf-8")
     msg["Subject"] = subject

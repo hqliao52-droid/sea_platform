@@ -1,12 +1,13 @@
 import requests
 from lxml import etree
 import pandas as pd
-import os,random
+import os, random
 
 # ====================== 你可以自定义的配置 ======================
 URL = "http://www.baidu.com/search/rss.html"
 SAVE_PATH = "./data/rss_list.xlsx"
 # ===============================================================
+
 
 def get_rss_structure():
     headers = {
@@ -17,7 +18,9 @@ def get_rss_structure():
         resp = requests.get(URL, headers=headers, timeout=10)
         resp.encoding = resp.apparent_encoding
         tree = etree.HTML(resp.text)
-        top_ul = tree.xpath("/html/body/table[3]/tbody/tr/td[1]/div[7]/div[1]/div[2]/ul")[0]
+        top_ul = tree.xpath(
+            "/html/body/table[3]/tbody/tr/td[1]/div[7]/div[1]/div[2]/ul"
+        )[0]
     except Exception as e:
         print(f"❌ 网页获取失败：{e}")
         return []
@@ -37,12 +40,22 @@ def get_rss_structure():
         parent_time = random.randint(10, 20)
         if parent_name:
             parent_name += "（百度源）"
-            result.append([
-                current_id, parent_name, parent_url, None,
-                0,        # is_child 父=0
-                0,        # parent_id 父=0
-                None, None, parent_time, None, None, None
-            ])
+            result.append(
+                [
+                    current_id,
+                    parent_name,
+                    parent_url,
+                    None,
+                    0,  # is_child 父=0
+                    0,  # parent_id 父=0
+                    None,
+                    None,
+                    parent_time,
+                    None,
+                    None,
+                    None,
+                ]
+            )
             current_id += 1
 
         # ========= 2级：子分类 =========
@@ -57,12 +70,22 @@ def get_rss_structure():
             sub_time = random.randint(20, 30)
             if sub_name:
                 sub_name += "（百度源）"
-                result.append([
-                    current_id, sub_name, sub_url, None,
-                    1,        # is_child 子=1
-                    parent_id,# parent_id 子=父ID
-                    None, None, sub_time, None, None, None
-                ])
+                result.append(
+                    [
+                        current_id,
+                        sub_name,
+                        sub_url,
+                        None,
+                        1,  # is_child 子=1
+                        parent_id,  # parent_id 子=父ID
+                        None,
+                        None,
+                        sub_time,
+                        None,
+                        None,
+                        None,
+                    ]
+                )
                 current_id += 1
 
             # ========= 3级：孙子分类 =========
@@ -75,15 +98,26 @@ def get_rss_structure():
                 g_sub_time = random.randint(30, 40)
                 if g_sub_name:
                     g_sub_name += "（百度源）"
-                    result.append([
-                        current_id, g_sub_name, g_sub_url, None,
-                        2,        # is_child 孙=2
-                        sub_id,   # parent_id 孙=直接父ID（2级ID）
-                        None, None, g_sub_time, None, None, None
-                    ])
+                    result.append(
+                        [
+                            current_id,
+                            g_sub_name,
+                            g_sub_url,
+                            None,
+                            2,  # is_child 孙=2
+                            sub_id,  # parent_id 孙=直接父ID（2级ID）
+                            None,
+                            None,
+                            g_sub_time,
+                            None,
+                            None,
+                            None,
+                        ]
+                    )
                     current_id += 1
 
     return result
+
 
 if __name__ == "__main__":
     os.makedirs(os.path.dirname(SAVE_PATH), exist_ok=True)
@@ -100,17 +134,23 @@ if __name__ == "__main__":
     else:
         # 字段顺序已更新：加入 parent_id
         columns = [
-            "id", "name", "url", "category",
-            "is_child", "parent_id",  # 👈 新增在这里
-            "is_active", "is_api_key", "update_rate",
-            "hot_rate", "source_score", "created_at"
+            "id",
+            "name",
+            "url",
+            "category",
+            "is_child",
+            "parent_id",  # 👈 新增在这里
+            "is_active",
+            "is_api_key",
+            "update_rate",
+            "hot_rate",
+            "source_score",
+            "created_at",
         ]
         df = pd.DataFrame(data, columns=columns)
 
         with pd.ExcelWriter(
-            SAVE_PATH,
-            engine="openpyxl",
-            datetime_format="yyyy-mm-dd hh:mm:ss"
+            SAVE_PATH, engine="openpyxl", datetime_format="yyyy-mm-dd hh:mm:ss"
         ) as writer:
             df.to_excel(writer, index=False)
 

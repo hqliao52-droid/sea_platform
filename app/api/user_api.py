@@ -1,10 +1,14 @@
-from fastapi import APIRouter, Request,Body,Header,Depends
-from app.utils.jwt import create_access_token,hash_password,verify_password
+from fastapi import APIRouter, Request, Body, Header, Depends
+from app.utils.jwt import create_access_token, hash_password, verify_password
 from app.services.user_service import UserService
 from app.utils.result_response import Result
 from app.utils.result_response import ResultCode
 from app.utils.ip_util import get_real_ip
-from app.schemas.user.user_schema import UserSchema,UserUpdateSchema,UserInfoVerifySchema
+from app.schemas.user.user_schema import (
+    UserSchema,
+    UserUpdateSchema,
+    UserInfoVerifySchema,
+)
 from app.schemas.user.user_response_schema import UserResponseSchema
 from app.models.user_model import UserModel
 from app.config.redis_config import RedisConfig
@@ -15,11 +19,12 @@ router = APIRouter()
 
 redis = RedisConfig()
 
+
 @router.post("/login")
 async def login(
     username: str = Body(..., embed=True),
     password: str = Body(..., embed=True),
-    request: Request = None
+    request: Request = None,
 ):
     user_service = UserService()
     user_info = await user_service.get_user_by_username(username)
@@ -33,33 +38,33 @@ async def login(
 
     if not verify_password(password, stored_user.password):
         return Result.error(ResultCode.USER_ACCOUNT_ERROR)
-    
+
     # if password != verify_token(stored_user.password):
     #     return Result.error(ResultCode.USER_ACCOUNT_ERROR)
     user_id = user_info["user"].id
     print(f"用户ID：{user_id}")
-        
+
     ip = get_real_ip(request)
     if ip:
-        update_data = {"last_login_ip": ip,"last_login_time": datetime.now()}
-        await user_service.update_user(user_id,update_data)
+        update_data = {"last_login_ip": ip, "last_login_time": datetime.now()}
+        await user_service.update_user(user_id, update_data)
         stored_user.last_login_ip = ip
-    
-    token = create_access_token({"sub": str(user_id),"username": username})
-    
+
+    token = create_access_token({"sub": str(user_id), "username": username})
+
     user_response = UserResponseSchema.model_validate(stored_user)
-    return Result.success(data={"token": token,
-                                "token_type": "bearer",
-                                "userInfo":user_response})
+    return Result.success(
+        data={"token": token, "token_type": "bearer", "userInfo": user_response}
+    )
+
 
 @router.post("/register")
-async def register(user: UserSchema,
-             request: Request = None):
+async def register(user: UserSchema, request: Request = None):
     user_service = UserService()
     user_info = await user_service.get_user_by_username(user.username)
     if user_info["status"] == "success":
         return Result.error(ResultCode.USER_EXIST_ERROR)
-    
+
     hashed_pwd = hash_password(user.password)
     ip = get_real_ip(request)
     user_model = UserModel()
@@ -76,14 +81,16 @@ async def register(user: UserSchema,
 
     result = await user_service.insert_user(user_model)
 
-    if result["status"] == "success":
+    if result:
         return Result.success(data={"message": "注册成功"})
     else:
         return Result.error(ResultCode.USER_REGISTER_ERROR)
 
-@router.put("/update_info",response_model=Result[UserResponseSchema])
-async def update_user_info(user: UserUpdateSchema,
-            user_info:UserModel = Depends(get_current_user)):
+
+@router.put("/update_info", response_model=Result[UserResponseSchema])
+async def update_user_info(
+    user: UserUpdateSchema, user_info: UserModel = Depends(get_current_user)
+):
     user_service = UserService()
 
     result = await user_service.update_user_info(user_info.id, user)
@@ -94,11 +101,12 @@ async def update_user_info(user: UserUpdateSchema,
     else:
         return Result.error(ResultCode.SYSTEM_ERROR)
 
+
 @router.put("/update_password")
 async def update_password(
-        user: UserUpdateSchema,
-        user_info:UserModel = Depends(get_current_user),
-        authorization: str = Header(None)
+    user: UserUpdateSchema,
+    user_info: UserModel = Depends(get_current_user),
+    authorization: str = Header(None),
 ):
     user_service = UserService()
 
@@ -109,27 +117,21 @@ async def update_password(
         return Result.error(ResultCode.USER_NOT_EXIST_ERROR)
 
     # 校验旧密码
-    if not verify_password(
-            user.old_password,
-            stored_user.password
-    ):
+    if not verify_password(user.old_password, stored_user.password):
         return Result.error(ResultCode.USER_ACCOUNT_ERROR)
 
     # 新密码加密
     hashed_pwd = hash_password(user.new_password)
 
     # 更新数据库密码
-    result = await user_service.update_user_password(
-        user_info.id,
-        hashed_pwd
-    )
+    result = await user_service.update_user_password(user_info.id, hashed_pwd)
 
     if not result:
         return Result.error(ResultCode.SYSTEM_ERROR)
 
-    '''
+    """
     密码修改成功后，将当前Token加入黑名单
-    '''
+    """
     if authorization:
         token = authorization.replace("Bearer ", "")
         await redis.add_black_list_token(token)
@@ -143,21 +145,18 @@ async def logout(authorization: str = Header(None)):
     await redis.init_black_list_token(token)
     return Result.success()
 
+
 @router.post("/verify")
-async def verify(req:UserInfoVerifySchema):
+async def verify(req: UserInfoVerifySchema):
     user_service = UserService()
     if req.phone:
         user = await user_service.verify_phone(req.phone)
         if user:
-            return Result.error(ResultCode.PARAM_ERROR,msg="手机号已存在")
-    
+            return Result.error(ResultCode.PARAM_ERROR, msg="手机号已存在")
+
     if req.username:
         user = await user_service.get_user_by_username(req.username)
         if user.get("user"):
-            return Result.error(ResultCode.PARAM_ERROR,msg="注册账号已存在")
+            return Result.error(ResultCode.PARAM_ERROR, msg="注册账号已存在")
 
     return Result.success(True)
-
-
-
-

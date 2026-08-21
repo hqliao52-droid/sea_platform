@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field,ConfigDict
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from typing import Optional, Dict, Any
+
 
 class NewsDetailsSchema(BaseModel):
     id: Optional[int] = Field(None, description="主键ID")

@@ -28,7 +28,7 @@ class AgentPrompt:
     1 = 相关
     0 = 不相关
         """
-    
+
     def DouBaoSeedLiteSystemPromptNewsSummarize(self):
         return """
 # Role
@@ -110,6 +110,7 @@ class AgentPrompt:
 - 绝不评价中国或他国政治体制及领导人
 - 如用户问题超出“文章+通用合规知识”范围，明确告知：“该信息不在当前文章范围内，我无法给出确定性回答，建议查阅官方补充材料。”
 """
+
     def doubao_service_dialog_topic_generator(self):
         return """
 ## 角色
@@ -136,33 +137,36 @@ class AgentPrompt:
 用户 query：“今天的天气怎么样”
 生成标题：今日天气查询
 """
-    def build_conversation_state(self,article_refs: list) -> str:
+
+    def build_conversation_state(self, article_refs: list) -> str:
         """
         构建会话级文章引用状态
         """
         if not article_refs:
             return ""
-        
+
         lines = ["当前会话引用的文章：\n"]
-        for idx,article in enumerate(article_refs,start=1):
+        for idx, article in enumerate(article_refs, start=1):
             title = article.title
             lines.append(f"第{idx}篇文章-> {title}\n 内容：\n{article.content}\n")
-        
-        lines.append("用户后续提到："
-        "“第N篇文章”、“第二篇”、“刚才那个文章”"
-        "都表示上述引用关系。")
+
+        lines.append(
+            "用户后续提到："
+            "“第N篇文章”、“第二篇”、“刚才那个文章”"
+            "都表示上述引用关系。"
+        )
 
         return "\n".join(lines)
 
-    def build_retrieved_context(self,article_refs: list) -> str:
+    def build_retrieved_context(self, article_refs: list) -> str:
         """
         构建文章上下文，如果本轮对话中用户主动传入了文章列表，就不使用本方法，直接调用 build_conversation_state 即可
         """
         if not article_refs:
             return ""
-        
+
         sections = []
-        for idx,article in enumerate(article_refs,start=1):
+        for idx, article in enumerate(article_refs, start=1):
             title = article.title
             content = article.content
 
@@ -174,10 +178,8 @@ class AgentPrompt:
 
 """
             sections.append(section)
-        
-        return "\n".join(sections)
-        
 
+        return "\n".join(sections)
 
 
 prompt = AgentPrompt()
