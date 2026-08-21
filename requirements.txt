@@ -69,16 +69,6 @@ sse-starlette==3.0.3
 python-dotenv==1.2.2
 
 # =========================
-# Utils
-# =========================
-loguru==0.7.2
-tqdm==4.66.5
-# RSS -  RFC 2822 时间处理
-python-dateutil==2.9.0.post0
-qrcode[pil]
-email-validator>=2.0.0
-
-# =========================
 # Data Processing
 # =========================
 pandas==2.2.3
@@ -92,13 +82,21 @@ passlib[argon2]==1.7.4
 argon2-cffi==23.1.0
 
 # =========================
-# Formatting Tools
-# =========================
-black==24.8.0
-
-
-# =========================
 # File Management
 # =========================
 python-multipart==0.0.32
 pymupdf==1.28.2
+
+# =========================
+# Utils
+# =========================
+loguru==0.7.2
+tqdm==4.66.5
+# RSS -  RFC 2822 时间处理
+python-dateutil==2.9.0.post0
+qrcode[pil]
+email-validator>=2.0.0
+# latex
+pylatexenc>=2.10
+# 格式化代码
+black==24.8.0
