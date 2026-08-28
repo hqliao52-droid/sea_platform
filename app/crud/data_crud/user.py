@@ -18,6 +18,7 @@ class UserCRUD(BaseCRUD):
         except Exception as e:
             print("[获取用户信息失败]:", e)
             return None
+        
     async def get_user_by_phone(self, db: AsyncSession, phone: int) -> UserModel:
         try:
             stmt = select(UserModel).where(UserModel.phone == phone)

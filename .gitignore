@@ -27,3 +27,8 @@ htmlcov/
 # 其他
 *.log
 .DS_Store
+
+Qdrant_data_dev
+Qdrant_data_prod
+Qdrant_data_dev/
+Qdrant_data_prod/

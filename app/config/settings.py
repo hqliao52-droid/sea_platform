@@ -1,3 +1,30 @@
+"""
+settings = Settings() 实例化
+    step:
+        读取.env文件
+        匹配字段
+        类型转换
+        生成对象
+    最终：
+        settings = Settings(
+            MYSQL_HOST="localhost",
+            MYSQL_PORT=3306,
+            MYSQL_USER="root",
+            MYSQL_PASSWORD="CDZSMySQL20250829",
+            MYSQL_DB="sea_data",
+            REDIS_HOST="redis",
+            REDIS_PORT=6379,
+            RABBITMQ_HOST="rabbitmq",
+            LLM_API_KEY_DeepSeek="4b23f71f-963c-4d9e-b2e3-4971a1b47d8b",
+            ...
+        )
+
+    usage:
+    其他文件只需要：
+        from data.settings import settings
+
+"""
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 
@@ -43,11 +70,6 @@ class Settings(BaseSettings):
     QDRANT_PORT: int = 6333
     QDRANT_API_KEY: str | None = None
 
-    """意思：
-        允许为空，等价Optional[str]
-        如果.env没有写，那么
-            settings.LLM_API_KEY_DeepSeek = None
-    """
     #  ==================
     #  通用 agent 配置
     #  ==================
@@ -83,6 +105,8 @@ class Settings(BaseSettings):
     # 温度
     TEMPERATURE: float | float = 0.7
 
+    BACKEND_DIR: str = str(BASE_DIR / "backend" / "workspace")
+
     # jwt
     JWT_SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
@@ -105,30 +129,5 @@ class Settings(BaseSettings):
     APK_PATH: str = ""
 
 
-"""settings = Settings() 实例化
-    step:
-        读取.env文件
-        匹配字段
-        类型转换
-        生成对象
-    最终：
-        settings = Settings(
-            MYSQL_HOST="localhost",
-            MYSQL_PORT=3306,
-            MYSQL_USER="root",
-            MYSQL_PASSWORD="CDZSMySQL20250829",
-            MYSQL_DB="sea_data",
-            REDIS_HOST="redis",
-            REDIS_PORT=6379,
-            RABBITMQ_HOST="rabbitmq",
-            LLM_API_KEY_DeepSeek="4b23f71f-963c-4d9e-b2e3-4971a1b47d8b",
-            ...
-        )
 
-"""
 settings = Settings()
-
-"""【使用方式】
-    其他文件只需要：
-        from data.settings import settings
-"""
