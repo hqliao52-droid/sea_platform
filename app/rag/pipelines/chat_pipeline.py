@@ -36,22 +36,8 @@ class ChatRagPipeline:
         messages = await self.prompt_builder.build_messages(
             user_input, task_id, history_messages, refer_data
         )
-
-        self.logger.info("=" * 80)
-        self.logger.info("最终发送给 LLM 的 messages：")
-        for i, msg in enumerate(messages, start=1):
-            role = msg.__class__.__name__
-            content = msg.content if msg.content else ""
-
-            # 防止日志过长，只打印前 500 个字符
-            preview = content[:500]
-
-            self.logger.info(f"[{i}] {role}")
-            self.logger.info(preview)
-            self.logger.info("-" * 80)
-
-        self.logger.info("=" * 80)
+        
         self.status_node.generating(task_id)
-        for chunk in llm_normal.stream(messages):
+        async for chunk in llm_normal.astream(messages):
             if chunk.content:
                 yield chunk.content

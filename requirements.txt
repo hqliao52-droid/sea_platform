@@ -1,7 +1,7 @@
 # =========================
 # Web Framework
 # =========================
-fastapi==0.115.0
+fastapi==0.141.0
 uvicorn[standard]==0.30.6
 
 # =========================
@@ -16,7 +16,6 @@ apscheduler==3.11.3
 sqlalchemy==2.0.35
 aiomysql==0.3.2
 alembic==1.13.2
-mysql-connector-python
 # qdrant
 qdrant-client==1.19.0
 
@@ -29,30 +28,31 @@ redis==5.0.8
 # Message Queue
 # =========================
 celery==5.4.0
-kombu==5.4.0
 aio-pika
 
 # =========================
 # Data Validation
 # =========================
-pydantic==2.9.2
+pydantic>=2.12.5,<3.0.0
 pydantic-settings==2.5.2
 cryptography==50.0.0
 
 # =========================
-# HTTP Requests
+# HTTPX
 # =========================
-httpx==0.27.2
-requests==2.32.3
+httpx==0.28.1
 
 # =========================
 # AI API Clients
 # =========================
-langchain==1.3.1
+google-genai==2.12.0
+langchain==1.3.11
+langchain-core==1.6.0
 langchain-openai==1.3.3
 langchain-deepseek==1.1.0
-deepagents==0.7.8
-
+langchain-anthropic==1.6.1
+deepagents==0.6.12
+langfuse==4.12.0
 
 # =========================
 # Web Crawling
@@ -74,14 +74,12 @@ python-dotenv==1.2.2
 # Data Processing
 # =========================
 pandas==2.2.3
-numpy==2.1.1
 
 # =========================
 # Security
 # =========================
 python-jose==3.3.0
 passlib[argon2]==1.7.4
-argon2-cffi==23.1.0
 
 # =========================
 # File Management

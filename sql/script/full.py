@@ -1,4 +1,4 @@
-import requests
+import httpx
 from bs4 import BeautifulSoup
 import re
 
@@ -14,7 +14,7 @@ def fetch_full_text(url, rss_url):
 
     try:
         # 1. 请求页面
-        resp = requests.get(url, headers=headers, timeout=12)
+        resp = httpx.get(url, headers=headers, timeout=12)
         resp.raise_for_status()
         resp.encoding = get_proper_encoding(resp)  # 智能编码
         html = resp.text

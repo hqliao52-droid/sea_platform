@@ -17,7 +17,7 @@ async def get_rss_source_list():
     return Result.success(data=result)
 
 
-@router.get("/get_by_id", summary="根据url获取rss源")
+@router.get("/get_by_id", summary="根据id获取rss源")
 async def get_by_id(id: int = Query(..., description="RSS源的id")):
     """根据url获取rss源"""
     print(f"入参：{id}")

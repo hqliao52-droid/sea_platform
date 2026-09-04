@@ -16,7 +16,7 @@ async def llm_check_outreach_news(title: str, content: str) -> dict:
     chain = prompt | llm_config.category_llm() | StrOutputParser()
 
     # 执行
-    return await chain.invoke({"title": title, "content": content})
+    return await chain.ainvoke({"title": title, "content": content})
 
 
 async def llm_analyze_news(title: str, content: str, tags_description) -> dict:
@@ -29,7 +29,7 @@ async def llm_analyze_news(title: str, content: str, tags_description) -> dict:
         ]
     )
     chain = prompt | llm_config.summary_llm() | parser
-    return await chain.invoke(
+    return await chain.ainvoke(
         {
             "title": title,
             "content": content,

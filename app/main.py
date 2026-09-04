@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.staticfiles import StaticFiles
 
+from contextlib import asynccontextmanager
+
 from app.config.settings import settings
 from app.api.news_api import router as news_router
 from app.api.rss_api import router as rss_router
@@ -15,8 +17,24 @@ from app.api.chat_session_api import chat_session_router
 from app.api.chat_message_api import chat_message_router
 from app.api.user_config_api import router as user_config_router
 from app.api.email_api import router as email_router
+from app.config.mysql_config import init_db, close_db
 
-app = FastAPI(title=settings.APP_NAME, docs_url=None)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+
+    try:
+        yield
+    finally:
+        await close_db()
+
+app = FastAPI(
+    title=settings.APP_NAME, 
+    docs_url=None, 
+    redoc_url=None,
+    # openapi_url=None,
+    lifespan=lifespan
+)
 
 app.include_router(news_router, prefix="/news", tags=["news"])
 app.include_router(news_detail_router, prefix="/news_detail", tags=["news_detail"])
@@ -38,7 +56,7 @@ async def health_check():
     return {"status": "healthy"}
 
 
-@app.get("/docs", include_in_schema=False)
+@app.get("/docs-cn", include_in_schema=False)
 async def custom_swagger_ui_html():
     return get_swagger_ui_html(
         openapi_url="/openapi.json",
@@ -46,14 +64,6 @@ async def custom_swagger_ui_html():
         swagger_js_url="https://cdn.bootcdn.net/ajax/libs/swagger-ui/5.10.5/swagger-ui-bundle.js",  # 使用国内 CDN
         swagger_css_url="https://cdn.bootcdn.net/ajax/libs/swagger-ui/5.10.5/swagger-ui.css",
     )
-
-
-@app.on_event("startup")
-async def startup():
-    from app.config.mysql_config import init_db
-
-    await init_db()
-
 
 # FastAPI 默认是不能访问本地文件的，需要加上静态文件访问
 app.mount("/attach", StaticFiles(directory="attach"), name="attach")

@@ -4,6 +4,9 @@ from app.config.settings import settings
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
+from app.utils.logger import Logger
+
+logger = Logger.setup_logger(Logger.set_file_date())
 
 # 数据库URL
 DATABASE_URL = (
@@ -18,7 +21,7 @@ DATABASE_URL = (
 engine = create_async_engine(
     DATABASE_URL,
     echo=True,
-    pool_pre_ping=False,
+    pool_pre_ping=False, # 并发或者网络状态不好时,建议True
     pool_size=10,
     max_overflow=10,
     pool_timeout=30,
@@ -92,3 +95,7 @@ async def init_db():
     """在应用启动时调用，创建所有表"""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    logger.info("初始化数据库成功")
+async def close_db():
+    """在应用关闭时调用，关闭所有连接"""
+    await engine.dispose()

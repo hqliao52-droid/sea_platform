@@ -105,7 +105,7 @@ class NewsDetailCRUD(BaseCRUD):
         """
         stmt = select(NewsDetail).filter(NewsDetail.id == news_id)
         result = await db.execute(stmt)
-        news_detail = result.scalars().first() or None
+        news_detail = result.scalars().first()
         return news_detail
 
     async def get_news_detail_by_ids(

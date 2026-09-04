@@ -1,23 +1,23 @@
 from playwright.sync_api import sync_playwright
-import requests
+import httpx
 from bs4 import BeautifulSoup
 import re
 
 
 async def fetch_full_text(url):
-    # 1. 先尝试 requests
-    result = await fetch_by_requests(url)
+    # 1. 先尝试 httpx
+    result = await fetch_by_httpx(url)
 
     # 2. 成功则直接返回
     if result and result["status"] == "success":
         return result
 
-    # 3. requests 失败，自动使用 Playwright
-    print("requests 抓取失败，切换 Playwright...")
+    # 3. httpx 失败，自动使用 Playwright
+    print("httpx 抓取失败，切换 Playwright...")
     return await fetch_by_playwright(url)
 
 
-async def fetch_by_requests(url):
+async def fetch_by_httpx(url):
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -27,7 +27,7 @@ async def fetch_by_requests(url):
     }
 
     try:
-        resp = await requests.get(url, headers=headers, timeout=12)
+        resp = await httpx.get(url, headers=headers, timeout=12)
         resp.raise_for_status()
         resp.encoding = resp.apparent_encoding or "utf-8"
         html = resp.text
@@ -39,7 +39,7 @@ async def fetch_by_requests(url):
         return extract_content(html)
 
     except Exception as e:
-        print(f"requests 抓取失败: {e}")
+        print(f"httpx 抓取失败: {e}")
         return {"status": "fail", "content": str(e)}
 
 

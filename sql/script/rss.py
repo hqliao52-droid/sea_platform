@@ -1,4 +1,4 @@
-import requests
+import httpx
 from lxml import etree
 import pandas as pd
 import os, random
@@ -15,7 +15,7 @@ def get_rss_structure():
     }
 
     try:
-        resp = requests.get(URL, headers=headers, timeout=10)
+        resp = httpx.get(URL, headers=headers, timeout=10)
         resp.encoding = resp.apparent_encoding
         tree = etree.HTML(resp.text)
         top_ul = tree.xpath(

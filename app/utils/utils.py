@@ -1,6 +1,7 @@
 import uuid
 import time
 import json
+import asyncio
 
 from starlette.responses import StreamingResponse
 from typing import AsyncGenerator, Any, Dict, Optional, List, Set
@@ -19,6 +20,43 @@ def generate_id(is_uuid: bool = False) -> str:
     rand = uuid.uuid4().hex[:8]
     val = (ts + rand)[:32]
     return f"{val[0:8]}-{val[8:12]}-{val[12:16]}-{val[16:20]}-{val[20:32]}"
+
+class SSEStream:
+    """SSE 流式响应管理器"""
+
+    @staticmethod
+    def create_response(event_generator: AsyncGenerator) -> StreamingResponse:
+        """
+        创建 StreamingResponse 对象
+
+        :param event_generator: 业务逻辑的异步生成器，yield SSEEvent 构造的字典
+        :return: StreamingResponse
+        """
+        return StreamingResponse(
+            SSEStream._stream_wrapper(event_generator),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",  # Nginx 缓冲关闭
+            },
+        )
+
+    @staticmethod
+    async def _stream_wrapper(generator: AsyncGenerator):
+        """内部包装器，处理序列化和异常"""
+        try:
+            async for event_data in generator:
+                yield await SSEEvent.serialize(event_data)
+                await asyncio.sleep(0)  # 让出事件循环
+        except Exception as e:
+            # 捕获业务逻辑中的未处理异常
+            error_event = SSEEvent.error(code=500, message=f"Stream error: {str(e)}")
+            yield await SSEEvent.serialize(error_event)
+        finally:
+            # 发送结束信号
+            done_event = SSEEvent.done()
+            yield await SSEEvent.serialize(done_event)
 
 class SSEEvent:
     """SSE 事件包构造器"""
@@ -353,7 +391,6 @@ async def stream_json_fields(
                     if object_depth == 0:
                         return
                     mode = "seek_key_or_end"
-
 
 async def stream_json_fields_latex(
     text_async_gen: AsyncGenerator[str, None], fields_list: List[str]

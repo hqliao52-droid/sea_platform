@@ -1,5 +1,5 @@
 from typing import List
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.sea_data_base import BaseCRUD
@@ -48,3 +48,14 @@ class ChatSessionCRUD(BaseCRUD):
         result = await db.execute(stmt)
         chat_sessions: ChatSession = result.scalar().scalars_one_or_none()
         return chat_sessions
+
+    async def update_by_session_id(self, db: AsyncSession, session_id: int, session_data: dict):
+        stmt = select(ChatSession).where(ChatSession.id == session_id)
+        result = await db.execute(stmt)
+        chat_session: ChatSession = result.scalar().scalars_one_or_none()
+
+        if not chat_session:
+            raise Exception("session not found")
+
+        update_stmt = await self.update(db, chat_session.id, session_data)
+        return update_stmt

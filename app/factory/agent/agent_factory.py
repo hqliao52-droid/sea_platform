@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 from langchain_openai import ChatOpenAI
 
@@ -9,20 +10,23 @@ from app.config.llm_config import DeepSeekReasoningContentMixin
 class AgentFactory(BaseFactory):
     def __init__(
         self,
+        *,
+        model: str | None = None,
+        temperature: float | None = None,
     ):
-        pass
+        self.model = model or settings.BASE_MODEL or settings.LLM_BASE_MODEL_DEEPSEEK
+        self.temperature = temperature or settings.TEMPERATURE
 
     def create(self):
-        model = settings.BASE_MODEL or settings.LLM_BASE_MODEL_DeepSeek
         kwargs = {
-            "model": model,
-            "temperature": settings.TEMPERATURE,
+            "model": self.model,
+            "temperature": self.temperature,
             "stream_usage": True,
         }
-        api_key = settings.API_KEY or settings.LLM_API_KEY_DeepSeek
+        api_key = settings.API_KEY or settings.LLM_API_KEY_DEEPSEEK
         if api_key:
             kwargs["api_key"] = api_key
-        base_url = settings.BASE_URL or settings.LLM_BASE_URL_DeepSeek
+        base_url = settings.BASE_URL or settings.LLM_BASE_URL_DEEPSEEK
         if base_url:
             kwargs["base_url"] = base_url
         if settings.SUPPORTED_THINKING and settings.THINKING_ENABLED:
@@ -30,7 +34,7 @@ class AgentFactory(BaseFactory):
             kwargs["extra_body"] = {"thinking": {"type": "enabled"}}
             if settings.REASONING_EFFORT:
                 kwargs["reasoning_effort"] = settings.REASONING_EFFORT
-        if "deepseek" in model.lower():
+        if "deepseek" in self.model.lower():
             from langchain_deepseek import ChatDeepSeek
 
             return type(
@@ -41,5 +45,12 @@ class AgentFactory(BaseFactory):
         return ChatOpenAI(**kwargs)
 
 
-    def build_agent(self, ):
+    async def abuild_agent(
+            self, 
+            user_id: int | str | None = None,
+            session_id:str | None = None,
+            trace_id: str | None = None,
+            attach: str | Path | None = None,
+            file_name: str | None = None,
+        ):
         pass

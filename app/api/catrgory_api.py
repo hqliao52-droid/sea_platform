@@ -14,7 +14,7 @@ async def get_category_is_active():
     """获取所有有效的分类"""
     category_operator = CategoryOperator()
     data = await category_operator.get_category_is_active()
-    result = [categorySchema.from_orm(item) for item in data]
+    result = [categorySchema.model_validate(item) for item in data]
 
     return Result.success(result)
 
@@ -27,5 +27,5 @@ async def get_category_by_id(id: int):
     if not data:
         return Result.error(result_code=ResultCode.DATA_NOT_EXIST_ERROR)
     
-    result = categorySchema.from_orm(data)
+    result = categorySchema.model_validate(data)
     return Result.success(result)

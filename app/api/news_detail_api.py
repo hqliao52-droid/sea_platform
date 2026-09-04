@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query, Request
 from typing import Optional
-from app.utils.result_response import Result
+from app.utils.result_response import Result, ResultCode
 from app.services.news_detail_service import NewsDetailOperator
 from app.services.news_service import NewsOperator
 from app.schemas.news_detail.news_detail_response_schema import NewsDetailResponse
@@ -86,7 +86,8 @@ async def get_detail_by_id(
 ):
     detail_service = NewsDetailOperator()
     news_detail = await detail_service.get_news_detail_by_id(id)
-
-    result = NewsDetailsSchema.parse_obj(news_detail)
+    if not news_detail:
+        return Result.error(result_code=ResultCode.DATA_NOT_EXIST_ERROR,msg="未找到该数据")
+    result = NewsDetailsSchema.model_validate(news_detail)
 
     return Result.success(result)

@@ -80,13 +80,10 @@ class Settings(BaseSettings):
     LLM_DouBaoSeedList_THINK: bool | None = None
 
     # DeepSeek
-    LLM_BASE_URL_DeepSeek: str
-    # LLM 模型名称（必填）
-    LLM_BASE_MODEL_DeepSeek: str
-    # LLM 模型 API KEY（必填）
-    LLM_API_KEY_DeepSeek: str
-    # LLM前端展示的模型名称
-    LLM_DISPLAY_NAME_DeepSeek: str
+    LLM_BASE_URL_DEEPSEEK: str | None = None
+    LLM_BASE_MODEL_DEEPSEEK: str | None = None
+    LLM_API_KEY_DEEPSEEK: str | None = None
+    LLM_DISPLAY_NAME_DEEPSEEK: str | None = None
 
     # 通用模型配置
     BASE_MODEL: str | None = None
@@ -105,16 +102,41 @@ class Settings(BaseSettings):
     # 温度
     TEMPERATURE: float | float = 0.7
 
+    # agent 工作终端
     BACKEND_DIR: str = str(BASE_DIR / "backend" / "workspace")
+
+    # langfuse
+    LANGFUSE_ENABLED: bool | bool = False
+    LANGFUSE_SECRET_KEY: str | None = None
+    LANGFUSE_PUBLIC_KEY: str | None = None
+    LANGFUSE_BASE_URL: str | None = None
+
+    CONTEXT_EDITING_ENABLED: bool | bool = False
+    CONTEXT_EDITING_SOURCE: str | None = None
+    CONTEXT_EDITING_TOKEN_COUNT_METHOD: str | None = None
+    CONTEXT_EDITING_CLEAR_TOOL_USES_TRIGGER: int | int = 1024*256
+    CONTEXT_EDITING_CLEAR_TOOL_USES_CLEAR_AT_LEAST: int | int = 0
+    CONTEXT_EDITING_CLEAR_TOOL_USES_KEEP: int | int = 3
+    CONTEXT_EDITING_CLEAR_TOOL_USES_INPUTS: bool | bool = False
+    CONTEXT_EDITING_CLEAR_TOOL_USES_EXCLUDE_TOOLS: list | list = []
+    CONTEXT_EDITING_CLEAR_TOOL_USES_PLACEHOLDERS: str | str = "[cleared]"
+
+    FILESYSTEM_FILE_SEARCH_ENABLED: bool | bool = False
+    FILESYSTEM_FILE_SEARCH_ROOT_PATH: str | None = None
+    FILESYSTEM_FILE_SEARCH_USE_RIPGREP: bool | bool = False
+    FILESYSTEM_FILE_SEARCH_MAX_FILE_SIZE_MB: int | int = 10
+    FILESYSTEM_FILE_SEARCH_SOURCE: str | None = None
+
+    PII_ENABLED: bool | bool = False
+    PII_RULES: list[dict] | list[dict] = []
+    PII_SOURCE: str | None = None
 
     # jwt
     JWT_SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
     JWT_ALGORITHM: str
 
-    """ SERVER_HOST: str = "192.168.110.218" """
-    # SERVER_HOST: str = "106.52.97.98"
-    SERVER_HOST: str = "43.136.130.244"
+    SERVER_HOST: str = "localhost"
     SERVER_PORT: int = 8000
 
     LOG_DIR: str = "logs"

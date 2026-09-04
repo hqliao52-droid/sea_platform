@@ -56,7 +56,7 @@ class NewsDetailOperator:
             try:
                 result = await self.news_detail_crud.get_news_detail_by_id(db, id)
                 self.logger.info(f"文章查询成功:{result}")
-                return result
+                return result if result else None
             except Exception as e:
                 self.logger.error(f"查询失败:{e}")
                 raise {"status": 500, "news_detail": None}

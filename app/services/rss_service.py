@@ -15,7 +15,7 @@ class RssSourceOperator:
         async with AsyncSessionLocal() as db:
             try:
                 list = await self.rss_source_crud.get_all_active(db)
-                result = [RssSchema.from_orm(item) for item in list]
+                result = [RssSchema.model_validate(item) for item in list]
                 return result
             except Exception as e:
                 print("[获取激活的rss源失败]:", e)
@@ -26,7 +26,7 @@ class RssSourceOperator:
         async with AsyncSessionLocal() as db:
             try:
                 list = await self.rss_source_crud.get_all(db)
-                result = [RssSchema.from_orm(item) for item in list]
+                result = [RssSchema.model_validate(item) for item in list]
                 return result
             except Exception as e:
                 print("[获取所有的rss源失败]:", e)
@@ -37,7 +37,7 @@ class RssSourceOperator:
         async with AsyncSessionLocal() as db:
             try:
                 result = await self.rss_source_crud.get_by_url(db, url)
-                return RssSchema.from_orm(result)
+                return RssSchema.model_validate(result)
             except Exception as e:
                 print("[根据url获取rss源详情失败]:", e)
                 return None
@@ -47,7 +47,7 @@ class RssSourceOperator:
         async with AsyncSessionLocal() as db:
             try:
                 result = await self.rss_source_crud.get(db, id)
-                return RssSchema.from_orm(result)
+                return RssSchema.model_validate(result)
             except Exception as e:
                 print("[根据id获取rss源详情失败]:", e)
                 return None

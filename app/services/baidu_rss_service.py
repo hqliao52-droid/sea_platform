@@ -31,7 +31,7 @@ class BaiduRssSourceOperator:
                 if result is None:
                     self.logger.warning(f"未找到URL对应的RSS源: {url}")
                     return None
-                return BaiduRssSourceSchema.from_orm(result)
+                return BaiduRssSourceSchema.model_validate(result)
             except Exception as e:
                 self.logger.error(f"获取百度RSS源详情失败: {e}")
                 raise e

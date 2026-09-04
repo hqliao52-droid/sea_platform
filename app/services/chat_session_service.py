@@ -20,7 +20,7 @@ class ChatSessionOperator:
         async with AsyncSessionLocal() as db:
             try:
                 chat_session = await self.chat_session_curd.get(db, id)
-                chat_session_result = ChatSessionSchema.from_orm(chat_session)
+                chat_session_result = ChatSessionSchema.model_validate(chat_session)
                 return chat_session_result
             except Exception as e:
                 self.logger.error(e)
@@ -33,7 +33,7 @@ class ChatSessionOperator:
                     db, llm_id
                 )
                 chat_session_result = [
-                    ChatSessionSchema.from_orm(item) for item in chat_session
+                    ChatSessionSchema.model_validate(item) for item in chat_session
                 ]
                 return chat_session_result
             except Exception as e:
@@ -49,7 +49,7 @@ class ChatSessionOperator:
                     db, user_id
                 )
                 chat_session_result = [
-                    ChatSessionSchema.from_orm(item) for item in chat_session
+                    ChatSessionSchema.model_validate(item) for item in chat_session
                 ]
                 return chat_session_result
             except Exception as e:
@@ -67,7 +67,7 @@ class ChatSessionOperator:
                 )
                 await db.commit()
                 self.logger.info(f"新的会话创建成功：{chat_session_result}")
-                return ChatSessionSchema.from_orm(chat_session_result)
+                return ChatSessionSchema.model_validate(chat_session_result)
             except Exception as e:
                 self.logger.error(e)
                 return None
@@ -87,7 +87,7 @@ class ChatSessionOperator:
                         )
                     )
                     if not has_msg:  # 空会话，直接返回该会话信息
-                        return ChatSessionSchema.from_orm(chat_session)
+                        return ChatSessionSchema.model_validate(chat_session)
 
                 new_session = ChatSession(
                     user_id=user_id, llm_id=1, session_topic="新会话"
@@ -98,7 +98,7 @@ class ChatSessionOperator:
                 self.logger.info(f"新的会话创建成功：{chat_session_result}")
 
                 await db.commit()
-                return ChatSessionSchema.from_orm(chat_session_result)
+                return ChatSessionSchema.model_validate(chat_session_result)
             except Exception as e:
                 await db.rollback()
                 self.logger.error(e)
@@ -107,7 +107,7 @@ class ChatSessionOperator:
     async def update_session(self, session_id: int, session_data: dict):
         async with AsyncSessionLocal() as db:
             try:
-                result = await self.chat_session_curd.update(
+                result = await self.chat_session_curd.update_by_session_id(
                     db, session_id, session_data
                 )
                 self.logger.info(f"更新会话成功：{result}")
