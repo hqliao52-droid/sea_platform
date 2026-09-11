@@ -1,11 +1,24 @@
 from pathlib import Path
 from typing import Any
 from langchain_openai import ChatOpenAI
+from langchain.agents import create_agent
+from langfuse import Langfuse
+from pydantic import BaseModel
 
 from app.config.settings import settings
+from app.factory.callback.langfuse_callback import set_langfuse_client
 from app.factory.base_factory import BaseFactory
 from app.config.llm_config import DeepSeekReasoningContentMixin
+from app.utils.utils import generate_id
 
+
+class BuildAgentSchemas(BaseModel):
+    user_id: int | str | None = None
+    session_id: str | None = None
+    trace_id: str | None = None
+    
+    attach: str | Path | None = None
+    file_name: str | None = None
 
 class AgentFactory(BaseFactory):
     def __init__(
@@ -16,6 +29,7 @@ class AgentFactory(BaseFactory):
     ):
         self.model = model or settings.BASE_MODEL or settings.LLM_BASE_MODEL_DEEPSEEK
         self.temperature = temperature or settings.TEMPERATURE
+        self.langfuse_enabled = settings.LANGFUSE_ENABLED
 
     def create(self):
         kwargs = {
@@ -34,6 +48,11 @@ class AgentFactory(BaseFactory):
             kwargs["extra_body"] = {"thinking": {"type": "enabled"}}
             if settings.REASONING_EFFORT:
                 kwargs["reasoning_effort"] = settings.REASONING_EFFORT
+        if settings.ENABLED_PENALTY:
+            # 惩罚因子
+            kwargs["frequency_penalty"] = settings.FREQUENCY_PENALTY
+            kwargs["presence_penalty"] = settings.PRESENCE_PENALTY
+
         if "deepseek" in self.model.lower():
             from langchain_deepseek import ChatDeepSeek
 
@@ -46,11 +65,12 @@ class AgentFactory(BaseFactory):
 
 
     async def abuild_agent(
-            self, 
-            user_id: int | str | None = None,
-            session_id:str | None = None,
-            trace_id: str | None = None,
-            attach: str | Path | None = None,
-            file_name: str | None = None,
-        ):
+        self, 
+        *,
+        user_id: int | str | None = None,
+        session_id: str | None = None,
+        trace_id: str | None = None,
+        attach: str | Path | None = None,
+        file_name: str | None = None,
+    ):
         pass

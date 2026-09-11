@@ -1,5 +1,5 @@
 from app.utils.logger import Logger
-from app.config.mysql_config import AsyncSessionLocal
+from app.config.pg_config import AsyncSessionLocal
 from app.crud.sea_data_base import BaseCRUD
 from app.crud.data_crud.user_push_config import UserPushConfigCRUD
 from app.models.user_push_config import UserPushConfigModel

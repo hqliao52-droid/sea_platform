@@ -1,14 +1,12 @@
 from sqlalchemy import Column, Integer, String, DateTime, SmallInteger, Float
 from datetime import datetime
-from app.config.mysql_config import Base
+from app.config.pg_config import Base
 
 
 class BaiduRssSource(Base):
     __tablename__ = "baidu_rss_source"
     __table_args__ = {
         "comment": "RSS地址——feedparser",
-        "mysql_engine": "InnoDB",
-        "mysql_row_format": "DYNAMIC",
     }
 
     id = Column(

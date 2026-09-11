@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,12 +10,12 @@ class ChatMessageCRUD(BaseCRUD):
     def __init__(self):
         super().__init__(ChatMessage)
 
-    async def get_chat_message_by_id(self, db: AsyncSession, id: int) -> ChatMessage:
+    async def get_chat_message_by_id(self, db: AsyncSession, id: int) -> Optional[ChatMessage]:
         return await self.get(db, id)
 
     async def get_chat_message_by_user_id(
         self, db: AsyncSession, user_id: int
-    ) -> List[ChatMessage]:
+    ) -> Optional[List[ChatMessage]]:
         stmt = select(ChatMessage).where(ChatMessage.user_id == user_id)
         result = await db.execute(stmt)
         messages: List[ChatMessage] = result.scalars().all()
@@ -23,7 +23,7 @@ class ChatMessageCRUD(BaseCRUD):
 
     async def get_chat_message_by_session_id(
         self, db: AsyncSession, session_id: int
-    ) -> List[ChatMessage]:
+    ) -> Optional[List[ChatMessage]]:
         stmt = select(ChatMessage).where(ChatMessage.session_id == session_id)
         result = await db.execute(stmt)
         messages: List[ChatMessage] = result.scalars().all()
@@ -31,15 +31,15 @@ class ChatMessageCRUD(BaseCRUD):
 
     async def get_chat_message_by_pre_id(
         self, db: AsyncSession, pre_id: int
-    ) -> ChatMessage:
+    ) -> Optional[ChatMessage]:
         stmt = select(ChatMessage).where(ChatMessage.pre_id == pre_id)
         result = await db.execute(stmt)
-        message: ChatMessage = result.scalars().scalar_one_or_none()
+        message: ChatMessage = result.scalar_one_or_none()
         return message
 
     async def get_dialog_history(
         self, db: AsyncSession, user_id: int, session_id: int, current_id: int
-    ) -> List[ChatMessage]:
+    ) -> Optional[List[ChatMessage]]:
         """上下文裁剪： 仅获取最近6轮的对话历史"""
         stmt = (
             select(

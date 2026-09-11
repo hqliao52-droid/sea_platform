@@ -1,5 +1,5 @@
 from app.utils.logger import Logger
-from app.config.mysql_config import AsyncSessionLocal
+from app.config.pg_config import AsyncSessionLocal
 from app.models.news_model import News
 from app.crud.data_crud.news import NewsCRUD
 

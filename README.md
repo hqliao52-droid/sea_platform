@@ -42,7 +42,7 @@ sea_ai_platform
 │   │   ├── __init__.py
 │   │   ├── file_config.py
 │   │   ├── llm_config.py
-│   │   ├── mysql_config.py
+│   │   ├── pg_config.py
 │   │   ├── qdrant_config.py
 │   │   ├── rabbitMq_config.py
 │   │   ├── redis_config.py

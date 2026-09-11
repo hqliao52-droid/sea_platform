@@ -1,7 +1,9 @@
 from typing import Any, Optional
 
-from sqlalchemy import select, update, delete
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.utils.logger import Logger
 
 
 class BaseCRUD:
@@ -14,6 +16,7 @@ class BaseCRUD:
 
     def __init__(self, model):
         self.model = model
+        self.logger = Logger.setup_logger(Logger.set_file_date())
 
     async def insert(self, db: AsyncSession, obj) -> Optional[Any]:
         if isinstance(obj, dict):
@@ -50,7 +53,7 @@ class BaseCRUD:
         result = await db.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_all(self, db: AsyncSession):
+    async def get_all(self, db: AsyncSession) -> Optional[Any]:
         stmt = select(self.model)
         result = await db.execute(stmt)
-        return result.scalar().all()
+        return result.scalars().all()

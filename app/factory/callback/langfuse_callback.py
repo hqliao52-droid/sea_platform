@@ -13,5 +13,6 @@ def set_langfuse_client(trace_id: str | None = None):
         timeout=15,
     )
 
-    trace_context = {"trace_id": trace_id} if trace_id else generate_id()
-    return CallbackHandler(trace_context=trace_context)
+    _dict: dict = {}
+    _dict["trace_id"] = trace_id if trace_id else _dict["trace_id"] = generate_id()
+    return CallbackHandler(trace_context=_dict)

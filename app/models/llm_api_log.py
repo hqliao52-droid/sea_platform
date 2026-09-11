@@ -6,9 +6,10 @@ from sqlalchemy import (
     Float,
     BigInteger,
     SmallInteger,
+    func
 )
-from datetime import datetime
-from app.config.mysql_config import Base
+
+from app.config.pg_config import Base
 
 
 class LlmApiLog(Base):
@@ -46,7 +47,7 @@ class LlmApiLog(Base):
     created_time = Column(
         DateTime,
         nullable=False,
-        default=datetime.now,
-        onupdate=datetime.now,
+        default=func.now(),
+        onupdate=func.now(),
         comment="创建时间",
     )

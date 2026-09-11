@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, SmallInteger
-from app.config.mysql_config import Base
+from app.config.pg_config import Base
 
 
 class SystemMessage(Base):

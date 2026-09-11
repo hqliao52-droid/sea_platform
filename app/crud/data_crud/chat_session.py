@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from sqlalchemy import select, desc, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,12 +10,12 @@ class ChatSessionCRUD(BaseCRUD):
     def __init__(self):
         super().__init__(ChatSession)
 
-    async def get_chat_session_by_id(self, db: AsyncSession, id: int) -> ChatSession:
+    async def get_chat_session_by_id(self, db: AsyncSession, id: int) -> Optional[ChatSession]:
         return await self.get(db, id)
 
     async def get_chat_session_by_user_id(
         self, db: AsyncSession, user_id: int
-    ) -> List[ChatSession]:
+    ) -> Optional[List[ChatSession]]:
         stmt = (
             select(ChatSession)
             .where(ChatSession.user_id == user_id)
@@ -27,7 +27,7 @@ class ChatSessionCRUD(BaseCRUD):
 
     async def get_chat_session_by_llm_id(
         self, db: AsyncSession, llm_id: int
-    ) -> List[ChatSession]:
+    ) -> Optional[List[ChatSession]]:
         stmt = (
             select(ChatSession)
             .where(ChatSession.llm_id == llm_id)
@@ -39,20 +39,20 @@ class ChatSessionCRUD(BaseCRUD):
 
     async def get_new_chat_session_by_user_id(
         self, db: AsyncSession, user_id: int
-    ) -> ChatSession:
+    ) -> Optional[ChatSession]:
         stmt = (
             select(ChatSession)
             .where(ChatSession.user_id == user_id)
             .order_by(desc(ChatSession.update_time))
         )
         result = await db.execute(stmt)
-        chat_sessions: ChatSession = result.scalar().scalars_one_or_none()
+        chat_sessions: ChatSession = result.scalar_one_or_none()
         return chat_sessions
 
     async def update_by_session_id(self, db: AsyncSession, session_id: int, session_data: dict):
         stmt = select(ChatSession).where(ChatSession.id == session_id)
         result = await db.execute(stmt)
-        chat_session: ChatSession = result.scalar().scalars_one_or_none()
+        chat_session: ChatSession = result.scalar_one_or_none()
 
         if not chat_session:
             raise Exception("session not found")

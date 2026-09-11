@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,7 +10,7 @@ class UserCRUD(BaseCRUD):
     def __init__(self):
         super().__init__(UserModel)
 
-    async def get_user_by_username(self, db: AsyncSession, username: str) -> UserModel:
+    async def get_user_by_username(self, db: AsyncSession, username: str) -> Optional[UserModel]:
         try:
             stmt = select(UserModel).where(UserModel.username == username)
             result = await db.execute(stmt)
@@ -19,7 +20,7 @@ class UserCRUD(BaseCRUD):
             print("[获取用户信息失败]:", e)
             return None
         
-    async def get_user_by_phone(self, db: AsyncSession, phone: int) -> UserModel:
+    async def get_user_by_phone(self, db: AsyncSession, phone: str) -> Optional[UserModel]:
         try:
             stmt = select(UserModel).where(UserModel.phone == phone)
             result = await db.execute(stmt)

@@ -1,43 +1,43 @@
-/*
- Navicat Premium Dump SQL
+-- PostgreSQL 兼容版本
 
- Source Server         : sea_platform
- Source Server Type    : MySQL
- Source Server Version : 80046 (8.0.46)
- Source Host           : 106.52.97.98:3306
- Source Schema         : sea_data
+-- 如果表已存在则删除
+DROP TABLE IF EXISTS user_push_config;
 
- Target Server Type    : MySQL
- Target Server Version : 80046 (8.0.46)
- File Encoding         : 65001
+-- 创建表
+CREATE TABLE user_push_config (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    max_push_amount INTEGER NOT NULL,
+    is_enabled SMALLINT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_user_id UNIQUE (user_id)
+);
 
- Date: 08/06/2026 15:30:24
-*/
+-- 普通索引
+CREATE INDEX idx_is_enabled ON user_push_config (is_enabled);
+CREATE INDEX idx_created_at ON user_push_config (created_at);
 
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+-- 表注释
+COMMENT ON TABLE user_push_config IS '用户表';
 
--- ----------------------------
--- Table structure for user_push_config
--- ----------------------------
-DROP TABLE IF EXISTS `user_push_config`;
-CREATE TABLE `user_push_config`  (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-  `user_id` bigint NOT NULL COMMENT '用户ID',
-  `max_push_amount` int NOT NULL COMMENT '最大消息推送数量',
-  `is_enabled` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否开启推送',
-  `created_at` datetime NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `uk_user_id`(`user_id` ASC) USING BTREE,
-  INDEX `idx_is_enabled`(`is_enabled` ASC) USING BTREE,
-  INDEX `idx_created_at`(`created_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户表' ROW_FORMAT = DYNAMIC;
+-- 列注释
+COMMENT ON COLUMN user_push_config.id IS '主键ID';
+COMMENT ON COLUMN user_push_config.user_id IS '用户ID';
+COMMENT ON COLUMN user_push_config.max_push_amount IS '最大消息推送数量';
+COMMENT ON COLUMN user_push_config.is_enabled IS '是否开启推送';
+COMMENT ON COLUMN user_push_config.created_at IS '创建时间';
+COMMENT ON COLUMN user_push_config.updated_at IS '更新时间';
 
--- ----------------------------
--- Records of user_push_config
--- ----------------------------
-INSERT INTO `user_push_config` VALUES (6, 12, 12, 0, '2026-05-21 11:16:53', '2026-05-21 11:16:53');
-INSERT INTO `user_push_config` VALUES (8, 13, 13, 1, '2026-05-21 14:17:23', '2026-05-21 14:33:11');
+-- 插入数据（显式指定列名）
+INSERT INTO user_push_config (
+    id, user_id, max_push_amount, is_enabled, created_at, updated_at
+) VALUES
+(6, 12, 12, 0, '2026-05-21 11:16:53', '2026-05-21 11:16:53'),
+(8, 13, 13, 1, '2026-05-21 14:17:23', '2026-05-21 14:33:11');
 
-SET FOREIGN_KEY_CHECKS = 1;
+-- 重置序列，避免后续插入主键冲突
+SELECT setval(
+    pg_get_serial_sequence('user_push_config', 'id'),
+    (SELECT MAX(id) FROM user_push_config)
+);

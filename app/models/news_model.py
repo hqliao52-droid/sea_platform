@@ -1,6 +1,5 @@
-from sqlalchemy import Column, Integer, String, DateTime
-from datetime import datetime
-from app.config.mysql_config import Base
+from sqlalchemy import Column, Integer, String, DateTime, func
+from app.config.pg_config import Base
 
 
 class News(Base):
@@ -9,6 +8,7 @@ class News(Base):
     """
 
     __tablename__ = "news"
+    __table_args__ = {"comment": "新闻资讯表"}
 
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
 
@@ -29,7 +29,7 @@ class News(Base):
     published_at = Column(DateTime, comment="发布时间")
 
     # 创建时间
-    created_at = Column(DateTime, default=datetime.now, comment="创建时间")
+    created_at = Column(DateTime, default=func.now(), comment="创建时间")
 
     # 是否是政策类
     is_policy = Column(Integer, default=0, comment="是否是政策类")

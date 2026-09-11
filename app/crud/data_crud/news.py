@@ -1,6 +1,6 @@
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from app.crud.sea_data_base import BaseCRUD
 from app.models.news_model import News
@@ -36,7 +36,7 @@ class NewsCRUD(BaseCRUD):
         except Exception as e:
             return {"status": 500, "message": "服务器错误"}
 
-    async def get_news_by_url(self, db: AsyncSession, url: str):
+    async def get_news_by_url(self, db: AsyncSession, url: str) -> Optional[News]:
         try:
             stmt = select(News).filter(News.url == url)
             result = await db.execute(stmt)
@@ -46,7 +46,7 @@ class NewsCRUD(BaseCRUD):
             print(f"[根据url获取news失败]: {str(e)}")
             return None
 
-    async def get_news_by_id(self, db: AsyncSession, id: int):
+    async def get_news_by_id(self, db: AsyncSession, id: int) -> Optional[News]:
         try:
             news = await db.get(News, id)
             return news

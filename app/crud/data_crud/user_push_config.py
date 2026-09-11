@@ -29,9 +29,9 @@ user_push_config_crud.py
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
 
 from app.crud.sea_data_base import BaseCRUD
-
 from app.models.user_push_config import UserPushConfigModel
 from app.models.user_push_notify_channel import UserPushNotifyChannelModel
 from app.models.user_push_category_weight import UserPushCategoryWeightModel
@@ -57,7 +57,7 @@ class UserPushConfigCRUD(BaseCRUD):
         self,
         db: AsyncSession,
         user_id: int,
-    ) -> UserPushConfigModel | None:
+    ) -> Optional[UserPushConfigModel] | None:
         """
         根据 user_id 查询完整配置（含 channels + weights）
         参数:
@@ -90,7 +90,7 @@ class UserPushConfigCRUD(BaseCRUD):
         self,
         db: AsyncSession,
         obj_in: UserPushConfigSchema,
-    ) -> UserPushConfigModel:
+    ) -> Optional[UserPushConfigModel]:
         """
         创建完整推送配置（主表 + 子表）
 
@@ -156,7 +156,7 @@ class UserPushConfigCRUD(BaseCRUD):
         db: AsyncSession,
         db_obj: UserPushConfigModel,
         obj_in: UserPushConfigSchema,
-    ) -> UserPushConfigModel:
+    ) -> Optional[UserPushConfigModel]:
         """
         更新完整推送配置（主表 + 子表）
 

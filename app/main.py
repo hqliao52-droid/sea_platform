@@ -17,7 +17,7 @@ from app.api.chat_session_api import chat_session_router
 from app.api.chat_message_api import chat_message_router
 from app.api.user_config_api import router as user_config_router
 from app.api.email_api import router as email_router
-from app.config.mysql_config import init_db, close_db
+from app.config.pg_config import init_db, close_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

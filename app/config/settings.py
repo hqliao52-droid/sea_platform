@@ -50,11 +50,11 @@ class Settings(BaseSettings):
     """
     APP_NAME: str = "sea_ai_platform"
 
-    MYSQL_HOST: str = "localhost"
-    MYSQL_PORT: int = 3306
-    MYSQL_USER: str = "root"
-    MYSQL_PASSWORD: str
-    MYSQL_DB: str = "sea_data"
+    PG_HOST: str = "localhost"
+    PG_PORT: int = 5432
+    PG_USER: str = "postgres"
+    PG_PASSWORD: str = "postgres"
+    PG_DB: str = "postgres"
 
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
@@ -101,6 +101,10 @@ class Settings(BaseSettings):
     METADATA: dict | dict = {}
     # 温度
     TEMPERATURE: float | float = 0.7
+    # 惩罚因子
+    ENABLED_PENALTY: bool | bool = False
+    FREQUENCY_PENALTY: float | float = 0.5
+    PRESENCE_PENALTY: float | float = 0.3
 
     # agent 工作终端
     BACKEND_DIR: str = str(BASE_DIR / "backend" / "workspace")

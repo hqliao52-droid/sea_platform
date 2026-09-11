@@ -1,7 +1,7 @@
 from app.models.rss_source import RssSource
 from app.crud.data_crud.rss import RssSourceCRUD
 from app.schemas.rss.rss_shema import RssSchema
-from app.config.mysql_config import AsyncSessionLocal
+from app.config.pg_config import AsyncSessionLocal
 from app.utils.logger import Logger
 
 

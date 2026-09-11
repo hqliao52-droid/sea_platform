@@ -1,48 +1,44 @@
-/*
- Navicat Premium Dump SQL
+-- PostgreSQL 兼容版本
 
- Source Server         : sea_platform
- Source Server Type    : MySQL
- Source Server Version : 80046 (8.0.46)
- Source Host           : 106.52.97.98:3306
- Source Schema         : sea_data
+-- 如果表已存在则删除
+DROP TABLE IF EXISTS llm_api_log;
 
- Target Server Type    : MySQL
- Target Server Version : 80046 (8.0.46)
- File Encoding         : 65001
+-- 创建表
+CREATE TABLE llm_api_log (
+    id BIGSERIAL PRIMARY KEY,
+    message_id BIGINT NOT NULL,
+    session_id VARCHAR(64) NOT NULL,
+    model_name VARCHAR(100) DEFAULT NULL,
+    temperature REAL DEFAULT NULL,
+    prompt_tokens INTEGER DEFAULT 0,
+    completion_tokens INTEGER DEFAULT 0,
+    total_tokens INTEGER DEFAULT 0,
+    status SMALLINT DEFAULT 0,
+    error_msg VARCHAR(1000) DEFAULT NULL,
+    ip_address VARCHAR(64) DEFAULT NULL,
+    user_client VARCHAR(500) DEFAULT NULL,
+    sensitive_check_result SMALLINT DEFAULT 0,
+    created_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
- Date: 08/06/2026 15:29:19
-*/
+-- 普通索引
+CREATE INDEX idx_message_id ON llm_api_log (message_id);
+CREATE INDEX idx_session_id ON llm_api_log (session_id);
 
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+-- 列注释
+COMMENT ON COLUMN llm_api_log.id IS '主键ID';
+COMMENT ON COLUMN llm_api_log.message_id IS '关联消息ID';
+COMMENT ON COLUMN llm_api_log.session_id IS '会话窗口ID';
+COMMENT ON COLUMN llm_api_log.model_name IS '模型名';
+COMMENT ON COLUMN llm_api_log.temperature IS '温度';
+COMMENT ON COLUMN llm_api_log.prompt_tokens IS '提示词token消耗';
+COMMENT ON COLUMN llm_api_log.completion_tokens IS '生成消息所消耗的token';
+COMMENT ON COLUMN llm_api_log.total_tokens IS '总token';
+COMMENT ON COLUMN llm_api_log.status IS '消息状态 0=待处理, 1=已完成, 2=处理中, 3=失败（如超时/报错）';
+COMMENT ON COLUMN llm_api_log.error_msg IS '失败消息';
+COMMENT ON COLUMN llm_api_log.ip_address IS '用户地址';
+COMMENT ON COLUMN llm_api_log.user_client IS '用户的客户端信息';
+COMMENT ON COLUMN llm_api_log.sensitive_check_result IS '敏感词检测结果';
+COMMENT ON COLUMN llm_api_log.created_time IS '创建时间';
 
--- ----------------------------
--- Table structure for llm_api_log
--- ----------------------------
-DROP TABLE IF EXISTS `llm_api_log`;
-CREATE TABLE `llm_api_log`  (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `message_id` bigint NOT NULL COMMENT '关联消息ID',
-  `session_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '会话窗口ID',
-  `model_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '模型名',
-  `temperature` float NULL DEFAULT NULL COMMENT '温度',
-  `prompt_tokens` int NULL DEFAULT 0 COMMENT '提示词token消耗',
-  `completion_tokens` int NULL DEFAULT 0 COMMENT '生成消息所消耗的token',
-  `total_tokens` int NULL DEFAULT 0 COMMENT '总token',
-  `status` tinyint NULL DEFAULT 0 COMMENT '消息状态 0=待处理, 1=已完成, 2=处理中, 3=失败（如超时/报错）',
-  `error_msg` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '失败消息',
-  `ip_address` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '用户地址',
-  `user_client` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '用户的客户端信息',
-  `sensitive_check_result` tinyint NULL DEFAULT 0 COMMENT ' \'敏感词检测结果\'',
-  `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_message_id`(`message_id` ASC) USING BTREE,
-  INDEX `idx_session_id`(`session_id` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of llm_api_log
--- ----------------------------
-
-SET FOREIGN_KEY_CHECKS = 1;
+-- 表为空，序列从 1 开始即可，无需 setval

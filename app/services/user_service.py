@@ -1,7 +1,7 @@
 from app.utils.logger import Logger
 from app.models.user_model import UserModel
 from app.crud.data_crud.user import UserCRUD
-from app.config.mysql_config import AsyncSessionLocal
+from app.config.pg_config import AsyncSessionLocal
 from app.schemas.user.user_schema import UserSchema
 
 

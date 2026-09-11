@@ -45,7 +45,7 @@ async def get_by_session_id(session_id: int):
 @chat_message_router.put("/insert_message")
 async def insert_message(req: ChatMsg):
     """发送对话 - 写入用户消息"""
-    logger.info(f"当前({datetime.now}),客户发送销售：{req.news_ids}")
+    logger.info(f"当前({datetime.now}), 用户发送文章链接：{req.news_ids}")
     task_id = str(uuid4())
 
     now_time = datetime.now()

@@ -1,6 +1,13 @@
-from sqlalchemy import Column, Integer, String, DateTime, JSON
-from datetime import datetime
-from app.config.mysql_config import Base
+from sqlalchemy import (
+    Column, 
+    Integer, 
+    String,
+    DateTime, 
+    func
+)
+from sqlalchemy.dialects.postgresql import JSONB
+
+from app.config.pg_config import Base
 
 
 class ArticleStorage(Base):
@@ -10,5 +17,5 @@ class ArticleStorage(Base):
     )
     news_id = Column(Integer, nullable=False, comment="新闻ID")
     article_name = Column(String(255), nullable=False, comment="文章名称")
-    created_at = Column(DateTime, default=datetime.now, comment="创建时间")
-    origin_input = Column(JSON, nullable=False, comment="原始URL")
+    created_at = Column(DateTime, server_default=func.now(), comment="创建时间")
+    origin_input = Column(JSONB, nullable=False, comment="原始URL")

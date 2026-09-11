@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, SmallInteger, JSON
+from sqlalchemy import Column, Integer, String, DateTime, Text, SmallInteger
+from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime
-from app.config.mysql_config import Base
 
+from app.config.pg_config import Base
 
 class ChatMessage(Base):
     __tablename__ = "chat_message"
@@ -12,7 +13,7 @@ class ChatMessage(Base):
     )
     session_id = Column(Integer, nullable=False, comment="会话ID", index=True)
     user_id = Column(Integer, nullable=False, comment="用户ID")
-    task_id = Column(String, nullable=True, default=None, comment="任务ID")
+    task_id = Column(String(64), nullable=True, default=None, comment="任务ID")
     message_type = Column(
         SmallInteger, nullable=False, comment="1用户 2机器人 3系统 4工具"
     )
@@ -23,9 +24,9 @@ class ChatMessage(Base):
         comment="引用消息ID 如果是LLM的回答，就不能置空，并且对应值是回复的消息的ID",
     )
     role = Column(String(16), nullable=False, comment="角色")
-    content = Column(Text(None), nullable=False, comment="消息内容")
-    llm_refer_data = Column(JSON, nullable=True, comment="引用资料")
-    llm_refer_data_id = Column(JSON, nullable=True, default=None, comment="引用资料ID")
+    content = Column(Text, nullable=False, comment="消息内容")
+    llm_refer_data = Column(JSONB, nullable=True, comment="引用资料")
+    llm_refer_data_id = Column(JSONB, nullable=True, default=None, comment="引用资料ID")
     status = Column(
         SmallInteger,
         nullable=True,

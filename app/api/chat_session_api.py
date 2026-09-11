@@ -17,7 +17,8 @@ logger = Logger.setup_logger(Logger.set_file_date())
 
 
 @chat_session_router.get(
-    "/get_sessions", response_model=Result[List[ChatSessionSchema]]
+    "/get_sessions", 
+    response_model=Result[List[ChatSessionSchema]]
 )
 async def get_chat_session_by_llm_id(user_id: int):
     """通过userID获取会话列表"""

@@ -3,7 +3,7 @@ from typing import Any
 from app.utils.logger import Logger
 from app.models.article_storage import ArticleStorage
 from app.crud.data_crud.aricle_storage import CategoryCRUD as ArticleStorageCRUD
-from app.config.mysql_config import AsyncSessionLocal
+from app.config.pg_config import AsyncSessionLocal
 
 
 class ArticleStorageService:

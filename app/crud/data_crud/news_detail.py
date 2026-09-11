@@ -110,7 +110,7 @@ class NewsDetailCRUD(BaseCRUD):
 
     async def get_news_detail_by_ids(
         self, db: AsyncSession, news_ids: list[int]
-    ) -> List[tuple]:
+    ) -> Optional[List[NewsDetail]]:
         """
         根据ID列表查询新闻
         :param db: 数据库会话

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from datetime import datetime
-from app.config.mysql_config import Base
+from app.config.pg_config import Base
 
 
 class Category(Base):
@@ -9,6 +9,9 @@ class Category(Base):
     """
 
     __tablename__ = "category"
+    __table_args__ = {
+        "comment": "新闻分类",
+    }
 
     id = Column(
         Integer, primary_key=True, autoincrement=True, nullable=False, comment="主键ID"

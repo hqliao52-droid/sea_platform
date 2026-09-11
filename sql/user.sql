@@ -1,48 +1,69 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : sea_platform
- Source Server Type    : MySQL
- Source Server Version : 80046 (8.0.46)
- Source Host           : 106.52.97.98:3306
- Source Schema         : sea_data
+ Source Server         : docker-localhost
+ Source Server Type    : PostgreSQL
+ Source Server Version : 160015 (160015)
+ Source Host           : localhost:15432
+ Source Catalog        : sea_data
+ Source Schema         : public
 
- Target Server Type    : MySQL
- Target Server Version : 80046 (8.0.46)
+ Target Server Type    : PostgreSQL
+ Target Server Version : 160015 (160015)
  File Encoding         : 65001
 
- Date: 08/06/2026 15:30:07
+ Date: 11/09/2026 16:44:51
 */
 
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
 -- Table structure for user
 -- ----------------------------
-DROP TABLE IF EXISTS `user`;
-CREATE TABLE `user`  (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '用户唯一ID(主键)',
-  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '登录账号(唯一)',
-  `password` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '加密后的密码(BCrypt)',
-  `nickname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '昵称',
-  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '手机号',
-  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '邮箱',
-  `city` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '所在城市',
-  `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '头像URL',
-  `status` tinyint NOT NULL DEFAULT 1 COMMENT '用户状态 1-正常 0-禁用 2-锁定',
-  `role` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'user' COMMENT '角色 user/admin',
-  `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `last_login_time` datetime NULL DEFAULT NULL COMMENT '最后登录时间',
-  `last_login_ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '最后登录IP',
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `uk_username`(`username` ASC) USING BTREE COMMENT '账号唯一索引'
-) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统用户表(JWT登录专用)' ROW_FORMAT = DYNAMIC;
+DROP TABLE IF EXISTS "public"."user";
+CREATE TABLE "public"."user" (
+  "id" int8 NOT NULL DEFAULT nextval('user_id_seq'::regclass),
+  "username" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+  "password" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
+  "nickname" varchar(50) COLLATE "pg_catalog"."default" DEFAULT NULL::character varying,
+  "phone" varchar(20) COLLATE "pg_catalog"."default" DEFAULT NULL::character varying,
+  "email" varchar(100) COLLATE "pg_catalog"."default" DEFAULT NULL::character varying,
+  "city" varchar(255) COLLATE "pg_catalog"."default" DEFAULT NULL::character varying,
+  "avatar" varchar(255) COLLATE "pg_catalog"."default" DEFAULT NULL::character varying,
+  "status" int2 NOT NULL DEFAULT 1,
+  "role" varchar(20) COLLATE "pg_catalog"."default" NOT NULL DEFAULT 'user'::character varying,
+  "created_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "last_login_time" timestamp(6),
+  "last_login_ip" varchar(50) COLLATE "pg_catalog"."default" DEFAULT NULL::character varying
+)
+;
+COMMENT ON COLUMN "public"."user"."id" IS '用户唯一ID(主键)';
+COMMENT ON COLUMN "public"."user"."username" IS '登录账号(唯一)';
+COMMENT ON COLUMN "public"."user"."password" IS '加密后的密码(BCrypt)';
+COMMENT ON COLUMN "public"."user"."nickname" IS '昵称';
+COMMENT ON COLUMN "public"."user"."phone" IS '手机号';
+COMMENT ON COLUMN "public"."user"."email" IS '邮箱';
+COMMENT ON COLUMN "public"."user"."city" IS '所在城市';
+COMMENT ON COLUMN "public"."user"."avatar" IS '头像URL';
+COMMENT ON COLUMN "public"."user"."status" IS '用户状态 1-正常 0-禁用 2-锁定';
+COMMENT ON COLUMN "public"."user"."role" IS '角色 user/admin';
+COMMENT ON COLUMN "public"."user"."created_time" IS '创建时间';
+COMMENT ON COLUMN "public"."user"."updated_time" IS '更新时间';
+COMMENT ON COLUMN "public"."user"."last_login_time" IS '最后登录时间';
+COMMENT ON COLUMN "public"."user"."last_login_ip" IS '最后登录IP';
+COMMENT ON TABLE "public"."user" IS '系统用户表(JWT登录专用)';
 
 -- ----------------------------
 -- Records of user
 -- ----------------------------
-INSERT INTO `user` VALUES (1, 'admin', '$argon2id$v=19$m=65536,t=3,p=4$bY2RUso5p/S+F6KUEuI8Zw$TASu1ww8kd+Yv9rezpHjpdQD5HlWyzughkYzakorWDU', 'qqq', '133333333333', NULL, NULL, NULL, 1, 'admin', '2026-05-08 15:39:55', '2026-05-21 11:54:35', NULL, '110.191.203.5');
+INSERT INTO "public"."user" VALUES (1, 'admin', '$argon2id$v=19$m=65536,t=3,p=4$bY2RUso5p/S+F6KUEuI8Zw$TASu1ww8kd+Yv9rezpHjpdQD5HlWyzughkYzakorWDU', 'qqq', '133333333333', NULL, NULL, NULL, 1, 'admin', '2026-05-08 15:39:55', '2026-09-11 16:40:17.992991', '2026-09-11 16:40:17.989787', '172.19.0.1');
 
-SET FOREIGN_KEY_CHECKS = 1;
+-- ----------------------------
+-- Uniques structure for table user
+-- ----------------------------
+ALTER TABLE "public"."user" ADD CONSTRAINT "uk_username" UNIQUE ("username");
+
+-- ----------------------------
+-- Primary Key structure for table user
+-- ----------------------------
+ALTER TABLE "public"."user" ADD CONSTRAINT "user_pkey" PRIMARY KEY ("id");

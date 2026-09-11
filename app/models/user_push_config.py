@@ -4,10 +4,12 @@ from sqlalchemy import (
     DateTime,
     SmallInteger,
     Index,
+    UniqueConstraint,
+    func
 )
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from app.config.mysql_config import Base
+from app.config.pg_config import Base
 
 
 class UserPushConfigModel(Base):
@@ -16,15 +18,25 @@ class UserPushConfigModel(Base):
     """
 
     __tablename__ = "user_push_config"
+    __table_args__ = (
+        UniqueConstraint("user_id", name="uk_user_push_config_user_id"),
+        Index("idx_is_enabled", "is_enabled"),
+        Index("idx_created_at", "created_at"),
+        {"comment": "用户推送配置表"},
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True, comment="主键ID")
     user_id = Column(Integer, nullable=False, unique=True, comment="用户ID")
     max_push_amount = Column(Integer, nullable=False, comment="最大消息推送数量")
     is_enabled = Column(SmallInteger, nullable=False, default=0, comment="是否开启推送")
 
-    created_at = Column(DateTime, default=datetime.now, comment="创建时间")
+    created_at = Column(DateTime, default=func.now(), nullable=False, comment="创建时间")
     updated_at = Column(
-        DateTime, default=datetime.now, onupdate=datetime.now, comment="更新时间"
+        DateTime, 
+        default=func.now(), 
+        onupdate=func.now(), 
+        nullable=False, 
+        comment="更新时间"
     )
 
     # 定义关系 (可选，方便后续查询关联数据)
@@ -41,7 +53,4 @@ class UserPushConfigModel(Base):
         lazy="select",
     )
 
-    __table_args__ = (
-        Index("idx_is_enabled", "is_enabled"),
-        Index("idx_created_at", "created_at"),
-    )
+

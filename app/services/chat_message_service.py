@@ -1,7 +1,7 @@
 from app.utils.logger import Logger
 from app.models.chat_message import ChatMessage
 from app.crud.data_crud.chat_message import ChatMessageCRUD
-from app.config.mysql_config import AsyncSessionLocal
+from app.config.pg_config import AsyncSessionLocal
 from typing import List
 
 

@@ -1,39 +1,32 @@
-/*
- Navicat Premium Dump SQL
+-- PostgreSQL 兼容版本
 
- Source Server         : sea_platform
- Source Server Type    : MySQL
- Source Server Version : 80046 (8.0.46)
- Source Host           : 106.52.97.98:3306
- Source Schema         : sea_data
+-- 如果表已存在则删除
+DROP TABLE IF EXISTS system_message;
 
- Target Server Type    : MySQL
- Target Server Version : 80046 (8.0.46)
- File Encoding         : 65001
+-- 创建表
+CREATE TABLE system_message (
+    id SERIAL PRIMARY KEY,
+    system_message VARCHAR(255) DEFAULT NULL,
+    is_actived SMALLINT DEFAULT 1
+);
 
- Date: 08/06/2026 15:30:02
-*/
+-- 表注释
+COMMENT ON TABLE system_message IS '系统消息表';
 
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+-- 列注释
+COMMENT ON COLUMN system_message.id IS '主键ID';
+COMMENT ON COLUMN system_message.system_message IS '系统消息';
+COMMENT ON COLUMN system_message.is_actived IS '是否激活 1=激活 0=失效';
 
--- ----------------------------
--- Table structure for system_message
--- ----------------------------
-DROP TABLE IF EXISTS `system_message`;
-CREATE TABLE `system_message`  (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `system_message` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '系统消息',
-  `is_actived` tinyint NULL DEFAULT 1 COMMENT '是否激活 1=激活 0=失效',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统消息表' ROW_FORMAT = DYNAMIC;
+-- 插入数据（显式指定列名）
+INSERT INTO system_message (id, system_message, is_actived) VALUES
+(1, '您好！我是您的出海战略助手。我已经整合了今日最新的东南亚市场资讯，您可以针对特定行业或合规政策向我提问。', 1),
+(2, '今天在忙什么？', 1),
+(3, '我们要从哪里开始呢？', 1),
+(4, '有什么我可以帮助你的呢？', 1);
 
--- ----------------------------
--- Records of system_message
--- ----------------------------
-INSERT INTO `system_message` VALUES (1, '您好！我是您的出海战略助手。我已经整合了今日最新的东南亚市场资讯，您可以针对特定行业或合规政策向我提问。', 1);
-INSERT INTO `system_message` VALUES (2, '今天在忙什么？', 1);
-INSERT INTO `system_message` VALUES (3, '我们要从哪里开始呢？', 1);
-INSERT INTO `system_message` VALUES (4, '有什么我可以帮助你的呢？', 1);
-
-SET FOREIGN_KEY_CHECKS = 1;
+-- 重置序列，避免后续插入主键冲突
+SELECT setval(
+    pg_get_serial_sequence('system_message', 'id'),
+    (SELECT MAX(id) FROM system_message)
+);

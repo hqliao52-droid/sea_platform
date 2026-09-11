@@ -1,7 +1,7 @@
 from app.utils.logger import Logger
 from app.models.category import Category
 from app.crud.data_crud.category import CategoryCRUD
-from app.config.mysql_config import AsyncSessionLocal
+from app.config.pg_config import AsyncSessionLocal
 
 
 class CategoryOperator:

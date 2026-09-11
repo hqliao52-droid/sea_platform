@@ -1,8 +1,16 @@
-from app.config.mysql_config import Base
-from sqlalchemy import Column, Integer, DateTime, DECIMAL, ForeignKey, Index, String
-from datetime import datetime
+from sqlalchemy import (
+    Column, 
+    Integer, 
+    DateTime, 
+    DECIMAL, 
+    ForeignKey, 
+    String, 
+    func, 
+    UniqueConstraint
+)
 from sqlalchemy.orm import relationship
 
+from app.config.pg_config import Base
 
 class UserPushCategoryWeightModel(Base):
     """
@@ -10,6 +18,11 @@ class UserPushCategoryWeightModel(Base):
     """
 
     __tablename__ = "user_push_category_weight"
+    __table_args__ = (
+        # 唯一索引: 同一个配置下，分类ID唯一
+        UniqueConstraint("push_config_id", "category_id", name="uk_config_category"),
+        {"comment": "用户推送分类权重表"}
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True, comment="主键ID")
     push_config_id = Column(
@@ -21,12 +34,9 @@ class UserPushCategoryWeightModel(Base):
     category_id = Column(Integer, nullable=False, comment="分类ID")
     category_name = Column(String(50), nullable=False, comment="分类名称")
     weight = Column(DECIMAL(5, 2), nullable=False, default=0.00, comment="分类权重")
-    created_at = Column(DateTime, default=datetime.now, comment="创建时间")
-    updated_at = Column(DateTime, default=datetime.now, comment="修改时间")
+    created_at = Column(DateTime, default=func.now(), nullable=False, comment="创建时间")
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False, comment="修改时间")
 
     config = relationship("UserPushConfigModel", back_populates="weights")
 
-    __table_args__ = (
-        # 唯一索引: 同一个配置下，分类ID唯一
-        Index("uk_config_category", "push_config_id", "category_id", unique=True),
-    )
+

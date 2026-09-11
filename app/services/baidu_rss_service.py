@@ -2,7 +2,7 @@ from app.utils.logger import Logger
 from app.models.baidu_rss_source import BaiduRssSource
 from app.schemas.baidu_rss_source.baidu_rss_source import BaiduRssSourceSchema
 from app.crud.data_crud.baidu_rss_source import BaiduRssSourceCRUD
-from app.config.mysql_config import AsyncSessionLocal
+from app.config.pg_config import AsyncSessionLocal
 
 
 class BaiduRssSourceOperator:

@@ -3,9 +3,8 @@ from app.models.chat_session import ChatSession
 from app.schemas.chat_session.chat_session import ChatSessionSchema
 from app.crud.data_crud.chat_message import ChatMessageCRUD
 from app.crud.data_crud.chat_session import ChatSessionCRUD
-from app.config.mysql_config import AsyncSessionLocal
-from typing import List
-from sqlalchemy.orm import Session
+from app.config.pg_config import AsyncSessionLocal
+from typing import List, Optional
 
 
 class ChatSessionOperator:
@@ -16,7 +15,7 @@ class ChatSessionOperator:
         self.chat_session_curd = ChatSessionCRUD()
         self.chat_message_curd = ChatMessageCRUD()
 
-    async def get_chat_session_by_id(self, id: int) -> ChatSessionSchema:
+    async def get_chat_session_by_id(self, id: int) -> Optional[ChatSessionSchema]:
         async with AsyncSessionLocal() as db:
             try:
                 chat_session = await self.chat_session_curd.get(db, id)
@@ -26,7 +25,10 @@ class ChatSessionOperator:
                 self.logger.error(e)
                 return None
 
-    async def get_chat_session_by_llm_id(self, llm_id: int) -> List[ChatSessionSchema]:
+    async def get_chat_session_by_llm_id(
+            self, 
+            llm_id: int
+        ) -> Optional[List[ChatSessionSchema]]:
         async with AsyncSessionLocal() as db:
             try:
                 chat_session = await self.chat_session_curd.get_chat_session_by_llm_id(
@@ -41,8 +43,9 @@ class ChatSessionOperator:
                 return None
 
     async def get_chat_session_by_user_id(
-        self, user_id: int
-    ) -> List[ChatSessionSchema]:
+        self, 
+        user_id: int
+    ) -> Optional[List[ChatSessionSchema]]:
         async with AsyncSessionLocal() as db:
             try:
                 chat_session = await self.chat_session_curd.get_chat_session_by_user_id(
@@ -56,7 +59,7 @@ class ChatSessionOperator:
                 self.logger.error(e)
                 return None
 
-    async def new_session(self, user_id: int) -> ChatSessionSchema:
+    async def new_session(self, user_id: int) -> Optional[ChatSessionSchema]:
         async with AsyncSessionLocal() as db:
             try:
                 new_session = ChatSession(
@@ -72,7 +75,7 @@ class ChatSessionOperator:
                 self.logger.error(e)
                 return None
 
-    async def get_new_chat_session_by_user_id(self, user_id: int) -> ChatSessionSchema:
+    async def get_new_chat_session_by_user_id(self, user_id: int) -> Optional[ChatSessionSchema]:
         async with AsyncSessionLocal() as db:
             try:
                 chat_session = (

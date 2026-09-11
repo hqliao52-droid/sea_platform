@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,12 +10,12 @@ class LlmApiLogCRUD(BaseCRUD):
     def __init__(self):
         super().__init__(LlmApiLog)
 
-    async def get_llm_api_log_by_id(self, db: AsyncSession, id: int) -> LlmApiLog:
+    async def get_llm_api_log_by_id(self, db: AsyncSession, id: int) -> Optional[LlmApiLog]:
         return await self.get(db, id)
 
     async def get_llm_api_log_by_session_id(
         self, db: AsyncSession, session_id: int
-    ) -> List[LlmApiLog]:
+    ) -> Optional[List[LlmApiLog]]:
         stmt = select(LlmApiLog).where(LlmApiLog.session_id == session_id)
         result = await db.execute(stmt)
         llm_api_log: List[LlmApiLog] = result.scalars().all()
@@ -23,7 +23,7 @@ class LlmApiLogCRUD(BaseCRUD):
 
     async def get_llm_api_log_by_message_id(
         self, db: AsyncSession, message_id: int
-    ) -> LlmApiLog:
+    ) -> Optional[LlmApiLog]:
         stmt = select(LlmApiLog).where(LlmApiLog.message_id == message_id)
         result = await db.execute(stmt)
         llm_api_log: LlmApiLog = result.scalars().first()
@@ -31,7 +31,7 @@ class LlmApiLogCRUD(BaseCRUD):
 
     async def get_llm_api_log_by_model_name(
         self, db: AsyncSession, model_name: str
-    ) -> List[LlmApiLog]:
+    ) -> Optional[List[LlmApiLog]]:
         stmt = select(LlmApiLog).where(LlmApiLog.model_name == model_name)
         result = await db.execute(stmt)
         llm_api_log: List[LlmApiLog] = result.scalars().all()

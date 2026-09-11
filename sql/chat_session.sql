@@ -1,57 +1,43 @@
-/*
- Navicat Premium Dump SQL
+-- 如果表已存在则删除
+DROP TABLE IF EXISTS chat_session;
 
- Source Server         : sea_platform
- Source Server Type    : MySQL
- Source Server Version : 80046 (8.0.46)
- Source Host           : 106.52.97.98:3306
- Source Schema         : sea_data
+-- 创建表
+CREATE TABLE chat_session (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    llm_id INTEGER NOT NULL,
+    is_new_session SMALLINT NOT NULL DEFAULT 1,
+    session_topic VARCHAR(255) DEFAULT NULL,
+    created_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_deleted SMALLINT DEFAULT 0
+);
 
- Target Server Type    : MySQL
- Target Server Version : 80046 (8.0.46)
- File Encoding         : 65001
+-- 普通索引
+CREATE INDEX idx_user_id ON chat_session (user_id);
 
- Date: 08/06/2026 15:29:13
-*/
+-- 表注释
+COMMENT ON TABLE chat_session IS '记录用户一次完整对话窗口';
 
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+-- 列注释
+COMMENT ON COLUMN chat_session.id IS '会话ID(主键)';
+COMMENT ON COLUMN chat_session.user_id IS '用户ID';
+COMMENT ON COLUMN chat_session.llm_id IS '机器人ID';
+COMMENT ON COLUMN chat_session.is_new_session IS '是否为新窗口 1=是 0=不是';
+COMMENT ON COLUMN chat_session.session_topic IS '会话主题';
+COMMENT ON COLUMN chat_session.created_time IS '创建时间';
+COMMENT ON COLUMN chat_session.update_time IS '更新时间';
+COMMENT ON COLUMN chat_session.is_deleted IS '软删除';
 
--- ----------------------------
--- Table structure for chat_session
--- ----------------------------
-DROP TABLE IF EXISTS `chat_session`;
-CREATE TABLE `chat_session`  (
-  `id` int NOT NULL AUTO_INCREMENT COMMENT '会话ID(主键)',
-  `user_id` int NOT NULL COMMENT '用户ID',
-  `llm_id` int NOT NULL COMMENT '机器人ID',
-  `is_new_session` tinyint NOT NULL DEFAULT 1 COMMENT '是否为新窗口 1=是 0=不是',
-  `session_topic` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '会话主题',
-  `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` tinyint NULL DEFAULT 0 COMMENT '软删除',
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_user_id`(`user_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 65 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '记录用户一次完整对话窗口' ROW_FORMAT = DYNAMIC;
+-- 插入数据（显式指定列名）
+INSERT INTO chat_session (
+    id, user_id, llm_id, is_new_session, session_topic,
+    created_time, update_time, is_deleted
+) VALUES
+(64, 12, 1, 1, '问候交流', '2026-05-26 17:00:07', '2026-05-26 17:00:08', 0);
 
--- ----------------------------
--- Records of chat_session
--- ----------------------------
-INSERT INTO `chat_session` VALUES (49, 12, 1, 1, '铝塑机器人对股市影响', '2026-05-21 18:17:34', '2026-05-21 18:17:35', 0);
-INSERT INTO `chat_session` VALUES (50, 8, 1, 1, '新会话', '2026-05-21 11:58:55', '2026-05-21 11:58:55', 0);
-INSERT INTO `chat_session` VALUES (51, 13, 1, 1, '询问文章主要内容', '2026-05-21 15:22:24', '2026-05-21 15:22:24', 0);
-INSERT INTO `chat_session` VALUES (52, 13, 1, 1, '询问文章内容', '2026-05-21 15:36:30', '2026-05-21 15:36:31', 0);
-INSERT INTO `chat_session` VALUES (53, 12, 1, 1, '询问文章主要内容', '2026-05-26 15:50:03', '2026-05-26 15:50:03', 0);
-INSERT INTO `chat_session` VALUES (54, 14, 1, 1, '廖红强信息查询', '2026-05-24 22:00:19', '2026-05-24 22:00:19', 0);
-INSERT INTO `chat_session` VALUES (55, 13, 1, 1, '询问文章主要内容', '2026-05-26 15:57:28', '2026-05-26 15:57:28', 0);
-INSERT INTO `chat_session` VALUES (56, 12, 1, 1, '询问文章主要内容', '2026-05-26 15:56:56', '2026-05-26 15:56:57', 0);
-INSERT INTO `chat_session` VALUES (57, 13, 1, 1, '询问文章主要内容', '2026-05-26 16:22:50', '2026-05-26 16:22:50', 0);
-INSERT INTO `chat_session` VALUES (58, 12, 1, 1, '询问文章主要内容', '2026-05-26 16:22:48', '2026-05-26 16:22:49', 0);
-INSERT INTO `chat_session` VALUES (59, 15, 1, 1, '询问文章内容', '2026-05-26 16:22:48', '2026-05-26 16:22:49', 0);
-INSERT INTO `chat_session` VALUES (60, 16, 1, 1, '新会话', '2026-05-26 16:49:53', '2026-05-26 16:49:53', 0);
-INSERT INTO `chat_session` VALUES (61, 17, 1, 1, '问候交流', '2026-05-28 16:13:16', '2026-05-28 16:13:16', 0);
-INSERT INTO `chat_session` VALUES (62, 13, 1, 1, '问候交流', '2026-06-02 20:09:01', '2026-06-02 20:09:01', 0);
-INSERT INTO `chat_session` VALUES (63, 15, 1, 1, '问候交流', '2026-05-26 17:00:07', '2026-05-26 17:00:08', 0);
-INSERT INTO `chat_session` VALUES (64, 12, 1, 1, '问候交流', '2026-05-26 17:00:07', '2026-05-26 17:00:08', 0);
-
-SET FOREIGN_KEY_CHECKS = 1;
+-- 重置序列，避免后续插入主键冲突
+SELECT setval(
+    pg_get_serial_sequence('chat_session', 'id'),
+    (SELECT MAX(id) FROM chat_session)
+);

@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, JSON
-from datetime import datetime
-from app.config.mysql_config import Base
+from sqlalchemy import Column, Integer, String, Text, DateTime, func
+from sqlalchemy.dialects.postgresql import JSONB
+from app.config.pg_config import Base
 
 # 声明基类（项目中通常统一放在一个base.py文件中）
 
@@ -12,6 +12,7 @@ class NewsDetail(Base):
     """
 
     __tablename__ = "news_detail"
+    __table_args__ = {"comment": "新闻详情表"}
 
     # 主键ID
     id = Column(
@@ -86,7 +87,7 @@ class NewsDetail(Base):
 
     # AI解析输出（json类型）
     ai_origin_output = Column(
-        JSON,
+        JSONB,
         comment="AI解析输出",
     )
 
@@ -98,7 +99,7 @@ class NewsDetail(Base):
 
     # 原始entry
     origin_entry = Column(
-        JSON,
+        JSONB,
         comment="原始entry",
     )
 
@@ -117,7 +118,7 @@ class NewsDetail(Base):
     # 创建时间（建议自动赋值）
     created_at = Column(
         DateTime,
-        default=datetime.now,
+        default=func.now(),
         comment="创建时间",
     )
 

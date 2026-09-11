@@ -1,7 +1,7 @@
 from app.utils.logger import Logger
 from app.models.llm_api_log import LlmApiLog
 from app.crud.data_crud.llm_api_log import LlmApiLogCRUD
-from app.config.mysql_config import AsyncSessionLocal
+from app.config.pg_config import AsyncSessionLocal
 from typing import List
 
 

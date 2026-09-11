@@ -17,6 +17,7 @@ class BackendFactory(BaseFactory):
         if settings.BACKEND_DIR:
             rootdir = Path(settings.BACKEND_DIR or (BASE_DIR + "/workspace")).resolve()
             rootdir.mkdir(parents=True, exist_ok=True)
+            
         if name == "windows_filesystem_shell":
             backend = WindowsCompatibleBackend(f"{rootdir}/{user_dir}")
             # return FilesystemMiddleware(backend=backend)

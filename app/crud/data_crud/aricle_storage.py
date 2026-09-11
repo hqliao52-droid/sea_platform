@@ -1,14 +1,17 @@
-from app.crud.sea_data_base import BaseCRUD
-from app.models.article_storage import ArticleStorage
+from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+
+from app.crud.sea_data_base import BaseCRUD
+from app.models.article_storage import ArticleStorage
+
 
 
 class CategoryCRUD(BaseCRUD):
     def __init__(self):
         super().__init__(ArticleStorage)
 
-    async def get_by_id(self, db: AsyncSession, obj_id: int) -> ArticleStorage | None:
+    async def get_by_id(self, db: AsyncSession, obj_id: int) -> Optional[ArticleStorage]:
         return await self.get(db, obj_id)
 
     async def get_by_article_name(

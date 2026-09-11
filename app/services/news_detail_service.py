@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 from app.utils.logger import Logger
 from app.models.news_details_model import NewsDetail
 from app.crud.data_crud.news_detail import NewsDetailCRUD
-from app.config.mysql_config import AsyncSessionLocal
+from app.config.pg_config import AsyncSessionLocal
 
 
 class NewsDetailOperator:

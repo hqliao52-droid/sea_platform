@@ -1,7 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, SmallInteger
-from datetime import datetime
-from app.config.mysql_config import Base
+from sqlalchemy import Column, Integer, String, DateTime, SmallInteger, func
 
+from app.config.pg_config import Base
 
 class ChatSession(Base):
     __tablename__ = "chat_session"
@@ -23,13 +22,13 @@ class ChatSession(Base):
         SmallInteger, nullable=True, default=0, comment="软删除 1=是 0=否"
     )
     created_time = Column(
-        DateTime, nullable=False, default=datetime.now, comment="创建时间"
+        DateTime, nullable=False, default=func.now(), comment="创建时间"
     )
     update_time = Column(
         DateTime,
         nullable=False,
-        default=datetime.now,
-        onupdate=datetime.now,
+        default=func.now(),
+        onupdate=func.now(),
         comment="更新时间",
     )
     session_topic = Column(String(255), nullable=True, default=None, comment="会话主题")

@@ -1,4 +1,4 @@
-from app.config.mysql_config import Base
+from app.config.pg_config import Base
 from sqlalchemy import (
     Column,
     Integer,
@@ -7,10 +7,10 @@ from sqlalchemy import (
     Index,
     SmallInteger,
     String,
+    UniqueConstraint,
+    func
 )
-from datetime import datetime
 from sqlalchemy.orm import relationship
-
 
 class UserPushNotifyChannelModel(Base):
     """
@@ -18,6 +18,11 @@ class UserPushNotifyChannelModel(Base):
     """
 
     __tablename__ = "user_push_notify_channel"
+    __table_args__ = (
+        UniqueConstraint("push_config_id", "channel_type", name="uk_channel_type"),
+        Index("push_config_id", "push_config_id"),
+        {"comment": "用户推送通知渠道表"}
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True, comment="id")
     push_config_id = Column(
@@ -35,12 +40,10 @@ class UserPushNotifyChannelModel(Base):
         default=1,
         comment="优先级 1~5  1：最高优先级  5：最低优先级",
     )
-    created_at = Column(DateTime, default=datetime.now, comment="创建时间")
-    updated_at = Column(DateTime, default=datetime.now, comment="修改时间")
+    created_at = Column(DateTime, default=func.now(), comment="创建时间")
+    updated_at = Column(DateTime, default=func.now(), comment="修改时间")
 
     """
     回到父对象
     """
     config = relationship("UserPushConfigModel", back_populates="channels")
-
-    __table_args__ = (Index("push_config_id", "push_config_id"),)

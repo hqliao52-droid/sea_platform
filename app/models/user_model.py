@@ -1,5 +1,5 @@
-from app.config.mysql_config import Base
-from sqlalchemy import Column, Integer, String, Double, DateTime
+from app.config.pg_config import Base
+from sqlalchemy import Column, Integer, String, DateTime, func
 from datetime import datetime
 
 
@@ -9,6 +9,7 @@ class UserModel(Base):
     """
 
     __tablename__ = "user"
+    __table_args__ = {"comment": "用户表"}
 
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
 
@@ -30,10 +31,10 @@ class UserModel(Base):
 
     city = Column(String(255), comment="所在城市")
 
-    created_time = Column(DateTime, default=datetime.now, comment="创建时间")
+    created_time = Column(DateTime, default=func.now(), comment="创建时间")
 
     updated_time = Column(
-        DateTime, default=datetime.now, onupdate=datetime.now, comment="更新时间"
+        DateTime, default=func.now(), onupdate=func.now(), comment="更新时间"
     )
 
     last_login_time = Column(DateTime, comment="最后登录时间")

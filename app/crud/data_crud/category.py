@@ -1,3 +1,4 @@
+from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,7 +10,7 @@ class CategoryCRUD(BaseCRUD):
     def __init__(self):
         super().__init__(Category)
 
-    async def get_category_is_active(self, db: AsyncSession):
+    async def get_category_is_active(self, db: AsyncSession) -> Optional[List[Category]]:
         stmt = select(Category).where(Category.is_active == 1)
         result = await db.execute(stmt)
         return result.scalars().all()
