@@ -17,15 +17,26 @@ DATABASE_URL = (
     f"{settings.PG_DB}"
 )
 
+# 连接参数
+CONNECT_ARGS = {
+    "server_settings": {
+        "search_path": settings.PG_SCHEMA,
+        "application_name": f"{settings.APP_NAME}-{settings.SERVER_ENV}",
+        "statement_timeout": "60000",
+        "idle_in_transaction_session_timeout": "60000",
+    }
+}
+
 # 创建数据库引擎
 engine = create_async_engine(
     DATABASE_URL,
-    echo=True,
+    echo=settings.DEBUG,
     pool_pre_ping=True,      # PG 长连接易被中间件断开，建议开启
     pool_size=10,
     max_overflow=10,
     pool_timeout=30,
     pool_recycle=3600,
+    connect_args=CONNECT_ARGS,
 )
 
 # Session 会话工厂
@@ -79,15 +90,10 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         try:
             yield session
-            # 如果没有异常，在离开上下文时自动提交
-            # await session.commit() # async with 自动处理
         except Exception:
-            # 发生异常时回滚
             await session.rollback()
             raise
         finally:
-            # 会话会在退出 async with 块时自动关闭
-            # await session.close()  # 无需显式调用
             pass
 
 

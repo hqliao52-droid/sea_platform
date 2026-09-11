@@ -49,12 +49,16 @@ class Settings(BaseSettings):
             settings.MYSQL_HOST == "db_server"
     """
     APP_NAME: str = "sea_ai_platform"
+    SERVER_ENV: str = "test"
+
+    DEBUG: bool = True
 
     PG_HOST: str = "localhost"
     PG_PORT: int = 5432
     PG_USER: str = "postgres"
     PG_PASSWORD: str = "postgres"
     PG_DB: str = "postgres"
+    PG_SCHEMA: str = "public"
 
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
