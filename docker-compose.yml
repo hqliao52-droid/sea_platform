@@ -46,38 +46,38 @@ services:
     volumes:
       - ./attach:/app/attach
       - ./logs:/app/logs
-
-  mysql:
-    image: mysql:8.0
-    container_name: sea_mysql_prod
-    restart: always
-    environment:
-      TZ: Asia/Shanghai
-      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DB}
-    ports:
-      - "3306:3306"
-    volumes:
-      # 使用绝对路径或相对路径指向宿主机目录
-      - /home/ubuntu/data/mysql:/var/lib/mysql
-      - ./sql:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -u root -p$${MYSQL_PASSWORD} -h localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 40s
-    deploy:
-      resources:
-        limits:
-          memory: 384M
-        reservations:
-          memory: 256M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+  
+    postgres:
+      image: postgres:16
+      container_name: sea_postgres_prod
+      restart: always
+      environment:
+        TZ: Asia/Shanghai
+        POSTGRES_USER: ${PG_USER:-postgres}
+        POSTGRES_PASSWORD: ${PG_PASSWORD:-postgres}
+        POSTGRES_DB: ${PG_DB:-postgres}
+      ports:
+        - "15433:5432"
+      volumes:
+        - /home/ubuntu/data/postgres:/var/lib/postgresql/data
+        - ./sql:/docker-entrypoint-initdb.d
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-postgres} -d ${PG_DB:-postgres}"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+        start_period: 30s
+      deploy:
+        resources:
+          limits:
+            memory: 512M
+          reservations:
+            memory: 256M
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "10m"
+          max-file: "3"
 
   redis:
     image: redis:7-alpine

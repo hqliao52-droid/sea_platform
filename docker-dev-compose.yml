@@ -48,7 +48,7 @@ services:
       POSTGRES_PASSWORD: ${PG_PASSWORD:-postgres}
       POSTGRES_DB: ${PG_DB:-postgres}
     ports:
-      - "15432:5432"
+      - "15433:5432"
     volumes:
       - pg_data_dev:/var/lib/postgresql/data
       - ./sql:/docker-entrypoint-initdb.d
@@ -114,7 +114,7 @@ services:
       rabbitmq:
         condition: service_healthy
       postgres:
-        condition: service_healthy      # 建议改为 service_healthy
+        condition: service_healthy
     env_file:
       - .env
     environment:

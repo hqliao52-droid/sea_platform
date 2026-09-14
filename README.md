@@ -1,4 +1,5 @@
 ## 项目名称：基于 langchain 框架下的新闻消息处理助手
+
 ### 一、核心需求（Demend Analysis）：
     利用 AI 能力帮助服务企业出海的机构降低公众号内容运营成本，并提升信息服务能力。
 ### 二、目标解决（Project）：
@@ -14,6 +15,24 @@
         消息气泡：利用AI 对资讯自动生成类似《今日XXX企业出海咨询》----XXX代指服务端（一对一）
     4、企业服务信息分发
         企业登录账号后，可以使用今日出海资讯、AI问答、个性化内容推送……
+
+## 启动整个项目：
+项目目录执行： 
+    docker 一键启动会自动装配项目的基础设施：mysql, redis, rabbitMQ, Qdrant，以及创建mysql之后自动导入`/sql/*.sql`文件并运行，创建表结构
+        `docker compose up --build` （prod 部署）
+        `docker-compose -f docker-dev-compose.yml up --build` （dev 测试）
+
+    启动流程：
+        首次启动：
+            `docker compose build`
+        以后：
+            `docker compose up`
+        如果改动了代码：
+            `docker compose up --build api` 或者 `docker compose build api`
+
+    用户初始账号密码：
+        admin/admin123
+
 
 目录架构：
 ```text
@@ -202,19 +221,3 @@ sea_ai_platform
     └── rss_result_execute_worker.py
 ```
 
-## 启动整个项目：
-项目目录执行： 
-    docker 一键启动会自动装配项目的基础设施：mysql, redis, rabbitMQ, Qdrant，以及创建mysql之后自动导入`/sql/*.sql`文件并运行，创建表结构
-        `docker compose up --build` （prod 部署）
-        `docker-compose -f docker-dev-compose.yml up --build` （dev 测试）
-
-    启动流程：
-        首次启动：
-            `docker compose build`
-        以后：
-            `docker compose up`
-        如果改动了代码：
-            `docker compose up --build api` 或者 `docker compose build api`
-
-    用户初始账号密码：
-        admin/admin123
