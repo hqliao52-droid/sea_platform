@@ -1,26 +1,32 @@
-from fastapi import Header, HTTPException
 from app.utils.jwt import verify_token
 from app.config.redis_config import RedisConfig
 from app.services.user_service import UserService
 from app.utils.logger import Logger
 from app.models.user_model import UserModel
 
+from fastapi import Depends, Header, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+security = HTTPBearer(auto_error=False)
+
+
 redis = RedisConfig()
 user_service = UserService()
 
 logger = Logger.setup_logger(Logger.set_file_date())
 
-
-async def get_current_user(authorization: str = Header(None)) -> UserModel:
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> UserModel:
     """
     统一认证 -> 返回User对象
     """
-
-    if not authorization:
+    if credentials is None:
         logger.error("没有authorization")
         raise HTTPException(status_code=401, detail="未登录")
 
-    token = authorization.replace("Bearer ", "")
+    token = credentials.credentials
+    logger.info("token = %s***", token[:8]) 
 
     if await redis.check_black_list_token(token):
         logger.error("Token已失效")

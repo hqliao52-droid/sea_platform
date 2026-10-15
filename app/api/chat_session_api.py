@@ -49,7 +49,7 @@ async def new_session(user: UserModel = Depends(get_current_user)):
 async def new_session_thread(user: UserModel = Depends(get_current_user)):
     try:
         session = await chat_session_operator.new_session(user.id)
-        logger.info(f"用户:{user.name} 新建会话, thread_id:{session.thread_id}")
+        logger.info(f"用户:{user.username} 新建会话, thread_id:{session.thread_id}")
         if session is not None:
             return Result.success(session)
         else:
