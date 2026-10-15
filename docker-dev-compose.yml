@@ -29,7 +29,7 @@ services:
       QDRANT_API_KEY: ${QDRANT_API_KEY}
     volumes:
       - .:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -129,7 +129,7 @@ services:
       RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASSWORD}
     command: python worker/rss_result_execute_worker.py
     deploy:
-      replicas: 3
+      replicas: 1
     restart: always
 
   celery_worker:
