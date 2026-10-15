@@ -3,6 +3,9 @@
 *.pyo
 __pycache__/
 
+# runtime data
+Qdrant_data_dev/
+
 # 分发/打包
 build/
 dist/
@@ -27,8 +30,3 @@ htmlcov/
 # 其他
 *.log
 .DS_Store
-
-Qdrant_data_dev
-Qdrant_data_prod
-Qdrant_data_dev/
-Qdrant_data_prod/
