@@ -28,7 +28,7 @@ class ChatMessage(Base):
     llm_refer_data = Column(JSONB, nullable=True, comment="引用资料")
     llm_refer_data_id = Column(JSONB, nullable=True, default=None, comment="引用资料ID")
     status = Column(
-        SmallInteger,
+        String(50),
         nullable=True,
         default="done",
         comment="消息状态 done/streaming/exception",
