@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
+from typing import ClassVar
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # 回到项目根目录
 
@@ -104,7 +105,7 @@ class Settings(BaseSettings):
     PII_RULES: list[dict] | list[dict] = []
     PII_SOURCE: str | None = None
 
-    BASE_SYSTEMP_PROMPT="你是一个生产级 Harness Agent。你需要根据用户问题给出清晰、可靠、可执行的回答。"
+    BASE_SYSTEMP_PROMPT: ClassVar[str]="你是一个生产级 Harness Agent。你需要根据用户问题给出清晰、可靠、可执行的回答。"
 
     BACKEND_NAME: str | None = None
 
