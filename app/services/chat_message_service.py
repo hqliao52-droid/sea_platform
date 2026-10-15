@@ -19,8 +19,8 @@ class ChatMessageOperator:
                 await db.commit()
                 return obj
             except Exception as e:
+                self.logger.error(f"插入失败：{str(e)}")
                 await db.rollback()
-                self.logger.error(e)
                 return None
 
     async def get_chat_message_by_id(self, id: int):
@@ -29,7 +29,7 @@ class ChatMessageOperator:
                 chat_message = await self.chat_message_curd.get(db, id)
                 return chat_message
             except Exception as e:
-                self.logger.error(e)
+                self.logger.error(f"操作失败：{str(e)}")
                 return None
 
     async def get_chat_message_by_pre_id(self, pre_id: int) -> ChatMessage:
@@ -40,7 +40,7 @@ class ChatMessageOperator:
                 )
                 return chat_message
             except Exception as e:
-                self.logger.error(e)
+                self.logger.error(f"操作失败：{str(e)}")
                 return None
 
     async def get_chat_message_by_session_id(
@@ -55,7 +55,7 @@ class ChatMessageOperator:
                 )
                 return chat_message
             except Exception as e:
-                self.logger.error(e)
+                self.logger.error(f"操作失败：{str(e)}")
                 return None
 
     async def get_chat_message_by_user_id(self, user_id: int) -> List[ChatMessage]:
@@ -66,7 +66,7 @@ class ChatMessageOperator:
                 )
                 return chat_message
             except Exception as e:
-                self.logger.error(e)
+                self.logger.error(f"操作失败：{str(e)}")
                 return None
 
     async def get_dialog_history(
