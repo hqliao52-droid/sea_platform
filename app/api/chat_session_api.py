@@ -35,7 +35,7 @@ async def new_session(user: UserModel = Depends(get_current_user)):
         select_session = await chat_session_operator.new_chat_session_by_user_id(
             user.id
         )
-        logger.info(f"用户:{user} 新建会话")
+        logger.info(f"用户:{user.username} 新建会话")
         if select_session is not None:
             logger.info(f"用户ID:{user.id} 新建会话成功")
             return Result.success(select_session)

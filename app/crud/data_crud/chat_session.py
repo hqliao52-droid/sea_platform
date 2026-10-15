@@ -40,14 +40,18 @@ class ChatSessionCRUD(BaseCRUD):
     async def get_new_chat_session_by_user_id(
         self, db: AsyncSession, user_id: int
     ) -> Optional[ChatSession]:
-        stmt = (
-            select(ChatSession)
-            .where(ChatSession.user_id == user_id)
-            .order_by(desc(ChatSession.update_time))
-        )
-        result = await db.execute(stmt)
-        chat_sessions: ChatSession = result.scalar_one_or_none()
-        return chat_sessions
+        try:
+            stmt = (
+                select(ChatSession)
+                .where(ChatSession.user_id == user_id)
+                .order_by(desc(ChatSession.update_time))
+            )
+            result = await db.execute(stmt)
+            chat_sessions: ChatSession = result.scalar_one_or_none()
+            return chat_sessions
+        except Exception as e:
+            self.logger.error(f"操作失败：{str(e)}")
+            return None
 
     async def update_by_session_id(self, db: AsyncSession, session_id: int, session_data: dict):
         stmt = select(ChatSession).where(ChatSession.id == session_id)
