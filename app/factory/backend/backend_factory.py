@@ -31,13 +31,13 @@ class BackendFactory(BaseFactory):
             backend = WindowsCompatibleBackend(root_dir=f"{rootdir}/{user_dir}")
             # return FilesystemMiddleware(backend=backend)
             return backend
-        elif name == "remote_docker_sanbox":
-            config = RemoteDockerSandboxConfig(
-                image_name="python:3.12-slim",
-                work_dir="/workspace",
-                pull_image=True,
-                network_disabled=True,
-            )
-            return RemoteDockerSandbox(config=config)
+        # elif name == "remote_docker_sanbox":
+        #     config = RemoteDockerSandboxConfig(
+        #         image_name="python:3.12-slim",
+        #         work_dir="/workspace",
+        #         pull_image=True,
+        #         network_disabled=True,
+        #     )
+        #     return RemoteDockerSandbox(config=config)
         else:
             return None

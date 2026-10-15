@@ -1,7 +1,6 @@
 from pathlib import Path
 
-from pydantic import BaseModel, Field, Literal
-
+from pydantic import BaseModel, Field
 from typing import Literal
 
 from langchain.agents.middleware import AgentMiddleware
@@ -14,8 +13,8 @@ from langchain.agents.middleware.pii import PIIMiddleware
 
 from app.factory.base_factory import BaseFactory
 from app.config.settings import settings
-from dangling_tool_call_middleware import DanglingToolCallMiddleware
-from dynamic_environment_middleware import DynamicEnvironmentMiddleware
+from app.factory.middlewares.dangling_tool_call_middleware import DanglingToolCallMiddleware
+from app.factory.middlewares.dynamic_environment_middleware import DynamicEnvironmentMiddleware
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
