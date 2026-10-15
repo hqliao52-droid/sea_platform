@@ -86,8 +86,8 @@ async def insert_message(req: ChatMsg):
 
     # 发送celery任务
     req_dict = req.model_dump()
-    await run_llm_task.delay(task_id, ai_msg.id, user_msg.id, req_dict)
-    await run_llm_task_session_topic.delay(req.session_id, req.query)
+    await asyncio.to_thread(run_llm_task.delay, task_id, ai_msg.id, user_msg.id, req_dict)
+    await asyncio.to_thread(run_llm_task_session_topic.delay, req.session_id, req.query)
 
     return Result.success(data={"task_id": task_id, "ai_msg_id": ai_msg.id})
 
