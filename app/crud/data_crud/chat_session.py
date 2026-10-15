@@ -45,6 +45,7 @@ class ChatSessionCRUD(BaseCRUD):
                 select(ChatSession)
                 .where(ChatSession.user_id == user_id)
                 .order_by(desc(ChatSession.update_time))
+                .limit(1)
             )
             result = await db.execute(stmt)
             chat_sessions: ChatSession = result.scalar_one_or_none()
@@ -54,7 +55,7 @@ class ChatSessionCRUD(BaseCRUD):
             return None
 
     async def update_by_session_id(self, db: AsyncSession, session_id: int, session_data: dict):
-        stmt = select(ChatSession).where(ChatSession.id == session_id)
+        stmt = select(ChatSession).where(ChatSession.id == session_id).limit(1)
         result = await db.execute(stmt)
         chat_session: ChatSession = result.scalar_one_or_none()
 
