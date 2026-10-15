@@ -1,10 +1,10 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : docker-localhost
+ Source Server         : 阿里云PG
  Source Server Type    : PostgreSQL
  Source Server Version : 160015 (160015)
- Source Host           : localhost:15433
+ Source Host           : 47.108.169.91:15433
  Source Catalog        : sea_data
  Source Schema         : platform_center
 
@@ -12,7 +12,7 @@
  Target Server Version : 160015 (160015)
  File Encoding         : 65001
 
- Date: 14/09/2026 15:42:21
+ Date: 15/10/2026 14:00:00
 */
 
 
@@ -21,7 +21,7 @@
 -- ----------------------------
 DROP TABLE IF EXISTS "platform_center"."news_detail";
 CREATE TABLE "platform_center"."news_detail" (
-  "id" int4 NOT NULL DEFAULT nextval('news_detail_id_seq'::regclass),
+  "id" int4 NOT NULL DEFAULT nextval('"platform_center".news_detail_id_seq'::regclass),
   "news_id" int4,
   "category_id" int4,
   "category_name" varchar(255) COLLATE "pg_catalog"."default",

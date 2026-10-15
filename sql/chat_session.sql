@@ -1,10 +1,10 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : docker-localhost
+ Source Server         : 阿里云PG
  Source Server Type    : PostgreSQL
  Source Server Version : 160015 (160015)
- Source Host           : localhost:15433
+ Source Host           : 47.108.169.91:15433
  Source Catalog        : sea_data
  Source Schema         : platform_center
 
@@ -12,7 +12,7 @@
  Target Server Version : 160015 (160015)
  File Encoding         : 65001
 
- Date: 15/09/2026 09:54:34
+ Date: 15/10/2026 13:59:42
 */
 
 
@@ -21,7 +21,7 @@
 -- ----------------------------
 DROP TABLE IF EXISTS "platform_center"."chat_session";
 CREATE TABLE "platform_center"."chat_session" (
-  "id" int4 NOT NULL DEFAULT nextval('chat_session_id_seq'::regclass),
+  "id" int4 NOT NULL DEFAULT nextval('"platform_center".chat_session_id_seq'::regclass),
   "user_id" int4 NOT NULL,
   "llm_id" int4 NOT NULL,
   "is_new_session" int2 NOT NULL DEFAULT 1,

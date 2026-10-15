@@ -1,10 +1,10 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : docker-localhost
+ Source Server         : 阿里云PG
  Source Server Type    : PostgreSQL
  Source Server Version : 160015 (160015)
- Source Host           : localhost:15433
+ Source Host           : 47.108.169.91:15433
  Source Catalog        : sea_data
  Source Schema         : platform_center
 
@@ -12,7 +12,7 @@
  Target Server Version : 160015 (160015)
  File Encoding         : 65001
 
- Date: 17/09/2026 14:04:08
+ Date: 15/10/2026 14:00:25
 */
 
 
@@ -21,7 +21,7 @@
 -- ----------------------------
 DROP TABLE IF EXISTS "platform_center"."user_profiles";
 CREATE TABLE "platform_center"."user_profiles" (
-  "id" int4 NOT NULL DEFAULT nextval('user_profiles_id_seq'::regclass),
+  "id" int4 NOT NULL DEFAULT nextval('"platform_center".user_profiles_id_seq'::regclass),
   "user_id" int4 NOT NULL,
   "metadata" jsonb NOT NULL DEFAULT '{"data": [{"profile": "-", "datetime": "-"}]}'::jsonb,
   "created_at" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
