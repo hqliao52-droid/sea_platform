@@ -9,13 +9,12 @@ from app.utils.logger import Logger
 class AIService:
     def __init__(self):
         self.logger = Logger.setup_logger(Logger.set_logger_file_llm())
-        self.llm_normal = llm_config.get_chat_llm(streaming=True)
-        self.agent = llm_config.create_general_agent()
+        self.llm_normal = llm_config.get_model(streaming=True)
 
-    async def doubao_seed_lite(self, query: str):
+    async def chat_llm(self, query: str):
         prompt = ChatPromptTemplate.from_messages(
             [
-                ("system", AgentPrompt.doubao_service_system_prompt()),
+                ("system", AgentPrompt.base_service_system_prompt()),
                 ("user", "{query}"),
             ]
         )
@@ -24,7 +23,7 @@ class AIService:
             if chunk.content:
                 yield chunk.content
 
-    async def llm_stream_chat(query: str) -> AsyncGenerator:
+    async def llm_run_chat(query: str) -> AsyncGenerator:
         pass
 
 

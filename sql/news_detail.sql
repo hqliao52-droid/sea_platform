@@ -1,49 +1,74 @@
--- 如果表已存在则删除
-DROP TABLE IF EXISTS news_detail;
+/*
+ Navicat Premium Dump SQL
 
--- 创建表
-CREATE TABLE news_detail (
-    id SERIAL PRIMARY KEY,
-    news_id INTEGER NOT NULL,
-    category_id INTEGER NOT NULL,
-    category_name VARCHAR(255) NOT NULL,
-    title VARCHAR(255) DEFAULT NULL,
-    authors VARCHAR(255) DEFAULT NULL,
-    content TEXT DEFAULT NULL,
-    url VARCHAR(255) DEFAULT NULL,
-    watched INTEGER DEFAULT NULL,
-    keywords VARCHAR(255) DEFAULT NULL,
-    ai_origin_output JSONB DEFAULT NULL,
-    summary TEXT DEFAULT NULL,
-    origin_entry JSONB DEFAULT NULL,
-    in_full_page TEXT DEFAULT NULL,
-    published_at TIMESTAMP DEFAULT NULL,
-    created_at TIMESTAMP DEFAULT NULL
+ Source Server         : docker-localhost
+ Source Server Type    : PostgreSQL
+ Source Server Version : 160015 (160015)
+ Source Host           : localhost:15433
+ Source Catalog        : sea_data
+ Source Schema         : platform_center
+
+ Target Server Type    : PostgreSQL
+ Target Server Version : 160015 (160015)
+ File Encoding         : 65001
+
+ Date: 14/09/2026 15:42:21
+*/
+
+
+-- ----------------------------
+-- Table structure for news_detail
+-- ----------------------------
+DROP TABLE IF EXISTS "platform_center"."news_detail";
+CREATE TABLE "platform_center"."news_detail" (
+  "id" int4 NOT NULL DEFAULT nextval('news_detail_id_seq'::regclass),
+  "news_id" int4,
+  "category_id" int4,
+  "category_name" varchar(255) COLLATE "pg_catalog"."default",
+  "title" varchar(255) COLLATE "pg_catalog"."default",
+  "authors" varchar(255) COLLATE "pg_catalog"."default",
+  "content" text COLLATE "pg_catalog"."default",
+  "url" varchar(255) COLLATE "pg_catalog"."default",
+  "watched" int4,
+  "keywords" varchar(255) COLLATE "pg_catalog"."default",
+  "ai_origin_output" jsonb,
+  "summary" text COLLATE "pg_catalog"."default",
+  "origin_entry" jsonb,
+  "in_full_page" text COLLATE "pg_catalog"."default",
+  "published_at" timestamp(6),
+  "created_at" timestamp(6)
+)
+;
+COMMENT ON COLUMN "platform_center"."news_detail"."id" IS '主键ID';
+COMMENT ON COLUMN "platform_center"."news_detail"."news_id" IS '父ID';
+COMMENT ON COLUMN "platform_center"."news_detail"."category_id" IS '栏目/类别-id';
+COMMENT ON COLUMN "platform_center"."news_detail"."category_name" IS '栏目/类别';
+COMMENT ON COLUMN "platform_center"."news_detail"."title" IS '文章标题';
+COMMENT ON COLUMN "platform_center"."news_detail"."authors" IS '文章作者';
+COMMENT ON COLUMN "platform_center"."news_detail"."content" IS '正文';
+COMMENT ON COLUMN "platform_center"."news_detail"."url" IS '文章原始url';
+COMMENT ON COLUMN "platform_center"."news_detail"."watched" IS '访问量';
+COMMENT ON COLUMN "platform_center"."news_detail"."keywords" IS '关键词';
+COMMENT ON COLUMN "platform_center"."news_detail"."ai_origin_output" IS 'AI解析输出';
+COMMENT ON COLUMN "platform_center"."news_detail"."summary" IS '内容';
+COMMENT ON COLUMN "platform_center"."news_detail"."origin_entry" IS '原始entry';
+COMMENT ON COLUMN "platform_center"."news_detail"."in_full_page" IS '全文';
+COMMENT ON COLUMN "platform_center"."news_detail"."published_at" IS '发布时间';
+COMMENT ON COLUMN "platform_center"."news_detail"."created_at" IS '创建时间';
+COMMENT ON TABLE "platform_center"."news_detail" IS '新闻详情表';
+
+-- ----------------------------
+-- Records of news_detail
+-- ----------------------------
+
+-- ----------------------------
+-- Indexes structure for table news_detail
+-- ----------------------------
+CREATE INDEX "ix_news_detail_news_id" ON "platform_center"."news_detail" USING btree (
+  "news_id" "pg_catalog"."int4_ops" ASC NULLS LAST
 );
 
--- 表注释
-COMMENT ON TABLE news_detail IS '文章详情';
-
--- 列注释
-COMMENT ON COLUMN news_detail.id IS 'id';
-COMMENT ON COLUMN news_detail.news_id IS '父ID';
-COMMENT ON COLUMN news_detail.category_id IS '栏目/类别-id';
-COMMENT ON COLUMN news_detail.category_name IS '栏目/类别';
-COMMENT ON COLUMN news_detail.title IS '标题';
-COMMENT ON COLUMN news_detail.authors IS '文章作者';
-COMMENT ON COLUMN news_detail.content IS '正文';
-COMMENT ON COLUMN news_detail.url IS '文章原始url';
-COMMENT ON COLUMN news_detail.watched IS '访问量';
-COMMENT ON COLUMN news_detail.keywords IS '关键词';
-COMMENT ON COLUMN news_detail.ai_origin_output IS 'AI解析输出';
-COMMENT ON COLUMN news_detail.summary IS '内容';
-COMMENT ON COLUMN news_detail.origin_entry IS '原始entry';
-COMMENT ON COLUMN news_detail.in_full_page IS '全文';
-COMMENT ON COLUMN news_detail.published_at IS '发布时间';
-COMMENT ON COLUMN news_detail.created_at IS '创建时间';
-
-SELECT setval(
-    pg_get_serial_sequence('news_detail', 'id'),
-    179,
-    false 
-);
+-- ----------------------------
+-- Primary Key structure for table news_detail
+-- ----------------------------
+ALTER TABLE "platform_center"."news_detail" ADD CONSTRAINT "news_detail_pkey" PRIMARY KEY ("id");

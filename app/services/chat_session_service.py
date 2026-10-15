@@ -1,10 +1,12 @@
+from typing import List, Optional
+
 from app.utils.logger import Logger
+from app.utils.utils import generate_id
 from app.models.chat_session import ChatSession
 from app.schemas.chat_session.chat_session import ChatSessionSchema
 from app.crud.data_crud.chat_message import ChatMessageCRUD
 from app.crud.data_crud.chat_session import ChatSessionCRUD
 from app.config.pg_config import AsyncSessionLocal
-from typing import List, Optional
 
 
 class ChatSessionOperator:
@@ -42,6 +44,15 @@ class ChatSessionOperator:
                 self.logger.error(e)
                 return None
 
+    async def get_session_by_id(self, session_id: int) -> Optional[ChatSession]:
+        async with AsyncSessionLocal() as db:
+            try:
+                session = await self.chat_session_curd.get(db = db, obj_id = session_id)
+                return session
+            except Exception as e:
+                self.logger.error(e)
+                return None
+
     async def get_chat_session_by_user_id(
         self, 
         user_id: int
@@ -62,8 +73,13 @@ class ChatSessionOperator:
     async def new_session(self, user_id: int) -> Optional[ChatSessionSchema]:
         async with AsyncSessionLocal() as db:
             try:
+                thread_id = generate_id(prefix="thread")
                 new_session = ChatSession(
-                    user_id=user_id, llm_id=1, session_topic="新会话"
+                    user_id=user_id, 
+                    llm_id=1, 
+                    session_topic="新会话",
+                    thread_id=thread_id,
+                    is_old_api=False
                 )
                 chat_session_result = await self.chat_session_curd.insert(
                     db, new_session
@@ -75,7 +91,7 @@ class ChatSessionOperator:
                 self.logger.error(e)
                 return None
 
-    async def get_new_chat_session_by_user_id(self, user_id: int) -> Optional[ChatSessionSchema]:
+    async def new_chat_session_by_user_id(self, user_id: int) -> Optional[ChatSessionSchema]:
         async with AsyncSessionLocal() as db:
             try:
                 chat_session = (

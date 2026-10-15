@@ -4,6 +4,7 @@ from app.utils.logger import Logger
 from app.rag.prompt.builders.chat_prompt_builder import ChatPromptBuilder
 from app.rag.status_node.chat_node import ChatNode
 from app.config.llm_config import llm_config
+from app.models.news_details_model import NewsDetail
 
 
 class ChatRagPipeline:
@@ -18,7 +19,7 @@ class ChatRagPipeline:
         self,
         user_input: str,
         task_id: str,
-        refer_data: list = None,
+        refer_data: list[NewsDetail] = None,
         history_messages: list = None,
     ):
         """LLM的流式输出
@@ -31,7 +32,7 @@ class ChatRagPipeline:
             运行状态（Workflow State）
         """
 
-        llm_normal = await llm_config.get_chat_llm(streaming=True)
+        llm_normal = llm_config.get_model(streaming=True)
 
         messages = await self.prompt_builder.build_messages(
             user_input, task_id, history_messages, refer_data

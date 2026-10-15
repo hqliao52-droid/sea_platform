@@ -12,6 +12,8 @@ class ChatSessionSchema(BaseModel):
     is_new_session: Optional[int] = Field(1, description="是否为新窗口 1=是 0=不是")
     session_topic: Optional[str] = Field(None, description="会话主题")
     is_deleted: Optional[int] = Field(0, description="软删除 1=是 0=否")
+    is_old_api: Optional[int] = Field(False, description="是否使用旧接口 true=是 false=否")
+    thread_id: Optional[str] = Field(None, description="会话ID")
     created_time: Optional[datetime] = Field(None, description="创建时间")
     update_time: Optional[datetime] = Field(None, description="更新时间")
 

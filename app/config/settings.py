@@ -1,58 +1,29 @@
-"""
-settings = Settings() 实例化
-    step:
-        读取.env文件
-        匹配字段
-        类型转换
-        生成对象
-    最终：
-        settings = Settings(
-            MYSQL_HOST="localhost",
-            MYSQL_PORT=3306,
-            MYSQL_USER="root",
-            MYSQL_PASSWORD="CDZSMySQL20250829",
-            MYSQL_DB="sea_data",
-            REDIS_HOST="redis",
-            REDIS_PORT=6379,
-            RABBITMQ_HOST="rabbitmq",
-            LLM_API_KEY_DeepSeek="4b23f71f-963c-4d9e-b2e3-4971a1b47d8b",
-            ...
-        )
-
-    usage:
-    其他文件只需要：
-        from data.settings import settings
-
-"""
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # 回到项目根目录
 
-
 class Settings(BaseSettings):
-    """项目配置（从环境变量/.env 读取）。"""
-
-    """读取.env文件，utf-8编码，忽略多余变量；   eg: .env中有SERP_API_KEY变量，但代码中没有SERP_API_KEY变量，则忽略SERP_API_KEY变量，如果没有 extra="ignore" 就会报错"""
+    # 项目配置（从环境变量/.env 读取）。
+    # 读取.env文件，utf-8编码，忽略多余变量；   
+    # eg: 
+    #     .env中有SERP_API_KEY变量，但代码中没有SERP_API_KEY变量，则忽略SERP_API_KEY变量，如果没有 extra="ignore" 就会报错
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env", env_file_encoding="utf-8", extra="ignore"
     )
 
-    """MYSQL_HOST：环境变量名  str：类型   localhost：默认值"""
-    """【核心规则】
-        环境变量会覆盖默认值
-        代码：MYSQL_HOST: str = "localhost"
-        .env
-            MYSQL_HOST=db_server
-        最终：
-            settings.MYSQL_HOST == "db_server"
-    """
     APP_NAME: str = "sea_ai_platform"
     SERVER_ENV: str = "test"
-
     DEBUG: bool = True
 
+    # SQL_ENGINE: 环境变量名  str：类型   localhost：默认值
+    # 【核心规则】
+    #     环境变量会覆盖默认值
+    #     代码：SQL_ENGINE: str = "localhost"
+    #     .env
+    #         SQL_ENGINE=db_server
+    #     最终：
+    #         settings.SQL_ENGINE == "db_server"
     PG_HOST: str = "localhost"
     PG_PORT: int = 5432
     PG_USER: str = "postgres"
@@ -77,12 +48,6 @@ class Settings(BaseSettings):
     #  ==================
     #  通用 agent 配置
     #  ==================
-    # 豆包
-    LLM_API_KEY_DouBaoSeedLite: str | None = None
-    LLM_BASE_URL_DouBaoSeedLite: str | None = None
-    LLM_MODEL_DouBaoSeedLite: str | None = None
-    LLM_DouBaoSeedList_THINK: bool | None = None
-
     # DeepSeek
     LLM_BASE_URL_DEEPSEEK: str | None = None
     LLM_BASE_MODEL_DEEPSEEK: str | None = None
@@ -138,6 +103,15 @@ class Settings(BaseSettings):
     PII_ENABLED: bool | bool = False
     PII_RULES: list[dict] | list[dict] = []
     PII_SOURCE: str | None = None
+
+    BASE_SYSTEMP_PROMPT="你是一个生产级 Harness Agent。你需要根据用户问题给出清晰、可靠、可执行的回答。"
+
+    BACKEND_NAME: str | None = None
+
+    WEB_SEARCH_PROVIDER: str | None = None
+    TAVILY_API_KEY: str | None = None
+
+    ENABLED_IMAGES_SEARCH: bool | bool = False
 
     # jwt
     JWT_SECRET_KEY: str

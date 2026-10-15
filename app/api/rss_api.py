@@ -2,14 +2,11 @@ from app.services.rss_service import RssSourceOperator
 from app.utils.result_response import Result
 from fastapi import APIRouter, Query
 
-# from app.services.baidu_rss_service import BaiduRssSourceOperator
 
 router = APIRouter()
 
 rss = RssSourceOperator()
 
-
-# baidu_rss = BaiduRssSourceOperator()
 @router.get("/active_rss")
 async def get_rss_source_list():
     """获取所有激活 rss 源"""

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, SmallInteger, func
+from sqlalchemy import Column, Integer, String, DateTime, SmallInteger, func, Boolean
 
 from app.config.pg_config import Base
 
@@ -21,6 +21,8 @@ class ChatSession(Base):
     is_deleted = Column(
         SmallInteger, nullable=True, default=0, comment="软删除 1=是 0=否"
     )
+    thread_id = Column(String(64), nullable=True, comment="会话ID")
+    is_old_api = Column(Boolean, nullable=True, default=0, comment="是否使用旧接口 true=是 false=否")
     created_time = Column(
         DateTime, nullable=False, default=func.now(), comment="创建时间"
     )

@@ -11,9 +11,9 @@ user_service = UserService()
 logger = Logger.setup_logger(Logger.set_file_date())
 
 
-def get_current_user(authorization: str = Header(None)) -> UserModel:
+async def get_current_user(authorization: str = Header(None)) -> UserModel:
     """
-    统一认证：只做一件事 -> 返回User对象
+    统一认证 -> 返回User对象
     """
 
     if not authorization:
@@ -37,7 +37,7 @@ def get_current_user(authorization: str = Header(None)) -> UserModel:
         logger.error("Token缺少sub")
         raise HTTPException(status_code=401, detail="Token缺少sub")
 
-    user: UserModel = user_service.get_user_by_id(int(user_id))
+    user: UserModel = await user_service.get_user_by_id(int(user_id))
     if not user:
         logger.error("用户不存在")
         raise HTTPException(status_code=404, detail="用户不存在")

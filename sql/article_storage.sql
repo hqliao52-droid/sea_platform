@@ -1,33 +1,46 @@
--- PostgreSQL 兼容版本
+/*
+ Navicat Premium Dump SQL
 
-DROP TABLE IF EXISTS article_storage;
+ Source Server         : docker-localhost
+ Source Server Type    : PostgreSQL
+ Source Server Version : 160015 (160015)
+ Source Host           : localhost:15433
+ Source Catalog        : sea_data
+ Source Schema         : platform_center
 
-CREATE TABLE article_storage (
-    id SERIAL PRIMARY KEY,
-    news_id INTEGER NOT NULL,
-    article_name VARCHAR(255) DEFAULT NULL,
-    origin_input JSONB DEFAULT NULL,
-    created_at TIMESTAMP DEFAULT NULL
-);
+ Target Server Type    : PostgreSQL
+ Target Server Version : 160015 (160015)
+ File Encoding         : 65001
 
--- 表注释
-COMMENT ON TABLE article_storage IS '所有新闻/资讯/文章/帖子的原始数据';
+ Date: 14/09/2026 15:56:40
+*/
 
--- 列注释
-COMMENT ON COLUMN article_storage.id IS '主键ID';
-COMMENT ON COLUMN article_storage.news_id IS '新闻ID';
-COMMENT ON COLUMN article_storage.article_name IS '文章名';
-COMMENT ON COLUMN article_storage.origin_input IS '原始输入';
-COMMENT ON COLUMN article_storage.created_at IS '创建时间';
 
--- 插入数据（origin_input 修正为合法 JSON）
-INSERT INTO article_storage (id, news_id, article_name, origin_input, created_at) VALUES
-(450, 3690, '36氪首发 | 清华系光计算芯片企业完成数千万天使轮融资，瞄准全波光计算架构',
- '""',
- '2026-05-13 11:56:43');
+-- ----------------------------
+-- Table structure for article_storage
+-- ----------------------------
+DROP TABLE IF EXISTS "platform_center"."article_storage";
+CREATE TABLE "platform_center"."article_storage" (
+  "id" int4 NOT NULL DEFAULT nextval('article_storage_id_seq'::regclass),
+  "news_id" int4 NOT NULL,
+  "article_name" varchar(255) COLLATE "pg_catalog"."default" DEFAULT NULL::character varying,
+  "origin_input" jsonb,
+  "created_at" timestamp(6)
+)
+;
+COMMENT ON COLUMN "platform_center"."article_storage"."id" IS '主键ID';
+COMMENT ON COLUMN "platform_center"."article_storage"."news_id" IS '新闻ID';
+COMMENT ON COLUMN "platform_center"."article_storage"."article_name" IS '文章名';
+COMMENT ON COLUMN "platform_center"."article_storage"."origin_input" IS '原始输入';
+COMMENT ON COLUMN "platform_center"."article_storage"."created_at" IS '创建时间';
+COMMENT ON TABLE "platform_center"."article_storage" IS '所有新闻/资讯/文章/帖子的原始数据';
 
--- 重置序列
-SELECT setval(
-    pg_get_serial_sequence('article_storage', 'id'),
-    (SELECT MAX(id) FROM article_storage)
-);
+-- ----------------------------
+-- Records of article_storage
+-- ----------------------------
+INSERT INTO "platform_center"."article_storage" VALUES (450, 3690, '36氪首发 | 清华系光计算芯片企业完成数千万天使轮融资，瞄准全波光计算架构', '""', '2026-05-13 11:56:43');
+
+-- ----------------------------
+-- Primary Key structure for table article_storage
+-- ----------------------------
+ALTER TABLE "platform_center"."article_storage" ADD CONSTRAINT "article_storage_pkey" PRIMARY KEY ("id");

@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.staticfiles import StaticFiles
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
 from contextlib import asynccontextmanager
 
@@ -18,13 +19,19 @@ from app.api.chat_message_api import chat_message_router
 from app.api.user_config_api import router as user_config_router
 from app.api.email_api import router as email_router
 from app.config.pg_config import init_db, close_db
+from app.config.langgraph_postgres import test_langgraph_postgres
+from app.config.langgraph_postgres import DATABASE_URL
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
-
     try:
-        yield
+        async with AsyncPostgresSaver.from_conn_string(
+            DATABASE_URL
+        ) as checkpointer:
+            await checkpointer.setup()
+            app.state.checkpointer = checkpointer
+            yield
     finally:
         await close_db()
 
@@ -53,7 +60,11 @@ app.include_router(scheduler_task, tags=["定时任务"])
 @app.get("/health")
 async def health_check():
     # 可以添加更详细的检查，比如数据库连接等
-    return {"status": "healthy"}
+    _loging = await test_langgraph_postgres()
+    return {
+        "status": "healthy",
+        "langgraph_postgres": _loging
+        }
 
 
 @app.get("/docs-cn", include_in_schema=False)

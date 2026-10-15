@@ -1,44 +1,59 @@
--- PostgreSQL 兼容版本
+/*
+ Navicat Premium Dump SQL
 
--- 如果表已存在则删除
-DROP TABLE IF EXISTS user_push_category_weight;
+ Source Server         : docker-localhost
+ Source Server Type    : PostgreSQL
+ Source Server Version : 160015 (160015)
+ Source Host           : localhost:15433
+ Source Catalog        : sea_data
+ Source Schema         : platform_center
 
--- 创建表
-CREATE TABLE user_push_category_weight (
-    id BIGSERIAL PRIMARY KEY,
-    push_config_id BIGINT NOT NULL,
-    category_id BIGINT DEFAULT NULL,
-    weight DECIMAL(5, 2) DEFAULT 0.00,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    category_name VARCHAR(50) DEFAULT NULL,
-    updated_at TIMESTAMP NOT NULL,
-    CONSTRAINT uk_config_category UNIQUE (push_config_id, category_id),
-    CONSTRAINT user_push_category_weight_ibfk_1
-        FOREIGN KEY (push_config_id)
-        REFERENCES user_push_config (id)
-        ON DELETE CASCADE
-        ON UPDATE RESTRICT
-);
+ Target Server Type    : PostgreSQL
+ Target Server Version : 160015 (160015)
+ File Encoding         : 65001
 
--- 列注释
-COMMENT ON COLUMN user_push_category_weight.id IS '主键ID';
-COMMENT ON COLUMN user_push_category_weight.push_config_id IS '推送表ID';
-COMMENT ON COLUMN user_push_category_weight.category_id IS '分类ID';
-COMMENT ON COLUMN user_push_category_weight.weight IS '分类权重';
-COMMENT ON COLUMN user_push_category_weight.created_at IS '创建时间';
-COMMENT ON COLUMN user_push_category_weight.category_name IS '分类名称';
-COMMENT ON COLUMN user_push_category_weight.updated_at IS '修改时间';
+ Date: 14/09/2026 15:42:05
+*/
 
--- 插入数据（显式指定列名，避免顺序问题）
-INSERT INTO user_push_category_weight (
-    id, push_config_id, category_id, weight, created_at, category_name, updated_at
-) VALUES
-(11, 8, 6, 64.00, '2026-05-21 14:33:11', '科技与数字服务', '2026-05-21 14:33:11'),
-(12, 8, 7, 80.00, '2026-05-21 14:33:11', '消费与零售',     '2026-05-21 14:33:11'),
-(13, 8, 8, 72.00, '2026-05-21 14:33:11', '新能源与汽车',   '2026-05-21 14:33:11');
 
--- 重置序列，避免后续插入主键冲突
-SELECT setval(
-    pg_get_serial_sequence('user_push_category_weight', 'id'),
-    (SELECT MAX(id) FROM user_push_category_weight)
-);
+-- ----------------------------
+-- Table structure for user_push_category_weight
+-- ----------------------------
+DROP TABLE IF EXISTS "platform_center"."user_push_category_weight";
+CREATE TABLE "platform_center"."user_push_category_weight" (
+  "id" int4 NOT NULL DEFAULT nextval('user_push_category_weight_id_seq'::regclass),
+  "push_config_id" int4 NOT NULL,
+  "category_id" int4 NOT NULL,
+  "category_name" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+  "weight" numeric(5,2) NOT NULL,
+  "created_at" timestamp(6) NOT NULL,
+  "updated_at" timestamp(6) NOT NULL
+)
+;
+COMMENT ON COLUMN "platform_center"."user_push_category_weight"."id" IS '主键ID';
+COMMENT ON COLUMN "platform_center"."user_push_category_weight"."push_config_id" IS '推送表ID';
+COMMENT ON COLUMN "platform_center"."user_push_category_weight"."category_id" IS '分类ID';
+COMMENT ON COLUMN "platform_center"."user_push_category_weight"."category_name" IS '分类名称';
+COMMENT ON COLUMN "platform_center"."user_push_category_weight"."weight" IS '分类权重';
+COMMENT ON COLUMN "platform_center"."user_push_category_weight"."created_at" IS '创建时间';
+COMMENT ON COLUMN "platform_center"."user_push_category_weight"."updated_at" IS '修改时间';
+COMMENT ON TABLE "platform_center"."user_push_category_weight" IS '用户推送分类权重表';
+
+-- ----------------------------
+-- Records of user_push_category_weight
+-- ----------------------------
+
+-- ----------------------------
+-- Uniques structure for table user_push_category_weight
+-- ----------------------------
+ALTER TABLE "platform_center"."user_push_category_weight" ADD CONSTRAINT "uk_config_category" UNIQUE ("push_config_id", "category_id");
+
+-- ----------------------------
+-- Primary Key structure for table user_push_category_weight
+-- ----------------------------
+ALTER TABLE "platform_center"."user_push_category_weight" ADD CONSTRAINT "user_push_category_weight_pkey" PRIMARY KEY ("id");
+
+-- ----------------------------
+-- Foreign Keys structure for table user_push_category_weight
+-- ----------------------------
+ALTER TABLE "platform_center"."user_push_category_weight" ADD CONSTRAINT "user_push_category_weight_push_config_id_fkey" FOREIGN KEY ("push_config_id") REFERENCES "platform_center"."user_push_config" ("id") ON DELETE CASCADE ON UPDATE RESTRICT;

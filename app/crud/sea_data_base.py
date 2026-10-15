@@ -18,7 +18,11 @@ class BaseCRUD:
         self.model = model
         self.logger = Logger.setup_logger(Logger.set_file_date())
 
-    async def insert(self, db: AsyncSession, obj) -> Optional[Any]:
+    async def insert(
+            self, 
+            db: AsyncSession, 
+            obj
+        ) -> Optional[Any]:
         if isinstance(obj, dict):
             obj = self.model(**obj)
 
@@ -28,7 +32,10 @@ class BaseCRUD:
         return obj
 
     async def update(
-        self, db: AsyncSession, obj_id: int, update_data: dict
+        self, 
+        db: AsyncSession, 
+        obj_id: int, 
+        update_data: dict
     ) -> Optional[Any]:
         obj = await self.get(db, obj_id)
         if not obj:
@@ -42,18 +49,29 @@ class BaseCRUD:
         await db.refresh(obj)
         return obj
 
-    async def delete(self, db: AsyncSession, obj_id: int) -> Optional[Any]:
+    async def delete(
+            self, 
+            db: AsyncSession, 
+            obj_id: int
+        ) -> Optional[Any]:
         obj = await self.get(db, obj_id)
         if obj:
             await db.delete(obj)
         return obj
 
-    async def get(self, db: AsyncSession, obj_id: int) -> Optional[Any]:
+    async def get(
+            self, 
+            db: AsyncSession, 
+            obj_id: int
+        ) -> Optional[Any]:
         stmt = select(self.model).where(self.model.id == obj_id)
         result = await db.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_all(self, db: AsyncSession) -> Optional[Any]:
+    async def get_all(
+            self, 
+            db: AsyncSession
+        ) -> Optional[Any]:
         stmt = select(self.model)
         result = await db.execute(stmt)
         return result.scalars().all()

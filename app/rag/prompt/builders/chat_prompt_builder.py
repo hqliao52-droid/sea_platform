@@ -4,6 +4,7 @@ from app.utils.logger import Logger
 from app.rag.prompt.agent_prompt import prompt as AgentPrompt
 from app.rag.retrievers.news_retriever import NewsRetriever
 from app.rag.status_node.chat_node import ChatNode
+from app.models.news_details_model import NewsDetail
 
 
 class ChatPromptBuilder:
@@ -16,11 +17,11 @@ class ChatPromptBuilder:
         self,
         user_input: str,
         task_id: str,
-        refer_data: list = None,
+        refer_data: list[NewsDetail] = None,
         history_messages: list = None,
     ):
         # 1. 获取基础 System Prompt
-        base_system_prompt = AgentPrompt.doubao_service_system_prompt()
+        base_system_prompt = AgentPrompt.base_service_system_prompt()
         self.logger.info(f"构建基础System Prompt:{base_system_prompt[:20]}")
 
         messages = [SystemMessage(content=base_system_prompt)]

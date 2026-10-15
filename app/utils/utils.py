@@ -6,7 +6,7 @@ import asyncio
 from starlette.responses import StreamingResponse
 from typing import AsyncGenerator, Any, Dict, Optional, List, Set
 
-def generate_id(is_uuid: bool = False) -> str:
+def generate_id(is_uuid: bool = False, prefix: str | None = None) -> str:
     """生成一个唯一的ID
     args:
         is_uuid 若为 True，则返回一个 UUID
@@ -15,11 +15,19 @@ def generate_id(is_uuid: bool = False) -> str:
         str: 生成的唯一ID
     """
     if is_uuid:
-        return str(uuid.uuid4())
-    ts = format(time.time_ns(), "x")
-    rand = uuid.uuid4().hex[:8]
-    val = (ts + rand)[:32]
-    return f"{val[0:8]}-{val[8:12]}-{val[12:16]}-{val[16:20]}-{val[20:32]}"
+        result = str(uuid.uuid4())
+    else:
+        ts = format(time.time_ns(), "x")
+        rand = uuid.uuid4().hex[:8]
+        val = (ts + rand)[:32]
+        # 18d5f3a1  -  b2c3  -  d4e5  -  a1b2  -  c3d4
+        # 时间戳前8   时间戳   时间戳   随机前4   随机后4
+        result = f"{val[0:8]}-{val[8:12]}-{val[12:16]}-{val[16:20]}-{val[20:32]}"
+
+    if prefix:
+        result = f"{prefix}-{result}"
+        
+    return result
 
 class SSEStream:
     """SSE 流式响应管理器"""
@@ -139,6 +147,7 @@ async def stream_json_fields(
     # 当 value 是 object / array 时，用它追踪当前嵌套层级，
     # 直到整个 value 闭合为止。
     nested_depth = 0
+    finished = False
 
     def _decode_escaped_char(ch: str) -> str:
         escape_map = {
@@ -159,6 +168,8 @@ async def stream_json_fields(
 
     async for chunk in text_async_gen:
         for ch in chunk:
+            if finished:
+                continue
             if not started:
                 if ch != "{":
                     continue
@@ -174,7 +185,7 @@ async def stream_json_fields(
                 if ch == "}":
                     object_depth -= 1
                     if object_depth == 0:
-                        return
+                        finished = True
                     continue
                 if ch == '"':
                     current_key_chars = []
@@ -310,7 +321,7 @@ async def stream_json_fields(
                     if ch == "}":
                         object_depth -= 1
                         if object_depth == 0:
-                            return
+                            finished = True
                     continue
                 if active_field:
                     async for event in _emit(active_field, ch):
@@ -389,8 +400,9 @@ async def stream_json_fields(
                 if ch == "}":
                     object_depth -= 1
                     if object_depth == 0:
-                        return
+                        finished = True
                     mode = "seek_key_or_end"
+
 
 async def stream_json_fields_latex(
     text_async_gen: AsyncGenerator[str, None], fields_list: List[str]
@@ -413,6 +425,7 @@ async def stream_json_fields_latex(
     escape = False
     unicode_buffer: Optional[str] = None
     nested_depth = 0
+    finished = False
 
     # 改点：替换原有的 _decode_escaped_char 
     ESCAPE_MAP = {
@@ -446,7 +459,8 @@ async def stream_json_fields_latex(
     async for chunk in text_async_gen:
         for ch in chunk:
             # 状态机逻辑
-
+            if finished:
+                continue
             if not started:
                 if ch != "{":
                     continue
@@ -461,7 +475,7 @@ async def stream_json_fields_latex(
                 if ch == "}":
                     object_depth -= 1
                     if object_depth == 0:
-                        return
+                        finished = True
                     continue
                 if ch == '"':
                     current_key_chars = []
@@ -597,7 +611,7 @@ async def stream_json_fields_latex(
                     if ch == "}":
                         object_depth -= 1
                         if object_depth == 0:
-                            return
+                            finished = True
                     continue
                 if active_field:
                     async for event in _emit(active_field, ch):
@@ -677,5 +691,5 @@ async def stream_json_fields_latex(
                 if ch == "}":
                     object_depth -= 1
                     if object_depth == 0:
-                        return
+                        finished = True
                     mode = "seek_key_or_end"

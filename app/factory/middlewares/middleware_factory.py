@@ -13,8 +13,9 @@ from langchain.agents.middleware.file_search import FilesystemFileSearchMiddlewa
 from langchain.agents.middleware.pii import PIIMiddleware
 
 from app.factory.base_factory import BaseFactory
-from app.factory.middlewares.dangling_tool_call_middleware import DanglingToolCallMiddleware
 from app.config.settings import settings
+from dangling_tool_call_middleware import DanglingToolCallMiddleware
+from dynamic_environment_middleware import DynamicEnvironmentMiddleware
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -81,7 +82,7 @@ class MiddlewareFactory(BaseFactory):
             for rule in settings.PII_RULES:
                 middlewares.append(
                     PIIMiddleware(
-                        rule.pii_type,
+                        rule.type,
                         strategy=rule.strategy,
                         detector=rule.detector,
                         apply_to_input=pii_config.apply_to_input,
@@ -89,5 +90,7 @@ class MiddlewareFactory(BaseFactory):
                         apply_to_tool_results=pii_config.apply_to_tool_results
                     )
                 )
+
+        middlewares.append(DynamicEnvironmentMiddleware())
 
         return middlewares

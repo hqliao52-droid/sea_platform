@@ -1,32 +1,45 @@
--- PostgreSQL 兼容版本
+/*
+ Navicat Premium Dump SQL
 
--- 如果表已存在则删除
-DROP TABLE IF EXISTS system_message;
+ Source Server         : docker-localhost
+ Source Server Type    : PostgreSQL
+ Source Server Version : 160015 (160015)
+ Source Host           : localhost:15433
+ Source Catalog        : sea_data
+ Source Schema         : platform_center
 
--- 创建表
-CREATE TABLE system_message (
-    id SERIAL PRIMARY KEY,
-    system_message VARCHAR(255) DEFAULT NULL,
-    is_actived SMALLINT DEFAULT 1
-);
+ Target Server Type    : PostgreSQL
+ Target Server Version : 160015 (160015)
+ File Encoding         : 65001
 
--- 表注释
-COMMENT ON TABLE system_message IS '系统消息表';
+ Date: 14/09/2026 15:57:16
+*/
 
--- 列注释
-COMMENT ON COLUMN system_message.id IS '主键ID';
-COMMENT ON COLUMN system_message.system_message IS '系统消息';
-COMMENT ON COLUMN system_message.is_actived IS '是否激活 1=激活 0=失效';
 
--- 插入数据（显式指定列名）
-INSERT INTO system_message (id, system_message, is_actived) VALUES
-(1, '您好！我是您的出海战略助手。我已经整合了今日最新的东南亚市场资讯，您可以针对特定行业或合规政策向我提问。', 1),
-(2, '今天在忙什么？', 1),
-(3, '我们要从哪里开始呢？', 1),
-(4, '有什么我可以帮助你的呢？', 1);
+-- ----------------------------
+-- Table structure for system_message
+-- ----------------------------
+DROP TABLE IF EXISTS "platform_center"."system_message";
+CREATE TABLE "platform_center"."system_message" (
+  "id" int4 NOT NULL DEFAULT nextval('system_message_id_seq'::regclass),
+  "system_message" varchar(255) COLLATE "pg_catalog"."default" DEFAULT NULL::character varying,
+  "is_actived" int2 DEFAULT 1
+)
+;
+COMMENT ON COLUMN "platform_center"."system_message"."id" IS '主键ID';
+COMMENT ON COLUMN "platform_center"."system_message"."system_message" IS '系统消息';
+COMMENT ON COLUMN "platform_center"."system_message"."is_actived" IS '是否激活 1=激活 0=失效';
+COMMENT ON TABLE "platform_center"."system_message" IS '系统消息表';
 
--- 重置序列，避免后续插入主键冲突
-SELECT setval(
-    pg_get_serial_sequence('system_message', 'id'),
-    (SELECT MAX(id) FROM system_message)
-);
+-- ----------------------------
+-- Records of system_message
+-- ----------------------------
+INSERT INTO "platform_center"."system_message" VALUES (1, '您好！我是您的出海战略助手。我已经整合了今日最新的东南亚市场资讯，您可以针对特定行业或合规政策向我提问。', 1);
+INSERT INTO "platform_center"."system_message" VALUES (2, '今天在忙什么？', 1);
+INSERT INTO "platform_center"."system_message" VALUES (3, '我们要从哪里开始呢？', 1);
+INSERT INTO "platform_center"."system_message" VALUES (4, '有什么我可以帮助你的呢？', 1);
+
+-- ----------------------------
+-- Primary Key structure for table system_message
+-- ----------------------------
+ALTER TABLE "platform_center"."system_message" ADD CONSTRAINT "system_message_pkey" PRIMARY KEY ("id");

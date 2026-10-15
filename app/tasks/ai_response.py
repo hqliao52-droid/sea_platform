@@ -6,14 +6,14 @@ from app.schemas.news.news_analysis import NewsAnalysis
 
 
 async def llm_check_outreach_news(title: str, content: str) -> dict:
-    llm_prompt = AgentPrompt.DouBaoSeedLiteSystemPromptPolicJudge()
+    llm_prompt = AgentPrompt.system_prompt_polic_judge()
     # Prompt
     prompt = ChatPromptTemplate.from_messages(
         [("system", llm_prompt), ("user", "标题：{title}\n内容：{content}")]
     )
 
     # 组装流水线
-    chain = prompt | llm_config.category_llm() | StrOutputParser()
+    chain = prompt | llm_config.get_model() | StrOutputParser()
 
     # 执行
     return await chain.ainvoke({"title": title, "content": content})
@@ -21,14 +21,14 @@ async def llm_check_outreach_news(title: str, content: str) -> dict:
 
 async def llm_analyze_news(title: str, content: str, tags_description) -> dict:
     parser = JsonOutputParser(pydantic_object=NewsAnalysis)
-    llm_prompt = AgentPrompt.DouBaoSeedLiteSystemPromptNewsSummarize()
+    llm_prompt = AgentPrompt.system_prompt_news_summarize()
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", llm_prompt + "\n{format_instructions}" + "\n{tags_description}"),
             ("user", "标题：{title}\n内容：{content}"),
         ]
     )
-    chain = prompt | llm_config.summary_llm() | parser
+    chain = prompt | llm_config.get_model() | parser
     return await chain.ainvoke(
         {
             "title": title,

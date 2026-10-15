@@ -14,17 +14,18 @@ from app.services.news_detail_service import NewsDetailOperator
 from app.services.chat_session_service import ChatSessionOperator
 from app.rag.pipelines.chat_pipeline import ChatRagPipeline
 from app.schemas.chat_message.chat_message import ChatMsg
+from app.models.news_details_model import NewsDetail
 from app.utils.logger import Logger
 from app.rag.prompt.agent_prompt import prompt as AgentPrompt
 from app.rag.status_node.chat_node import ChatNode
 from app.config.llm_config import llm_config
 
 
-async def session_topic_generator(user_input: str):
-    llm = await llm_config.summary_llm()
+def session_topic_generator(user_input: str):
+    llm = llm_config.get_model()
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", AgentPrompt.doubao_service_dialog_topic_generator()),
+            ("system", AgentPrompt.dialog_topic_prompt()),
             ("user", "{query}"),
         ]
     )
@@ -64,7 +65,7 @@ async def run_llm_task(self, task_id: str, ai_msg_id: str, user_dialog_id, req: 
     try:
         status_node.analyzing(task_id)
         logger.info(f"LLM处理开始:{req['query']}")
-        refer_data = []
+        refer_data: list[NewsDetail] = []
         if req.get("news_ids"):
             for id in req.get("news_ids"):
                 news = await news_detail.get_news_detail_by_id(id)

@@ -14,5 +14,8 @@ def set_langfuse_client(trace_id: str | None = None):
     )
 
     _dict: dict = {}
-    _dict["trace_id"] = trace_id if trace_id else _dict["trace_id"] = generate_id()
+    if trace_id: 
+        _dict["trace_id"] = trace_id
+    else:
+        _dict["trace_id"] = generate_id()
     return CallbackHandler(trace_context=_dict)
