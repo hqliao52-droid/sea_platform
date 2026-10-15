@@ -47,5 +47,5 @@ async def get_current_user(
     if not user:
         logger.error("用户不存在")
         raise HTTPException(status_code=404, detail="用户不存在")
-
+    logger.info(f"用户:{user.username} 登录,, token校验成功！！！")
     return user
