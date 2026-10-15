@@ -26,16 +26,14 @@ def create_access_token(data: dict):
 
 
 def verify_token(token: str):
-    """
-    验证token
-    """
+    if not token or token.count(".") != 2:
+        logger.warning("非法 token 格式: %r", token[:20])
+        return None
     try:
-        payload = jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
-        return payload
+        return jwt.decode(token, settings.JWT_SECRET_KEY,
+                          algorithms=[settings.JWT_ALGORITHM])
     except Exception as e:
-        logger.error("JWT ERROR:", e)
+        logger.error("JWT 校验失败: %s", e)
         return None
 
 
