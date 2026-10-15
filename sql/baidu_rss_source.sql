@@ -38,7 +38,7 @@ CREATE TABLE "platform_center"."baidu_rss_source" (
 COMMENT ON COLUMN "platform_center"."baidu_rss_source"."id" IS '主键ID';
 COMMENT ON COLUMN "platform_center"."baidu_rss_source"."name" IS '目标网站名称';
 COMMENT ON COLUMN "platform_center"."baidu_rss_source"."url" IS '目标网站URL';
-COMMENT ON COLUMN "platform_center"."baidu_rss_source"."category" IS '目录';
+COMMENT ON COLUMN "plat form_center"."baidu_rss_source"."category" IS '目录';
 COMMENT ON COLUMN "platform_center"."baidu_rss_source"."is_child" IS '是否为子类rss';
 COMMENT ON COLUMN "platform_center"."baidu_rss_source"."parent_id" IS '父节点ID';
 COMMENT ON COLUMN "platform_center"."baidu_rss_source"."is_active" IS '是否可用 1:可用 0:不可用';
