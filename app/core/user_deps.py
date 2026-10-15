@@ -22,7 +22,7 @@ async def get_current_user(authorization: str = Header(None)) -> UserModel:
 
     token = authorization.replace("Bearer ", "")
 
-    if redis.check_black_list_token(token):
+    if await redis.check_black_list_token(token):
         logger.error("Token已失效")
         raise HTTPException(status_code=401, detail="Token已失效")
 
