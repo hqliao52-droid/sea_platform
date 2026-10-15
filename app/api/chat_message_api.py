@@ -53,7 +53,8 @@ async def insert_message(req: ChatMsg):
     if req.news_ids:
         for id in req.news_ids:
             news = await news_detail.get_news_detail_by_id(id)
-            refer_data.append(news.title)
+            if news:
+                refer_data.append(news.title)
 
     user_message = ChatMessage()
     user_message.task_id = task_id
