@@ -13,7 +13,7 @@ router = APIRouter()
 
 chat_session_operator = ChatSessionOperator()
 
-@router.get("/llm_stream_test")
+@router.post("/llm_stream_test")
 async def stream_response(request: ChatRequest, user: UserModel = Depends(get_current_user)):
     if request.session_id is None:
         session = await chat_session_operator.new_chat_session_by_user_id(
