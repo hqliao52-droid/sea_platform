@@ -23,7 +23,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # 复制项目源码，并完成项目本身的安装
 COPY . .
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev
+    uv sync --frozen --no-dev
 
 # ---------- Stage 2: Runtime ----------
 FROM python:3.12-slim-bookworm
