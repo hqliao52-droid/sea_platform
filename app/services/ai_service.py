@@ -1,3 +1,4 @@
+import json
 from typing import AsyncGenerator
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.messages import (
@@ -70,7 +71,13 @@ class AIService:
                 async for chunk in chain.astream({"query": request.query}):
                     if chunk.content:
                         buffer += chunk.content
-                        yield chunk.content
+                        result = json.dumps(
+                            {
+                                "content": chunk.content,
+                            },
+                            ensure_ascii=False,
+                        )
+                        yield result
 
             async for ev in extract_content_stream(
                 text_generator(),
