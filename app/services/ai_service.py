@@ -44,48 +44,51 @@ class AIService:
         return history_messages
 
     async def chat_ai_test(self, request: ChatRequest, user: UserModel):
-        user_msg = ChatMessage(
-            session_id=request.session_id,
-            content=request.query,
-            role="user",
-            user_id=user.id,
-            message_type=1,
-            status="done"
-        )
-        # 先入库用户消息
-        insert_user_msg: ChatMessage = await self.chat_service.insert_chat_message(user_msg)
-        msgs = await self.build_history(request.session_id)
-        msgs.append(SystemMessage(content=agent_prompt.base_service_system_prompt()))
-        msgs.append(HumanMessage(content=request.query))
+        try:
+            user_msg = ChatMessage(
+                session_id=request.session_id,
+                content=request.query,
+                role="user",
+                user_id=user.id,
+                message_type=1,
+                status="done"
+            )
+            # 先入库用户消息
+            insert_user_msg: ChatMessage = await self.chat_service.insert_chat_message(user_msg)
+            msgs = await self.build_history(request.session_id)
+            msgs.append(SystemMessage(content=agent_prompt.base_service_system_prompt()))
+            msgs.append(HumanMessage(content=request.query))
 
-        prompt = ChatPromptTemplate.from_messages(msgs)
+            prompt = ChatPromptTemplate.from_messages(msgs)
 
-        chain = prompt | self.llm_normal
+            chain = prompt | self.llm_normal
 
-        buffer = ""
-        async def text_generator() -> AsyncGenerator[str, None]:
-            nonlocal buffer
-            async for chunk in chain.astream({"query": request.query}):
-                if chunk.content:
-                    buffer += chunk.content
-                    yield chunk.content
+            buffer = ""
+            async def text_generator() -> AsyncGenerator[str, None]:
+                nonlocal buffer
+                async for chunk in chain.astream({"query": request.query}):
+                    if chunk.content:
+                        buffer += chunk.content
+                        yield chunk.content
 
-        async for ev in extract_content_stream(
-            text_generator(),
-        ):
-            yield SSEEvent.delta(field="content", content=ev)
+            async for ev in extract_content_stream(
+                text_generator(),
+            ):
+                yield SSEEvent.delta(field="content", content=ev)
 
-        logger.info(f"chat ai返回：{buffer}")
-        ai_msg = ChatMessage(
-            session_id=request.session_id,
-            content=buffer,
-            role="assistant",
-            user_id=user.id,
-            message_type=2,
-            status="done",
-            pre_id=insert_user_msg.id if insert_user_msg else None
-        )
-        await self.chat_service.insert_chat_message(ai_msg)
+            logger.info(f"chat ai返回：{buffer}")
+            ai_msg = ChatMessage(
+                session_id=request.session_id,
+                content=buffer,
+                role="assistant",
+                user_id=user.id,
+                message_type=2,
+                status="done",
+                pre_id=insert_user_msg.id if insert_user_msg else None
+            )
+            await self.chat_service.insert_chat_message(ai_msg)
+        except Exception as e:
+            logger.error(f"chat ai error: {e}")
 
             
 
