@@ -29,6 +29,7 @@ docker 一键启动会自动装配项目的基础设施：postgrate, redis, rabb
         `docker compose up`
     如果改动了代码：
         `docker compose up --build api` 或者 `docker compose build api`
+        `docker compose -f docker-dev-compose.yml restart api`(dev)
 
 用户初始账号密码：
     admin/admin123

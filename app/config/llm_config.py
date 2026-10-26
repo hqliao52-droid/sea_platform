@@ -11,7 +11,7 @@ class LLMConfig:
         )
 
     def get_model(self, streaming: bool = False) -> ChatOpenAI:
-        return self.agent_factory.create(streaming)
+        return self.agent_factory.create(streaming=streaming)
 
 
 llm_config = LLMConfig()
