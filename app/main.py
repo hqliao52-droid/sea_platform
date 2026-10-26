@@ -18,6 +18,7 @@ from app.api.chat_session_api import chat_session_router
 from app.api.chat_message_api import chat_message_router
 from app.api.user_config_api import router as user_config_router
 from app.api.email_api import router as email_router
+from app.api.llm_api import router as llm_router
 from app.config.pg_config import init_db, close_db
 from app.config.langgraph_postgres import test_langgraph_postgres
 from app.config.langgraph_postgres import DATABASE_URL
@@ -53,6 +54,7 @@ app.include_router(chat_session_router, prefix="/session", tags=["会话接口"]
 app.include_router(chat_message_router, prefix="/chatMessage", tags=["用户消息接口"])
 app.include_router(user_config_router, prefix="/userConfig", tags=["用户配置接口"])
 app.include_router(email_router, prefix="/email", tags=["邮件接口"])
+app.include_router(llm_router, prefix="/llm", tags=["AI对话"])
 
 app.include_router(scheduler_task, tags=["定时任务"])
 
