@@ -25,7 +25,8 @@ class AIService:
 
     async def build_history(self, session_id: int) -> list:
         history_messages = []
-        async for item in await self.chat_service.get_chat_message_by_session_id(session_id):
+        msgs = await self.chat_service.get_chat_message_by_session_id(session_id)
+        for item in msgs:
             msg = item.content
             role = item.role
 
