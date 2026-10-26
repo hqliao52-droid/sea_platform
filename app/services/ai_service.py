@@ -47,6 +47,7 @@ class AIService:
 
     async def chat_ai_test(self, request: ChatRequest, user: UserModel) -> AsyncGenerator[str, None]:
         try:
+            yield SSEEvent.metadata(field="session_id", content=request.session_id)
             user_msg = ChatMessage(
                 session_id=request.session_id,
                 content=request.query,
