@@ -12,7 +12,7 @@
  Target Server Version : 160015 (160015)
  File Encoding         : 65001
 
- Date: 15/10/2026 13:59:37
+ Date: 26/10/2026 18:37:17
 */
 
 
@@ -24,7 +24,7 @@ CREATE TABLE "platform_center"."chat_message" (
   "id" int4 NOT NULL DEFAULT nextval('"platform_center".chat_message_id_seq'::regclass),
   "session_id" int4 NOT NULL,
   "user_id" int4 NOT NULL,
-  "task_id" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+  "task_id" varchar(255) COLLATE "pg_catalog"."default",
   "pre_id" int4,
   "role" varchar(16) COLLATE "pg_catalog"."default" NOT NULL,
   "status" varchar(25) COLLATE "pg_catalog"."default" NOT NULL,

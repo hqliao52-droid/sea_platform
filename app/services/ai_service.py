@@ -43,7 +43,7 @@ class AIService:
 
         return history_messages
 
-    async def chat_ai_test(self, request: ChatRequest, user: UserModel):
+    async def chat_ai_test(self, request: ChatRequest, user: UserModel) -> AsyncGenerator[str, None]:
         try:
             user_msg = ChatMessage(
                 session_id=request.session_id,
