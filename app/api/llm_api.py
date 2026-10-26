@@ -5,7 +5,7 @@ from app.services.ai_service import ai_service
 from app.core.user_deps import get_current_user
 from app.utils.log import logger
 from app.models.user_model import UserModel
-from app.utils.utils import SSEStream
+from app.utils.utils import SSEStream, SSEEvent
 from app.schemas.request.chat_request import ChatRequest
 from app.services.chat_session_service import ChatSessionOperator
 
@@ -21,6 +21,7 @@ async def stream_response(request: ChatRequest, user: UserModel = Depends(get_cu
         )
         if session is not None:
             request.session_id = session.id
+            yield SSEEvent.metadata(field="session_id", content=session.id)
     llm = ai_service.chat_ai_test(request, user)
     return SSEStream.create_response(llm)
 
