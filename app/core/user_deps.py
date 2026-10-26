@@ -33,7 +33,6 @@ async def get_current_user(
         raise HTTPException(status_code=401, detail="Token已失效")
 
     payload = verify_token(token)
-    logger.info(f"token = {token}")
     if not payload:
         logger.error("Token无效")
         raise HTTPException(status_code=401, detail="Token无效")

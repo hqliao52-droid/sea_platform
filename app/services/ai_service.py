@@ -1,30 +1,98 @@
 from typing import AsyncGenerator
 from langchain_core.prompts import ChatPromptTemplate
+from langchain.messages import (
+    AIMessage,
+    HumanMessage,
+    SystemMessage,
+    ToolMessage,
+)
 
+from app.factory.agent.agent_factory import AgentFactory
+from app.config.langgraph_postgres import create_checkpointer
+from app.utils.log import logger
 from app.config.llm_config import llm_config
-from app.rag.prompt.agent_prompt import prompt as AgentPrompt
-from app.utils.logger import Logger
-
+from app.rag.prompt.agent_prompt import prompt as agent_prompt
+from app.utils.utils import extract_content_stream, SSEEvent
+from app.models.user_model import UserModel
+from app.schemas.request.chat_request import ChatRequest
+from app.services.chat_message_service import ChatMessageOperator
+from app.models.chat_message import ChatMessage
 
 class AIService:
     def __init__(self):
-        self.logger = Logger.setup_logger(Logger.set_logger_file_llm())
         self.llm_normal = llm_config.get_model(streaming=True)
+        self.chat_service = ChatMessageOperator()
 
-    async def chat_llm(self, query: str):
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", AgentPrompt.base_service_system_prompt()),
-                ("user", "{query}"),
-            ]
+    async def build_history(self, session_id: int) -> list:
+        history_messages = []
+        async for item in await self.chat_service.get_chat_message_by_session_id(session_id):
+            msg = item.content
+            role = item.role
+
+            if not msg:
+                continue
+            match role:
+                case "user":
+                    history_messages.append(HumanMessage(msg))
+                case "assistant":
+                    history_messages.append(AIMessage(msg))
+                # case "system":
+                #     history_messages.append(SystemMessage(msg))
+                case _:
+                    continue
+
+        return history_messages
+
+    async def chat_ai_test(self, request: ChatRequest, user: UserModel):
+        user_msg = ChatMessage(
+            session_id=request.session_id,
+            content=request.query,
+            role="user",
+            user_id=user.id,
+            message_type=1,
+            status="done"
         )
-        chain = prompt | self.llm_normal
-        async for chunk in chain.astream({"query": query}):
-            if chunk.content:
-                yield chunk.content
+        # 先入库用户消息
+        insert_user_msg: ChatMessage = await self.chat_service.insert_chat_message(user_msg)
+        msgs = await self.build_history(request.session_id)
+        msgs.append(SystemMessage(content=agent_prompt.base_service_system_prompt()))
+        msgs.append(HumanMessage(content=request.query))
 
-    async def llm_run_chat(query: str) -> AsyncGenerator:
-        pass
+        prompt = ChatPromptTemplate.from_messages(msgs)
+
+        chain = prompt | self.llm_normal
+
+        buffer = ""
+        async def text_generator() -> AsyncGenerator[str, None]:
+            nonlocal buffer
+            async for chunk in chain.astream({"query": request.query}):
+                if chunk.content:
+                    buffer += chunk.content
+                    yield chunk.content
+
+        async for ev in extract_content_stream(
+            text_generator(),
+        ):
+            yield SSEEvent.delta(field="content", content=ev)
+
+        logger.info(f"chat ai返回：{buffer}")
+        ai_msg = ChatMessage(
+            session_id=request.session_id,
+            content=buffer,
+            role="assistant",
+            user_id=user.id,
+            message_type=2,
+            status="done",
+            pre_id=insert_user_msg.id if insert_user_msg else None
+        )
+        await self.chat_service.insert_chat_message(ai_msg)
+
+            
+
+    async def run_chat(query: str, user: UserModel) -> AsyncGenerator:
+        checkpointer = create_checkpointer()
+
+        agent = AgentFactory().abuild_agent()
 
 
 ai_service = AIService()

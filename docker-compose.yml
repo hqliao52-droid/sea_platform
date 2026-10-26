@@ -7,7 +7,7 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_started
@@ -17,7 +17,11 @@ services:
       - .env
     environment:
       TZ: Asia/Shanghai
-      MYSQL_HOST: mysql
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_USER: ${PG_USER:-postgres}
+      PG_PASSWORD: ${PG_PASSWORD:-postgres}
+      PG_DB: ${PG_DB:-postgres}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_PASS: ${RABBITMQ_DEFAULT_PASSWORD}
@@ -46,7 +50,7 @@ services:
     volumes:
       - ./attach:/app/attach
       - ./logs:/app/logs
-  
+
   postgres:
     image: postgres:16
     container_name: sea_postgres_prod
@@ -135,7 +139,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    
+
   qdrant:
     image: qdrant/qdrant
     container_name: sea_qdrant_prod
@@ -170,13 +174,17 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-      mysql:
-        condition: service_started
+      postgres:
+        condition: service_healthy
     env_file:
       - .env
     environment:
       TZ: Asia/Shanghai
-      MYSQL_HOST: mysql
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_USER: ${PG_USER:-postgres}
+      PG_PASSWORD: ${PG_PASSWORD:-postgres}
+      PG_DB: ${PG_DB:-postgres}
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASSWORD}
@@ -204,14 +212,18 @@ services:
     container_name: sea_ai_celery
     command: celery -A app.tasks.celery_app worker -l info --concurrency=4
     depends_on:
+      - postgres
       - rabbitmq
       - redis
-      - mysql
     env_file:
       - .env
     environment:
       TZ: Asia/Shanghai
-      MYSQL_HOST: mysql
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_USER: ${PG_USER:-postgres}
+      PG_PASSWORD: ${PG_PASSWORD:-postgres}
+      PG_DB: ${PG_DB:-postgres}
       REDIS_HOST: redis
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}

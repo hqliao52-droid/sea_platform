@@ -99,5 +99,5 @@ qrcode[pil]
 email-validator>=2.0.0
 # latex
 pylatexenc>=2.10
-# 格式化代码
-black==24.8.0
+json5
+json-repair

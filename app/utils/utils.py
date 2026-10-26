@@ -2,6 +2,8 @@ import uuid
 import time
 import json
 import asyncio
+import json5
+from json_repair import repair_json
 
 from starlette.responses import StreamingResponse
 from typing import AsyncGenerator, Any, Dict, Optional, List, Set
@@ -28,6 +30,18 @@ def generate_id(is_uuid: bool = False, prefix: str | None = None) -> str:
         result = f"{prefix}-{result}"
         
     return result
+
+def load_json(content):
+    if content is None:
+        return None
+    try:
+        if "```json" in content:
+            r_content = content.replace("```json", "```")
+            ary = r_content.split("```")
+            return json5.loads(ary[1])
+        return json5.loads(content)
+    except Exception:
+        return json.loads(repair_json(content))
 
 class SSEStream:
     """SSE 流式响应管理器"""
@@ -65,6 +79,32 @@ class SSEStream:
             # 发送结束信号
             done_event = SSEEvent.done()
             yield await SSEEvent.serialize(done_event)
+
+async def extract_content_stream(
+    line_async_gen: AsyncGenerator[str, None],
+) -> AsyncGenerator[str, None]:
+    """
+    从 agent 原始流中提取 content 文本块。
+
+    约定：
+    1. 跳过空行和 [DONE]
+    2. 如果收到 data: Error occurred: 前缀，抛出 RuntimeError
+    3. 仅当解析结果为 dict 且 content 非空时向下游输出
+    """
+    async for line in line_async_gen:
+        if not line or line == "[DONE]":
+            continue
+
+        if line.startswith("data: Error occurred:"):
+            raise RuntimeError(line.removeprefix("data: Error occurred:").strip())
+
+        data = load_json(line)
+        if not isinstance(data, dict):
+            continue
+
+        content = data.get("content", "")
+        if content:
+            yield content
 
 class SSEEvent:
     """SSE 事件包构造器"""

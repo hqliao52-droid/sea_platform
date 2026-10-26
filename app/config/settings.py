@@ -122,7 +122,7 @@ class Settings(BaseSettings):
     SERVER_HOST: str = "localhost"
     SERVER_PORT: int = 8000
 
-    LOG_DIR: str = "logs"
+    LOG_DIR: str | None = str("/log/sea_ai")
 
     """邮箱配置 SMTP配置"""
     SMTP_HOST: str = "smtp.126.com"

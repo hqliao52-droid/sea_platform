@@ -1,5 +1,5 @@
 from typing import List, Optional
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.sea_data_base import BaseCRUD
@@ -24,7 +24,7 @@ class ChatMessageCRUD(BaseCRUD):
     async def get_chat_message_by_session_id(
         self, db: AsyncSession, session_id: int
     ) -> Optional[List[ChatMessage]]:
-        stmt = select(ChatMessage).where(ChatMessage.session_id == session_id)
+        stmt = select(ChatMessage).where(ChatMessage.session_id == session_id).order_by(asc(ChatMessage.id))
         result = await db.execute(stmt)
         messages: List[ChatMessage] = result.scalars().all()
         return messages

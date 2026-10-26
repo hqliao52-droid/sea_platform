@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Any
 from pydantic import BaseModel
 
-from langfuse import Langfuse
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage
 from langchain.agents import create_agent
@@ -11,13 +10,11 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 from deepagents import create_deep_agent
 
 from app.config.settings import settings
-from app.factory.callback.langfuse_callback import set_langfuse_client
 from app.factory.base_factory import BaseFactory
 from app.factory.middlewares.middleware_factory import MiddlewareFactory
 from app.factory.tools.tools_factory import ToolsFactory
 from app.factory.subagents.subagents_factory import SubagentFactory
 from app.factory.backend.backend_factory import BackendFactory
-from app.models.chat_session import ChatSession
 from app.services.chat_session_service import ChatSessionOperator
 from app.rag.prompt.agent_prompt import prompt as agent_prompt
 
@@ -121,10 +118,6 @@ class AgentFactory(BaseFactory):
     async def abuild_agent(
         self,
         *,
-        session_id: str | None = None,
-        trace_id: str | None = None,
-        attach: str | Path | None = None,
-        file_name: str | None = None,
         chat_mode: str = "chat",
         checkpointer: BaseCheckpointSaver | AsyncPostgresSaver | None = None,
     ):
