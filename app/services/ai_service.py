@@ -16,6 +16,7 @@ from app.rag.prompt.agent_prompt import prompt as agent_prompt
 from app.utils.utils import extract_content_stream, SSEEvent
 from app.models.user_model import UserModel
 from app.schemas.request.chat_request import ChatRequest
+from app.schemas.enum.ai_status import AIStatus, Role
 from app.services.chat_message_service import ChatMessageOperator
 from app.models.chat_message import ChatMessage
 
@@ -23,6 +24,7 @@ class AIService:
     def __init__(self):
         self.llm_normal = llm_config.get_model(streaming=True)
         self.chat_service = ChatMessageOperator()
+        self.checkpointer = create_checkpointer()
 
     async def build_history(self, session_id: int) -> list:
         history_messages = []
@@ -38,23 +40,25 @@ class AIService:
                     history_messages.append(HumanMessage(msg))
                 case "assistant":
                     history_messages.append(AIMessage(msg))
-                # case "system":
-                #     history_messages.append(SystemMessage(msg))
+                case "system":
+                    history_messages.append(SystemMessage(msg))
                 case _:
                     continue
 
         return history_messages
 
     async def chat_ai_test(self, request: ChatRequest, user: UserModel) -> AsyncGenerator[str, None]:
+        ai_done = False
+        buffer = ""
         try:
             yield SSEEvent.metadata(field="session_id", content=request.session_id)
             user_msg = ChatMessage(
                 session_id=request.session_id,
                 content=request.query,
-                role="user",
+                role=Role.USER.value,
                 user_id=user.id,
                 message_type=1,
-                status="done"
+                status=AIStatus.DONE.value,
             )
             # 先入库用户消息
             insert_user_msg: ChatMessage = await self.chat_service.insert_chat_message(user_msg)
@@ -66,7 +70,6 @@ class AIService:
 
             chain = prompt | self.llm_normal
 
-            buffer = ""
             async def text_generator() -> AsyncGenerator[str, None]:
                 nonlocal buffer
                 async for chunk in chain.astream({"query": request.query}):
@@ -86,25 +89,30 @@ class AIService:
                 yield SSEEvent.delta(field="content", content=ev)
 
             logger.info(f"chat ai返回：{buffer}")
+            ai_done = True
+        except Exception as e:
+            logger.exception(e)
+            ai_done = False
+            yield SSEEvent.error(code= "500", message = "Agent 调用异常")
+        finally:
+            # 持久化AI消息
             ai_msg = ChatMessage(
                 session_id=request.session_id,
                 content=buffer,
-                role="assistant",
+                role=Role.ASSISTANT.value,
                 user_id=user.id,
                 message_type=2,
-                status="done",
+                status=AIStatus.DONE.value if ai_done else AIStatus.EXCEPTION.value,
                 pre_id=insert_user_msg.id if insert_user_msg else None
             )
             await self.chat_service.insert_chat_message(ai_msg)
-        except Exception as e:
-            logger.error(f"chat ai error: {e}")
 
-            
 
-    async def run_chat(query: str, user: UserModel) -> AsyncGenerator:
-        checkpointer = create_checkpointer()
-
+    async def run_chat(self, query: str, user: UserModel) -> AsyncGenerator:
         agent = AgentFactory().abuild_agent()
+
+    async def stream(self) -> AsyncGenerator:
+        pass
 
 
 ai_service = AIService()
