@@ -6,13 +6,12 @@ from app.services.news_service import NewsOperator
 from app.schemas.news_detail.news_detail_response_schema import NewsDetailResponse
 from app.schemas.news_detail.news_detail_schema import NewsDetailsSchema
 from app.schemas.news_detail.news_detail_page_resp import NewsDetailsPageSchema
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.services.rss_service import RssSourceOperator
 
 # from app.services.baidu_rss_service import BaiduRssSourceOperator
 
 router = APIRouter()
-logger = Logger.setup_logger(Logger.set_file_date())
 
 
 @router.get("/get_news_detail", response_model=Result[NewsDetailsPageSchema])

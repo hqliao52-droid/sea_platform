@@ -1,6 +1,6 @@
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.rag.prompt.agent_prompt import prompt as AgentPrompt
 from app.rag.retrievers.news_retriever import NewsRetriever
 from app.rag.status_node.chat_node import ChatNode
@@ -9,7 +9,7 @@ from app.models.news_details_model import NewsDetail
 
 class ChatPromptBuilder:
     def __init__(self):
-        self.logger = Logger.setup_logger(Logger.set_file_date())
+        self.logger = logger
         self.news_retriever = NewsRetriever()
         self.status_node = ChatNode()
 
@@ -48,7 +48,7 @@ class ChatPromptBuilder:
                     # 只找最近用户引用文章
                     refer_data_status = False
                     # 返回对象：[NewsDetail]仅查title和对应的content
-                    self.status_node.reading(task_id)
+                    await self.status_node.reading(task_id)
                     retrieved_articles = await self.news_retriever.retrieve_by_ids(
                         item.llm_refer_data_id
                     )

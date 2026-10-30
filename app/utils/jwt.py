@@ -3,10 +3,9 @@ from jose import jwt
 from app.config.settings import settings
 from passlib.context import CryptContext
 import hashlib
-from app.utils.logger import Logger
+from app.utils.log import logger
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-logger = Logger.setup_logger(Logger.set_file_date())
 
 
 def create_access_token(data: dict):

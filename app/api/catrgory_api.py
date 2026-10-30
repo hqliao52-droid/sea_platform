@@ -2,11 +2,9 @@ from fastapi import APIRouter
 from app.utils.result_response import Result, ResultCode
 from app.services.category_service import CategoryOperator
 from app.schemas.category.category import categoryBase as categorySchema
-from app.utils.logger import Logger
 from typing import List
 
 router = APIRouter()
-logger = Logger.setup_logger(Logger.set_file_date())
 
 
 @router.get("/get_category", response_model=Result[List[categorySchema]])

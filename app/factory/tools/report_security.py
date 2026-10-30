@@ -2,8 +2,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 from langchain_core.tools import tool
 
-from app.utils.logger import Logger
-logger = Logger.setup_logger(Logger.set_file_name("tool_event"))
+from app.utils.log import logger
 
 class ReportSecurityEventInput(BaseModel):
     violation_type: Literal[

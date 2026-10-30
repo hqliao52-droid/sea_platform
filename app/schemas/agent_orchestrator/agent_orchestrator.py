@@ -7,18 +7,18 @@ class AgentOrchestrator:
     def __init__(self, task_id):
         self.task_id = task_id
 
-    def emit_status(self, state, text):
-        redis_client.client.lpush(
+    async def emit_status(self, state, text):
+        await redis_client.client.lpush(
             f"stream:{self.task_id}",
             json.dumps({"type": "status", "state": state, "text": text}),
         )
 
-    def emit_delta(self, chunk):
-        redis_client.client.lpush(
+    async def emit_delta(self, chunk):
+        await redis_client.client.lpush(
             f"stream:{self.task_id}", json.dumps({"type": "delta", "content": chunk})
         )
 
-    def emit_done(self):
-        redis_client.client.lpush(
+    async def emit_done(self):
+        await redis_client.client.lpush(
             f"stream:{self.task_id}", json.dumps({"type": "done"})
         )

@@ -1,6 +1,7 @@
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
 from app.config.settings import settings
+from app.utils.log import logger
 
 
 DATABASE_URL = (
@@ -27,5 +28,6 @@ async def test_langgraph_postgres():
 
         await checkpointer.setup()
 
+        logger.info("LangGraph PostgreSQL 连接成功")
         return "LangGraph PostgreSQL 连接成功"
 

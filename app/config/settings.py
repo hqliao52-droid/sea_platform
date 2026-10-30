@@ -122,7 +122,8 @@ class Settings(BaseSettings):
     SERVER_HOST: str = "localhost"
     SERVER_PORT: int = 8000
 
-    LOG_DIR: str | None = str("/log/sea_ai")
+    # 相对路径会以项目根目录为基准解析；也可配置绝对路径
+    LOG_DIR: str | None = "logs"
 
     """邮箱配置 SMTP配置"""
     SMTP_HOST: str = "smtp.126.com"

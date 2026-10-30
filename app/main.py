@@ -22,6 +22,7 @@ from app.api.llm_api import router as llm_router
 from app.config.pg_config import init_db, close_db
 from app.config.langgraph_postgres import test_langgraph_postgres
 from app.config.langgraph_postgres import DATABASE_URL
+from app.config.redis_config import redis_client
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -34,7 +35,10 @@ async def lifespan(app: FastAPI):
             app.state.checkpointer = checkpointer
             yield
     finally:
-        await close_db()
+        try:
+            await close_db()
+        finally:
+            await redis_client.close()
 
 app = FastAPI(
     title=settings.APP_NAME, 
@@ -68,6 +72,9 @@ async def health_check():
         "langgraph_postgres": _loging
         }
 
+# FastAPI 默认是不能访问本地文件的，需要加上静态文件访问
+app.mount("/attach", StaticFiles(directory="attach"), name="attach")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/docs-cn", include_in_schema=False)
 async def custom_swagger_ui_html():
@@ -78,8 +85,15 @@ async def custom_swagger_ui_html():
         swagger_css_url="https://cdn.bootcdn.net/ajax/libs/swagger-ui/5.10.5/swagger-ui.css",
     )
 
-# FastAPI 默认是不能访问本地文件的，需要加上静态文件访问
-app.mount("/attach", StaticFiles(directory="attach"), name="attach")
+@app.get("/docs-zh", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url="/openapi.json",
+        title="API 文档",
+        # 改成指向你本机的静态文件路径
+        swagger_js_url="/static/swagger-ui-bundle.js", 
+        swagger_css_url="/static/swagger-ui.css",
+    )
 
 app.add_middleware(
     CORSMiddleware,

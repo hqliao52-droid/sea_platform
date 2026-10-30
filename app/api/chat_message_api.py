@@ -12,7 +12,7 @@ from app.schemas.chat_message.chat_message import ChatMessageSchema, ChatMsg
 from app.services.chat_session_service import ChatSessionOperator
 from app.services.news_detail_service import NewsDetailOperator
 from app.models.chat_message import ChatMessage
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.tasks.ai_task import run_llm_task, run_llm_task_session_topic
 from app.config.redis_config import redis_client
 
@@ -21,8 +21,6 @@ chat_message_router = APIRouter()
 chat_msg = ChatMessageOperator()
 chat_session = ChatSessionOperator()
 news_detail = NewsDetailOperator()
-
-logger = Logger.setup_logger(Logger.set_file_date())
 
 
 @chat_message_router.get(

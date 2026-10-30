@@ -4,8 +4,7 @@ import asyncio
 
 from langchain_core.tools import BaseTool, tool
 
-from app.utils.logger import Logger
-logger = Logger.setup_logger(Logger.set_file_name("tool_event"))
+from app.utils.log import logger
 
 _BACKENDS = ("tavily", "duckduckgo")
 

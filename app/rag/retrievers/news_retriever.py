@@ -1,17 +1,12 @@
 import time
 
-from langchain_core.messages import SystemMessage
-
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.services.news_detail_service import NewsDetailOperator
 from app.rag.prompt.agent_prompt import prompt as AgentPrompt
 
 
 class NewsRetriever:
     def __init__(self):
-        self.logger = Logger.setup_logger(
-            f"llm_task_celery_{time.strftime('%Y_%m_%d')}"
-        )
         self.news_detail = NewsDetailOperator()
 
     async def retrieve_by_ids(self, ids, push_status=None):

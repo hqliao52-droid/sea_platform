@@ -63,7 +63,7 @@ async def run_llm_task(self, task_id: str, ai_msg_id: str, user_dialog_id, req: 
     logger = Logger.setup_logger(f"llm_task_celery_{time.strftime('%Y_%m_%d')}")
 
     try:
-        status_node.analyzing(task_id)
+        await status_node.analyzing(task_id)
         logger.info(f"LLM处理开始:{req['query']}")
         refer_data: list[NewsDetail] = []
         if req.get("news_ids"):
@@ -72,7 +72,7 @@ async def run_llm_task(self, task_id: str, ai_msg_id: str, user_dialog_id, req: 
                 logger.info(f"用户当前引用的文章{news.title}")
                 refer_data.append(news)
 
-        status_node.retrieving(task_id)
+        await status_node.retrieving(task_id)
         dialog_history = []
         if req.get("user_id") and req.get("session_id"):
             dialog_history = await chat_message_operator.get_dialog_history(
@@ -89,7 +89,7 @@ async def run_llm_task(self, task_id: str, ai_msg_id: str, user_dialog_id, req: 
         full_text = "".join(chunks)
 
         # 结束标识
-        status_node.end(task_id)
+        await status_node.end(task_id)
         await redis_client.client.expire(f"stream:{task_id}", 300)
         chat_message = await chat_message_operator.get_chat_message_by_id(ai_msg_id)
 
@@ -103,7 +103,7 @@ async def run_llm_task(self, task_id: str, ai_msg_id: str, user_dialog_id, req: 
             await chat_message_operator.update_by_id(ai_msg_id, update_data)
 
         logger.error(f"LLM处理失败{str(e)}")
-        status_node.error(task_id)
+        await status_node.error(task_id)
 
 
 @celery_app.task(bind=True, name="ai.run_llm_task_session_topic")

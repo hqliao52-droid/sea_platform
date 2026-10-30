@@ -8,12 +8,11 @@ from app.services.chat_session_service import ChatSessionOperator
 from app.schemas.chat_session.chat_session import ChatSessionSchema
 from app.core.user_deps import get_current_user
 from app.models.user_model import UserModel
-from app.utils.logger import Logger
+from app.utils.log import logger
 
 chat_session_router = APIRouter()
 
 chat_session_operator = ChatSessionOperator()
-logger = Logger.setup_logger(Logger.set_file_date())
 
 
 @chat_session_router.get(

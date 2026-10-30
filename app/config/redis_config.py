@@ -6,8 +6,6 @@ from app.config.settings import settings
 
 class RedisConfig:
     def __init__(self):
-        if hasattr(self, "initialized"):
-            return
         self.client = redis.Redis(
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT,
@@ -18,8 +16,8 @@ class RedisConfig:
         self.initialized = True
 
     # access_token 处理
-    async def init_black_list_token(self, token):
-        await self.client.set(f"blackList:{token}", "1", 15 * 24 * 3600)
+    async def init_black_list_token(self, token) -> None:
+        await self.client.set(f"blackList:{token}", "1", ex=15 * 24 * 3600)
 
     async def check_black_list_token(self, token):
         result = await self.client.get(f"blackList:{token}")
@@ -30,6 +28,9 @@ class RedisConfig:
         """追加流式内容"""
         key = f"stream:{task_id}"
         await self.client.append(key, chunk)
+
+    async def close(self) -> None:
+        await self.client.aclose()
 
     async def get_stream(self, task_id: str):
         """获取流式内容"""
@@ -45,17 +46,6 @@ class RedisConfig:
         2. 计算 token 剩余有效秒数
         3. 将 token 存入 Redis，并设置 TTL
         4. 当 token 自然过期后，Redis 自动删除该记录
-
-        Redis Key:
-            blackList:<token>
-
-        Redis Value:
-            "1"
-
-        为什么这样做？
-        - JWT 本身是无状态的
-        - 一旦签发，默认无法主动失效
-        - Redis 黑名单可以让指定 token 立即失效
         """
 
         try:
@@ -102,7 +92,7 @@ class RedisConfig:
         await self.client.delete(key)
 
     # 通用方法处理
-    async def set_key(self, key_id: str, value: Any, ttl: int = None) -> bool:
+    async def set_key(self, key_id: str, value: Any, ttl: int | None = None) -> bool:
         """设置键值对
 
         Args：
@@ -112,7 +102,7 @@ class RedisConfig:
         Returns：
             bool: 设置成功返回 True，否则返回 False
         """
-        return await self.client.set(key_id, value, ex=ttl) is True
+        return bool(await self.client.set(key_id, value, ex=ttl))
 
     async def get_key(self, key_id: str) -> Any:
         """获取键值对

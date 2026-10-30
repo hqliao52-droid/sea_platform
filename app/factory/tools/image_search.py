@@ -5,7 +5,7 @@ import json
 from langchain.tools import tool
 
 
-from loguru import logger
+from app.utils.log import logger
 
 
 def _search_images(

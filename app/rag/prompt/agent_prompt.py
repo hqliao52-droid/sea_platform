@@ -129,7 +129,6 @@ class AgentPrompt:
 用户 query：“Python 怎么处理 JSON 数据？”
 生成标题：Python解析JSON
 
-
 用户 query：“你好”
 生成标题：问候交流
 

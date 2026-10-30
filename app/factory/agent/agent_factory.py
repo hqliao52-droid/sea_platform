@@ -5,9 +5,10 @@ from pydantic import BaseModel
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage
 from langchain.agents import create_agent
+from deepagents import create_deep_agent
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.checkpoint.base import BaseCheckpointSaver
-from deepagents import create_deep_agent
+from langgraph.graph.state import CompiledStateGraph
 
 from app.config.settings import settings
 from app.factory.base_factory import BaseFactory
@@ -120,7 +121,7 @@ class AgentFactory(BaseFactory):
         *,
         chat_mode: str = "chat",
         checkpointer: BaseCheckpointSaver | AsyncPostgresSaver | None = None,
-    ):
+    ) -> CompiledStateGraph:
         model = self.create()
         tools = self.tools_factory.create()
         system_prompt = f"""
@@ -134,7 +135,7 @@ class AgentFactory(BaseFactory):
                 tools=tools,
                 system_prompt=system_prompt,
                 checkpointer=checkpointer,
-            )
+            ).with_config({"recursion_limit": 1000})
 
         middlewares = self.middlewares_factory.create()
         subagents = self.subagents_factory.create()
@@ -154,5 +155,5 @@ class AgentFactory(BaseFactory):
             "backend": backend,
         }
 
-        return create_deep_agent(**kwargs)
+        return create_deep_agent(**kwargs).with_config({"recursion_limit": 1000})
         

@@ -1,6 +1,6 @@
 import time
 
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.rag.prompt.builders.chat_prompt_builder import ChatPromptBuilder
 from app.rag.status_node.chat_node import ChatNode
 from app.config.llm_config import llm_config
@@ -9,9 +9,6 @@ from app.models.news_details_model import NewsDetail
 
 class ChatRagPipeline:
     def __init__(self):
-        self.logger = Logger.setup_logger(
-            f"llm_task_celery_{time.strftime('%Y_%m_%d')}"
-        )
         self.prompt_builder = ChatPromptBuilder()
         self.status_node = ChatNode()
 
@@ -38,7 +35,7 @@ class ChatRagPipeline:
             user_input, task_id, history_messages, refer_data
         )
         
-        self.status_node.generating(task_id)
+        await self.status_node.generating(task_id)
         async for chunk in llm_normal.astream(messages):
             if chunk.content:
                 yield chunk.content

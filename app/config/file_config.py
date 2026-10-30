@@ -21,7 +21,7 @@ class FileConfig:
     ANDROID_APK_NAME = "sea_platform_latest.apk"
     IOS_APK_NAME = None
 
-    # 访问host(生产环境需改为nginx域名)
+    # 访问host(生产环境需域名)
     FILE_HOST = f"http://{settings.SERVER_HOST}:{settings.SERVER_PORT}"
 
 

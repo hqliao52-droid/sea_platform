@@ -8,6 +8,7 @@ from app.config.settings import settings
 from app.factory.tools.report_security import report_security_event
 from app.factory.tools.web_search import make_web_search_tool
 from app.factory.tools.image_search import image_search_tool
+from app.factory.tools.web_fetch import web_fetch
 
 
 def _mark_safe_read_tool(tool: BaseTool) -> BaseTool:
@@ -34,6 +35,10 @@ def create_tool() -> list[BaseTool]:
         _mark_safe_read_tool(image_search_tool)
         if settings.ENABLED_IMAGES_SEARCH
         else None
+    )
+    
+    tools.append(
+        _mark_safe_read_tool(web_fetch)
     )
 
     tools.append(report_security_event)

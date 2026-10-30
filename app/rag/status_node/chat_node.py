@@ -5,23 +5,23 @@ class ChatNode:
     def __init__(self):
         self.redis_client = RedisConfig()
 
-    def analyzing(self, task_id: str):
-        self.redis_client.append_stream(task_id, "[[STATUS:analyzing]]")
+    async def analyzing(self, task_id: str):
+        await self.redis_client.append_stream(task_id, "[[STATUS:analyzing]]")
 
-    def retrieving(self, task_id: str):
-        self.redis_client.append_stream(task_id, "[[STATUS:retrieving]]")
+    async def retrieving(self, task_id: str):
+        await self.redis_client.append_stream(task_id, "[[STATUS:retrieving]]")
 
-    def generating(self, task_id: str):
-        self.redis_client.append_stream(task_id, "[[STATUS:generating]]")
+    async def generating(self, task_id: str):
+        await self.redis_client.append_stream(task_id, "[[STATUS:generating]]")
 
-    def reading(self, task_id: str):
-        self.redis_client.append_stream(task_id, "[[STATUS:reading]]")
+    async def reading(self, task_id: str):
+        await self.redis_client.append_stream(task_id, "[[STATUS:reading]]")
 
-    def done(self, task_id: str):
-        self.redis_client.append_stream(task_id, "[[STATUS:done]]")
+    async def done(self, task_id: str):
+        await self.redis_client.append_stream(task_id, "[[STATUS:done]]")
 
-    def error(self, task_id: str):
-        self.redis_client.append_stream(task_id, "[[STATUS:error]]")
+    async def error(self, task_id: str):
+        await self.redis_client.append_stream(task_id, "[[STATUS:error]]")
 
-    def end(self, task_id: str):
-        self.redis_client.append_stream(task_id, "[[STATUS:end]]")
+    async def end(self, task_id: str):
+        await self.redis_client.append_stream(task_id, "[[STATUS:end]]")

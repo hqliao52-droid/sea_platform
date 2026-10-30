@@ -30,6 +30,7 @@ services:
     volumes:
       - .:/app
       - /app/.venv
+      - ./logs:/app/logs
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 
     restart: unless-stopped
     healthcheck:
@@ -112,6 +113,7 @@ services:
     volumes:
       - .:/app
       - /app/.venv
+      - ./logs:/app/logs
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -143,6 +145,7 @@ services:
     volumes:
       - .:/app
       - /app/.venv
+      - ./logs:/app/logs
     depends_on:
       - postgres
       - rabbitmq

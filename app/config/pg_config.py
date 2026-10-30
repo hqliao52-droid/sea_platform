@@ -4,9 +4,7 @@ from app.config.settings import settings
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-from app.utils.logger import Logger
-
-logger = Logger.setup_logger(Logger.set_file_date())
+from app.utils.log import logger
 
 # 数据库URL
 DATABASE_URL = (
@@ -48,25 +46,6 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
-
-# ORM 模型基类 Base
-# 所有数据库表模型都必须继承 Base，因为：
-#   1. Base.metadata 会自动收集所有继承它的子类定义的表结构
-#   2. 通过 Base.metadata.create_all() 可以一键创建所有表
-#
-# 异步模式下创建表（在应用启动时执行）：
-#   async with engine.begin() as conn:
-#       await conn.run_sync(Base.metadata.create_all)
-#   （run_sync 用于在异步环境中调用同步的 create_all 方法）
-#
-# ORM 映射流程：
-#   Python 类  →  SQLAlchemy ORM  →  SQL 语句  →  数据库执行
-#   例如：await session.execute(select(News))   →  SELECT * FROM news
-#
-# 查询方式（SQLAlchemy 2.0 风格）：
-#   使用 select(模型).where(条件) 构建查询，
-#   然后 await session.execute(stmt) 执行，
-#   通过 scalars() 或 scalar_one_or_none() 获取结果。
 Base = declarative_base()
 
 
@@ -84,8 +63,6 @@ Base = declarative_base()
             except StopIteration:
                 pass                    # 生成器正常结束
 """
-
-
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         try:
