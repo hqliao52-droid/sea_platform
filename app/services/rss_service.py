@@ -2,12 +2,11 @@ from app.models.rss_source import RssSource
 from app.crud.data_crud.rss import RssSourceCRUD
 from app.schemas.rss.rss_shema import RssSchema
 from app.config.pg_config import AsyncSessionLocal
-from app.utils.logger import Logger
+from app.utils.log import logger
 
 
 class RssSourceOperator:
     def __init__(self):
-        self.logger = Logger.setup_logger(Logger.set_file_date())
         self.rss_source_crud = RssSourceCRUD()
 
     async def get_active_rss_sources(self) -> list[RssSource]:

@@ -1,13 +1,12 @@
 from app.services.rss_service import RssSourceOperator
 
 # from app.services.baidu_rss_service import BaiduRssSourceOperator
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.core.scheduler import scheduler
 from app.crawler.news_spider import crawl_all_rss_sources
 
 rss_sources = RssSourceOperator()
 # baidu_rss_sources = BaiduRssSourceOperator()
-logger = Logger.setup_logger(Logger.set_file_date())
 
 
 async def spider_rss():

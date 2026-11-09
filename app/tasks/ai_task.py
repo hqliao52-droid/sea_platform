@@ -15,7 +15,7 @@ from app.services.chat_session_service import ChatSessionOperator
 from app.rag.pipelines.chat_pipeline import ChatRagPipeline
 from app.schemas.chat_message.chat_message import ChatMsg
 from app.models.news_details_model import NewsDetail
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.rag.prompt.agent_prompt import prompt as AgentPrompt
 from app.rag.status_node.chat_node import ChatNode
 from app.config.llm_config import llm_config
@@ -60,7 +60,6 @@ async def run_llm_task(self, task_id: str, ai_msg_id: str, user_dialog_id, req: 
     redis_client = RedisConfig()
     pipeline = ChatRagPipeline()
     status_node = ChatNode()
-    logger = Logger.setup_logger(f"llm_task_celery_{time.strftime('%Y_%m_%d')}")
 
     try:
         await status_node.analyzing(task_id)
@@ -110,7 +109,6 @@ async def run_llm_task(self, task_id: str, ai_msg_id: str, user_dialog_id, req: 
 async def run_llm_task_session_topic(self, session_id: int, query: str):
     """判断当前会话是否为新会话，如果是，则更新会话主题"""
     chat_session_operator = ChatSessionOperator()
-    logger = Logger.setup_logger(f"llm_task_celery_{time.strftime('%Y_%m_%d')}")
 
     try:
         chat_session = await chat_session_operator.get_chat_session_by_id(session_id)

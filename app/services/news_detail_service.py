@@ -1,6 +1,6 @@
 from typing import Any, Dict, List
 
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.models.news_details_model import NewsDetail
 from app.crud.data_crud.news_detail import NewsDetailCRUD
 from app.config.pg_config import AsyncSessionLocal
@@ -17,7 +17,6 @@ class NewsDetailOperator:
     """
 
     def __init__(self):
-        self.logger = Logger.setup_logger(Logger.set_file_date())
         self.news_detail_crud = NewsDetailCRUD()
 
     async def insert_news_detail(self, news_detail_data: NewsDetail) -> int:
@@ -27,7 +26,7 @@ class NewsDetailOperator:
                 await db.commit()
                 return result
             except Exception as e:
-                self.logger.error(f"插入失败:{e}")
+                logger.error(f"插入失败:{e}")
                 await db.rollback()
                 return None
 
@@ -45,28 +44,28 @@ class NewsDetailOperator:
                     result = await self.news_detail_crud.get_pages_news(
                         db, page, page_size
                     )
-                self.logger.info(f"查询成功:{result}")
+                logger.info(f"查询成功:{result}")
                 return result
             except Exception as e:
-                self.logger.error(f"查询失败:{e}")
+                logger.error(f"查询失败:{e}")
                 return {}
 
     async def get_news_detail_by_id(self, id: int) -> NewsDetail:
         async with AsyncSessionLocal() as db:
             try:
                 result = await self.news_detail_crud.get_news_detail_by_id(db, id)
-                self.logger.info(f"文章查询成功:{result}")
+                logger.info(f"文章查询成功:{result}")
                 return result if result else None
             except Exception as e:
-                self.logger.error(f"查询失败:{e}")
+                logger.error(f"查询失败:{e}")
                 raise {"status": 500, "news_detail": None}
 
     async def get_news_detail_by_ids(self, ids: list[int]) -> list[NewsDetail]:
         async with AsyncSessionLocal() as db:
             try:
                 result = await self.news_detail_crud.get_news_detail_by_ids(db, ids)
-                self.logger.info(f"按ids查询成功:{result}")
+                logger.info(f"按ids查询成功:{result}")
                 return result
             except Exception as e:
-                self.logger.error(f"查询失败:{e}")
+                logger.error(f"查询失败:{e}")
                 raise {"status": 500, "news_detail_list": None}

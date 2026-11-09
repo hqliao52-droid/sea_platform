@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.utils.utils import generate_id
 from app.models.chat_session import ChatSession
 from app.schemas.chat_session.chat_session import ChatSessionSchema
@@ -13,7 +13,6 @@ class ChatSessionOperator:
     """会话窗口操作类"""
 
     def __init__(self):
-        self.logger = Logger.setup_logger(Logger.set_file_date())
         self.chat_session_curd = ChatSessionCRUD()
         self.chat_message_curd = ChatMessageCRUD()
 
@@ -24,7 +23,7 @@ class ChatSessionOperator:
                 chat_session_result = ChatSessionSchema.model_validate(chat_session)
                 return chat_session_result
             except Exception as e:
-                self.logger.error(e)
+                logger.error(e)
                 return None
 
     async def get_chat_session_by_llm_id(
@@ -41,7 +40,7 @@ class ChatSessionOperator:
                 ]
                 return chat_session_result
             except Exception as e:
-                self.logger.error(e)
+                logger.error(e)
                 return None
 
     async def get_session_by_id(self, session_id: int) -> Optional[ChatSession]:
@@ -50,7 +49,7 @@ class ChatSessionOperator:
                 session = await self.chat_session_curd.get(db = db, obj_id = session_id)
                 return session
             except Exception as e:
-                self.logger.error(e)
+                logger.error(e)
                 return None
 
     async def get_chat_session_by_user_id(
@@ -67,7 +66,7 @@ class ChatSessionOperator:
                 ]
                 return chat_session_result
             except Exception as e:
-                self.logger.error(e)
+                logger.error(e)
                 return None
 
     async def new_session(self, user_id: int) -> Optional[ChatSessionSchema]:
@@ -85,10 +84,10 @@ class ChatSessionOperator:
                     db, new_session
                 )
                 await db.commit()
-                self.logger.info(f"新的会话创建成功：{chat_session_result}")
+                logger.info(f"新的会话创建成功：{chat_session_result}")
                 return ChatSessionSchema.model_validate(chat_session_result)
             except Exception as e:
-                self.logger.error(e)
+                logger.error(e)
                 return None
 
     async def new_chat_session_by_user_id(self, user_id: int) -> Optional[ChatSessionSchema]:
@@ -114,13 +113,13 @@ class ChatSessionOperator:
                 chat_session_result = await self.chat_session_curd.insert(
                     db, new_session
                 )
-                self.logger.info(f"新的会话创建成功：{chat_session_result}")
+                logger.info(f"新的会话创建成功：{chat_session_result}")
 
                 await db.commit()
                 return ChatSessionSchema.model_validate(chat_session_result)
             except Exception as e:
                 await db.rollback()
-                self.logger.error(e)
+                logger.error(e)
                 return None
 
     async def update_session(self, session_id: int, session_data: dict):
@@ -129,10 +128,10 @@ class ChatSessionOperator:
                 result = await self.chat_session_curd.update_by_session_id(
                     db, session_id, session_data
                 )
-                self.logger.info(f"更新会话成功：{result}")
+                logger.info(f"更新会话成功：{result}")
 
                 await db.commit()
                 return result
             except Exception as e:
                 await db.rollback()
-                self.logger.error(f"更新失败：{str(e)}")
+                logger.error(f"更新失败：{str(e)}")

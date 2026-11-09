@@ -1,4 +1,4 @@
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.config.pg_config import AsyncSessionLocal
 from app.crud.sea_data_base import BaseCRUD
 from app.crud.data_crud.user_push_config import UserPushConfigCRUD
@@ -12,7 +12,6 @@ from app.schemas.user_push_config.user_push_config_schema import (
 class UserPushConfigService(BaseCRUD):
     def __init__(self):
         self.config_crud = UserPushConfigCRUD()
-        self.logger = Logger.setup_logger(Logger.set_file_date())
 
     async def get_by_user_id(
         self,
@@ -26,7 +25,7 @@ class UserPushConfigService(BaseCRUD):
                 response_data = UserPushConfigSchema.model_validate(model)
                 return response_data
             except Exception as e:
-                self.logger.error("查询用户推送配置失败:%s", str(e))
+                logger.error("查询用户推送配置失败:%s", str(e))
                 return None
 
     async def insert(
@@ -41,7 +40,7 @@ class UserPushConfigService(BaseCRUD):
                 result = UserPushConfigResponseSchema.model_validate(new_config)
                 return result
             except Exception as e:
-                self.logger.error("插入用户推送配置失败:%s", str(e))
+                logger.error("插入用户推送配置失败:%s", str(e))
                 await db.rollback()
                 raise e
 
@@ -52,18 +51,18 @@ class UserPushConfigService(BaseCRUD):
             try:
                 db_obj = await self.config_crud.get_by_user_id(db, user_id)
                 if not db_obj:
-                    self.logger.warning("尝试更新不存在的用户配置: user_id=%d", user_id)
+                    logger.warning("尝试更新不存在的用户配置: user_id=%d", user_id)
                     return None
                 updated_obj = await self.config_crud.update(db, db_obj, obj_in)
                 
                 await db.refresh(updated_obj, attribute_names=["channels", "weights"])
                 await db.commit()
                 # 插入成功后显式刷新子表的数据
-                self.logger.info("用户推送配置更新成功: user_id=%d", user_id)
+                logger.info("用户推送配置更新成功: user_id=%d", user_id)
                 result = UserPushConfigResponseSchema.model_validate(updated_obj)
                 return result
             except Exception as e:
-                self.logger.error(
+                logger.error(
                     "更新用户推送配置失败: user_id=%d, error=%s", user_id, str(e)
                 )
                 await db.rollback()

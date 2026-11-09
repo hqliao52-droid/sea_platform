@@ -1,4 +1,3 @@
-from app.utils.logger import Logger
 from app.models.category import Category
 from app.crud.data_crud.category import CategoryCRUD
 from app.config.pg_config import AsyncSessionLocal
@@ -15,7 +14,6 @@ class CategoryOperator:
     """
 
     def __init__(self):
-        self.logger = Logger.setup_logger(Logger.set_file_date())
         self.category_curd = CategoryCRUD()
 
     async def insert_category(self, news_detail_data: Category):

@@ -41,7 +41,7 @@ class LoguruLoggerManager:
         color_format = (
             "<yellow>{app_id}</yellow> | "
             "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
-            "<level>{level: <8}</level> | "
+            "<level>{level: <4}</level> | "
             "<yellow>{name}</yellow>:<yellow>{function}</yellow>:<yellow>{line}</yellow> | "
             "<level>{message:." + str(self.LONG_LOG_LIMIT) + "}</level>\n"
         )

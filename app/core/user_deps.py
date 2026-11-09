@@ -1,7 +1,7 @@
 from app.utils.jwt import verify_token
 from app.config.redis_config import RedisConfig
 from app.services.user_service import UserService
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.models.user_model import UserModel
 
 from fastapi import Depends, Header, HTTPException
@@ -13,7 +13,6 @@ security = HTTPBearer(auto_error=False)
 redis = RedisConfig()
 user_service = UserService()
 
-logger = Logger.setup_logger(Logger.set_file_date())
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
