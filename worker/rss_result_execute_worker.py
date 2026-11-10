@@ -20,7 +20,7 @@ from app.schemas.category.category import categoryBase
 news_detail_operator = NewsDetailOperator()
 logger = Logger.setup_logger(Logger.set_file_name("worker"))
 
-async def news_execute(entry, llm_result, llm_json):
+async def news_execute(entry: dict, llm_result, llm_json):
     logger.info(f"是否政策：{llm_result}")
     logger.info(f"AI 输出：{llm_json}")
 

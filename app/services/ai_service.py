@@ -65,6 +65,8 @@ class AIService:
             msgs = await self.build_history(request.session_id)
             msgs.append(SystemMessage(content=agent_prompt.base_service_system_prompt()))
             msgs.append(HumanMessage(content=request.query))
+            if request.files:
+                pass
 
             prompt = ChatPromptTemplate.from_messages(msgs)
 
