@@ -18,13 +18,25 @@ from app.models.user_model import UserModel
 from app.schemas.request.chat_request import ChatRequest
 from app.schemas.enum.ai_status import AIStatus, Role
 from app.services.chat_message_service import ChatMessageOperator
+from app.services.chat_session_service import ChatSessionOperator
 from app.models.chat_message import ChatMessage
+
+def message_to_dict(message: AIMessage) -> dict:
+    """将 AIMessage 转换为可直接 JSON 序列化的字典"""
+    return {
+        "content": message.content,
+        "additional_kwargs": message.additional_kwargs,
+        "response_metadata": message.response_metadata,
+        "id": message.id,
+        "tool_calls": message.tool_calls,
+        "invalid_tool_calls": getattr(message, "invalid_tool_calls", []),
+        "usage_metadata": getattr(message, "usage_metadata", None),
+    }
 
 class AIService:
     def __init__(self):
         self.llm_normal = llm_config.get_model(streaming=True)
         self.chat_service = ChatMessageOperator()
-        self.checkpointer = create_checkpointer()
 
     async def build_history(self, session_id: int) -> list:
         history_messages = []
@@ -109,6 +121,35 @@ class AIService:
             )
             await self.chat_service.insert_chat_message(ai_msg)
 
+    async def session_topic_generator(self, user_input: str):
+        llm = llm_config.get_model()
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", agent_prompt.dialog_topic_prompt()),
+                ("user", "{query}"),
+            ]
+        )
+        chain = prompt | llm
+        response: AIMessage = await chain.ainvoke({"query": user_input})
+        data = message_to_dict(response)
+        return data
+
+    async def run_llm_task_session_topic(self, session_id: int, query: str):
+        """判断当前会话是否为新会话，如果是，则更新会话主题"""
+        chat_session_operator = ChatSessionOperator()
+
+        try:
+            chat_session = await chat_session_operator.get_chat_session_by_id(session_id)
+            logger.info(f"会话信息{chat_session}")
+            if chat_session.session_topic == "新会话":
+                session_topic = await self.session_topic_generator(query)
+                logger.info(f"会话主题生成成功：{session_topic}")
+                topic = {"session_topic": session_topic["content"]}
+                obj = await chat_session_operator.update_session(session_id, topic)
+                logger.info(f"会话主题更新：{obj}")
+
+        except Exception as e:
+            logger.error(f"会话主题更新失败：{str(e)}")
 
     async def run_chat(self, query: str, user: UserModel) -> AsyncGenerator:
         agent = AgentFactory().abuild_agent()

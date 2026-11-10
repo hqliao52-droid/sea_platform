@@ -1,9 +1,7 @@
 from celery import Celery
 
 from app.config.settings import settings
-from app.utils.logger import Logger
-
-logger = Logger.setup_logger(Logger.set_file_date())
+from app.utils.log import logger
 
 
 # 返回 RabbitMQ 连接地址

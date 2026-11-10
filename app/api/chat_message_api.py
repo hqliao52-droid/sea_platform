@@ -1,5 +1,5 @@
 import time, asyncio
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from typing import List
 from uuid import uuid4
@@ -11,9 +11,10 @@ from app.services.chat_message_service import ChatMessageOperator
 from app.schemas.chat_message.chat_message import ChatMessageSchema, ChatMsg
 from app.services.chat_session_service import ChatSessionOperator
 from app.services.news_detail_service import NewsDetailOperator
+from app.services.ai_service import ai_service
 from app.models.chat_message import ChatMessage
 from app.utils.log import logger
-from app.tasks.ai_task import run_llm_task, run_llm_task_session_topic
+from app.tasks.ai_task import run_llm_task
 from app.config.redis_config import redis_client
 
 
@@ -41,7 +42,10 @@ async def get_by_session_id(session_id: int):
 
 
 @chat_message_router.put("/insert_message")
-async def insert_message(req: ChatMsg):
+async def insert_message(
+    req: ChatMsg,
+    background_tasks: BackgroundTasks
+    ):
     """发送对话 - 写入用户消息"""
     logger.info(f"当前({datetime.now}), 用户发送文章链接：{req.news_ids}")
     task_id = str(uuid4())
@@ -85,7 +89,9 @@ async def insert_message(req: ChatMsg):
     # 发送celery任务
     req_dict = req.model_dump()
     await asyncio.to_thread(run_llm_task.delay, task_id, ai_msg.id, user_msg.id, req_dict)
-    await asyncio.to_thread(run_llm_task_session_topic.delay, req.session_id, req.query)
+    background_tasks.add_task(
+        ai_service.run_llm_task_session_topic, session_id=req.session_id, query=req.query
+    )
 
     return Result.success(data={"task_id": task_id, "ai_msg_id": ai_msg.id})
 

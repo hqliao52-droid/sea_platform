@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from app.config.rabbitMq_config import MQClient
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.utils.fetch_full_text import fetch_full_text
 from app.tasks.ai_response import llm_check_outreach_news, llm_analyze_news
 from app.services.news_service import NewsOperator
@@ -18,7 +18,6 @@ from app.models.article_storage import ArticleStorage as ArticleStorageModel
 from app.schemas.category.category import categoryBase
 
 news_detail_operator = NewsDetailOperator()
-logger = Logger.setup_logger(Logger.set_file_name("worker"))
 
 async def news_execute(entry: dict, llm_result, llm_json):
     logger.info(f"是否政策：{llm_result}")

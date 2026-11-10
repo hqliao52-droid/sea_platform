@@ -33,3 +33,4 @@ docker 一键启动会自动装配项目的基础设施：postgrate, redis, rabb
 
 用户初始账号密码：
     admin/admin123
+

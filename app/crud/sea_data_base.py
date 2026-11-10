@@ -2,8 +2,8 @@ from typing import Any, Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.utils.log import logger
 
-from app.utils.logger import Logger
 
 
 class BaseCRUD:
@@ -16,7 +16,8 @@ class BaseCRUD:
 
     def __init__(self, model):
         self.model = model
-        self.logger = Logger.setup_logger(Logger.set_file_date())
+        self.logger = logger
+
 
     async def insert(
             self, 

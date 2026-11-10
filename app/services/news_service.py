@@ -1,4 +1,4 @@
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.config.pg_config import AsyncSessionLocal
 from app.models.news_model import News
 from app.crud.data_crud.news import NewsCRUD
@@ -15,7 +15,6 @@ class NewsOperator:
     """
 
     def __init__(self):
-        self.logger = Logger.setup_logger(Logger.set_file_date())
         self.news_crud = NewsCRUD()
 
     async def get_news_by_id(self, news_id: int):
@@ -23,7 +22,7 @@ class NewsOperator:
             try:
                 return await self.news_crud.get_news_by_id(db, news_id)
             except Exception as e:
-                self.logger.error(f"查询失败:{e}")
+                logger.error(f"查询失败:{e}")
                 return None
 
     async def get_pages_news(self, page: int, page_size: int) -> list[News]:
@@ -32,7 +31,7 @@ class NewsOperator:
                 # 获取分页数据
                 return await self.news_crud.get_pages_news(db, page, page_size)
             except Exception as e:
-                self.logger.error(f"查询失败:{e}")
+                logger.error(f"查询失败:{e}")
                 return {"status": 500, "news_list": None, "total": 0}
 
     async def insert_news(self, news: News):
@@ -56,5 +55,5 @@ class NewsOperator:
 
                 return {"id": None, "status": "NotExists"}
             except Exception as e:
-                self.logger.error(f"查询失败:{e}")
+                logger.error(f"查询失败:{e}")
                 return {"id": None, "status": "fail", "error": str(e)}

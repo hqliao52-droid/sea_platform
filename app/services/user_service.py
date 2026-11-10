@@ -1,4 +1,4 @@
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.models.user_model import UserModel
 from app.crud.data_crud.user import UserCRUD
 from app.config.pg_config import AsyncSessionLocal
@@ -7,18 +7,17 @@ from app.schemas.user.user_schema import UserSchema
 
 class UserService:
     def __init__(self):
-        self.logger = Logger.setup_logger(Logger.set_file_date())
         self.user_crud = UserCRUD()
 
     async def insert_user(self, user: UserModel) -> dict:
         async with AsyncSessionLocal() as db:
             try:
-                self.logger.info("插入用户:%s", user.username)
+                logger.info("插入用户:%s", user.username)
                 user = await self.user_crud.insert(db, user)
                 await db.commit()
                 return user
             except Exception as e:
-                self.logger.error("插入用户失败:%s", str(e))
+                logger.error("插入用户失败:%s", str(e))
                 await db.rollback()
                 return None
     async def get_user_by_username(self, username: str) -> dict:
@@ -32,7 +31,7 @@ class UserService:
                 else:
                     return {"user": None, "status": "fail"}
             except Exception as e:
-                self.logger.error("查询用户失败:%s", str(e))
+                logger.error("查询用户失败:%s", str(e))
                 return {"user": None, "status": "fail"}
 
     async def verify_phone(self, phone: int) -> UserModel | None:
@@ -41,13 +40,13 @@ class UserService:
                 user = await self.user_crud.get_user_by_phone(db, phone)
                 return user
             except Exception as e:
-                self.logger.error("查询用户失败:%s", str(e))
+                logger.error("查询用户失败:%s", str(e))
                 return None
 
     async def update_user_password(self, id: int, new_password: str) -> bool:
         async with AsyncSessionLocal() as db:
             try:
-                self.logger.info("更新用户密码:%s", id)
+                logger.info("更新用户密码:%s", id)
                 updated_id = await self.user_crud.update(
                     db, id, {"password": new_password}
                 )
@@ -55,7 +54,7 @@ class UserService:
                 return updated_id
             except Exception as e:
                 await db.rollback()
-                self.logger.error("更新用户密码失败:%s", str(e))
+                logger.error("更新用户密码失败:%s", str(e))
                 return False
 
     async def get_user_by_id(self, id: int) -> UserModel | None:
@@ -67,7 +66,7 @@ class UserService:
                 else:
                     return None
             except Exception as e:
-                self.logger.error("查询用户失败:%s", str(e))
+                logger.error("查询用户失败:%s", str(e))
                 return None
 
     async def update_user(self, id: int, user_data: dict):
@@ -75,17 +74,17 @@ class UserService:
         async with AsyncSessionLocal() as db:
             try:
                 updated_id = await self.user_crud.update(db, id, user_data)
-                self.logger.info("更新用户成功:%s", updated_id)
+                logger.info("更新用户成功:%s", updated_id)
                 await db.commit()
                 return {"id": updated_id, "status": "success"}
             except Exception as e:
-                self.logger.error("更新用户失败:%s", str(e))
+                logger.error("更新用户失败:%s", str(e))
                 await db.rollback()
                 return {"id": None, "status": "fail"}
 
     async def update_user_info(self, id: int, user_data: dict):
         async with AsyncSessionLocal() as db:
-            self.logger.info("更新用户信息:%s", user_data)
+            logger.info("更新用户信息:%s", user_data)
             try:
                 user = await self.user_crud.get(db, id)
                 if not user:
@@ -97,6 +96,6 @@ class UserService:
                 await db.commit()
                 return {"user": updated, "status": "success", "msg": "更新成功"}
             except Exception as e:
-                self.logger.error("更新用户失败:%s", str(e))
+                logger.error("更新用户失败:%s", str(e))
                 await db.rollback()
                 return {"user": None, "status": "fail", "msg": f"出现异常：{str(e)}"}

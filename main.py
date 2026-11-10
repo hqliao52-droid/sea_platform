@@ -1,10 +1,12 @@
 import subprocess
 import sys
+import asyncio
 from pathlib import Path
 
 import uvicorn
 
 from app.config.settings import settings
+from app.utils.log import logger
 
 ROOT_DIR = Path(__file__).resolve().parent
 _children: list[subprocess.Popen] = []
@@ -13,7 +15,7 @@ _children: list[subprocess.Popen] = []
 def _start(name: str, cmd: list[str]) -> None:
     proc = subprocess.Popen(cmd, cwd=ROOT_DIR)
     _children.append(proc)
-    print(f"[main] {name} 已启动 (pid={proc.pid})")
+    logger.info(f"[main] {name} 已启动 (pid={proc.pid})")
 
 
 def start_background_workers() -> None:
@@ -49,6 +51,12 @@ def stop_background_workers() -> None:
 if __name__ == "__main__":
     # start_background_workers()
     try:
+        if sys.platform == "win32":
+            logger.warning(
+                "Currently platform is Windows, will entry SelectorEventLoop. \
+                \n当前平台是Windows，即将进入SelectorEventLoop！"
+            )
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         uvicorn.run(
             app="app.main:app",
             host="0.0.0.0",

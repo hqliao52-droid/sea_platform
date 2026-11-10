@@ -1,6 +1,6 @@
 from typing import Any
 
-from app.utils.logger import Logger
+from app.utils.log import logger
 from app.models.article_storage import ArticleStorage
 from app.crud.data_crud.aricle_storage import CategoryCRUD as ArticleStorageCRUD
 from app.config.pg_config import AsyncSessionLocal
@@ -8,7 +8,6 @@ from app.config.pg_config import AsyncSessionLocal
 
 class ArticleStorageService:
     def __init__(self):
-        self.logger = Logger.setup_logger(Logger.set_file_date())
         self.category_curd = ArticleStorageCRUD()
 
     async def insert_article(self, article: ArticleStorage) -> dict[Any]:
