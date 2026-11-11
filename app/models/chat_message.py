@@ -25,6 +25,7 @@ class ChatMessage(Base):
     )
     role = Column(String(16), nullable=False, comment="角色")
     content = Column(Text, nullable=False, comment="消息内容")
+    reasoning_content = Column(Text, nullable=True, comment="推理内容")
     llm_refer_data = Column(JSONB, nullable=True, comment="引用资料")
     llm_refer_data_id = Column(JSONB, nullable=True, default=None, comment="引用资料ID")
     status = Column(

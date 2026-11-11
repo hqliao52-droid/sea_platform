@@ -12,7 +12,7 @@
  Target Server Version : 160015 (160015)
  File Encoding         : 65001
 
- Date: 26/10/2026 18:37:17
+ Date: 11/11/2026 19:10:11
 */
 
 
@@ -36,7 +36,8 @@ CREATE TABLE "platform_center"."chat_message" (
   "current_user_ip_info" varchar(255) COLLATE "pg_catalog"."default" DEFAULT NULL::character varying,
   "user_feedback" varchar(500) COLLATE "pg_catalog"."default" DEFAULT NULL::character varying,
   "created_time" timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "is_deleted" int2 NOT NULL DEFAULT 0
+  "is_deleted" int2 NOT NULL DEFAULT 0,
+  "reasoning_content" text COLLATE "pg_catalog"."default"
 )
 ;
 COMMENT ON COLUMN "platform_center"."chat_message"."id" IS '消息ID';
@@ -55,6 +56,7 @@ COMMENT ON COLUMN "platform_center"."chat_message"."current_user_ip_info" IS '�
 COMMENT ON COLUMN "platform_center"."chat_message"."user_feedback" IS '用户使用反馈内容（用于后续优化模型或prompt）';
 COMMENT ON COLUMN "platform_center"."chat_message"."created_time" IS '创建时间';
 COMMENT ON COLUMN "platform_center"."chat_message"."is_deleted" IS '是否删除？ 1=是  0=否';
+COMMENT ON COLUMN "platform_center"."chat_message"."reasoning_content" IS '模型思考内容';
 COMMENT ON TABLE "platform_center"."chat_message" IS '存储用户 / LLM 的每一条消息内容';
 
 -- ----------------------------

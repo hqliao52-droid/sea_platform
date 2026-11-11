@@ -21,22 +21,11 @@ from app.services.chat_message_service import ChatMessageOperator
 from app.services.chat_session_service import ChatSessionOperator
 from app.models.chat_message import ChatMessage
 
-def message_to_dict(message: AIMessage) -> dict:
-    """将 AIMessage 转换为可直接 JSON 序列化的字典"""
-    return {
-        "content": message.content,
-        "additional_kwargs": message.additional_kwargs,
-        "response_metadata": message.response_metadata,
-        "id": message.id,
-        "tool_calls": message.tool_calls,
-        "invalid_tool_calls": getattr(message, "invalid_tool_calls", []),
-        "usage_metadata": getattr(message, "usage_metadata", None),
-    }
-
 class AIService:
     def __init__(self):
         self.llm_normal = llm_config.get_model(streaming=True)
         self.chat_service = ChatMessageOperator()
+        self.agent_factory = AgentFactory()
 
     async def build_history(self, session_id: int) -> list:
         history_messages = []
@@ -62,6 +51,7 @@ class AIService:
     async def chat_ai_test(self, request: ChatRequest, user: UserModel) -> AsyncGenerator[str, None]:
         ai_done = False
         buffer = ""
+        reasoning_content = ""
         try:
             yield SSEEvent.metadata(field="session_id", content=request.session_id)
             user_msg = ChatMessage(
@@ -72,21 +62,29 @@ class AIService:
                 message_type=1,
                 status=AIStatus.DONE.value,
             )
+            msgs = await self.build_history(request.session_id)
             # 先入库用户消息
             insert_user_msg: ChatMessage = await self.chat_service.insert_chat_message(user_msg)
-            msgs = await self.build_history(request.session_id)
             msgs.append(SystemMessage(content=agent_prompt.base_service_system_prompt()))
             msgs.append(HumanMessage(content=request.query))
-            if request.files:
-                pass
-
+            file_urls = []
+            for file in (request.files or []):
+                if not file.startswith(("http://", "https://")):
+                    raise ValueError("文件地址格式错误")
+                file_urls.append({"type": "image_url", "image_url": {"url": file}})
+            if file_urls:
+                msgs.append(HumanMessage(content=file_urls))
             prompt = ChatPromptTemplate.from_messages(msgs)
 
             chain = prompt | self.llm_normal
 
             async def text_generator() -> AsyncGenerator[str, None]:
-                nonlocal buffer
+                nonlocal buffer, reasoning_content
                 async for chunk in chain.astream({"query": request.query}):
+                    if chunk.additional_kwargs.get("reasoning_content", ""):
+                        # 思考内容存档
+                        reasoning = chunk.additional_kwargs.get("reasoning_content", "")
+                        reasoning_content += reasoning
                     if chunk.content:
                         buffer += chunk.content
                         result = json.dumps(
@@ -102,17 +100,19 @@ class AIService:
             ):
                 yield SSEEvent.delta(field="content", content=ev)
 
+            logger.info(f"chat ai推理内容: {reasoning_content}")
             logger.info(f"chat ai返回：{buffer}")
             ai_done = True
         except Exception as e:
             logger.exception(e)
             ai_done = False
-            yield SSEEvent.error(code= "500", message = "Agent 调用异常")
+            yield SSEEvent.error(code="500", message="Agent 调用异常")
         finally:
             # 持久化AI消息
             ai_msg = ChatMessage(
                 session_id=request.session_id,
                 content=buffer,
+                reasoning_content=reasoning_content,
                 role=Role.ASSISTANT.value,
                 user_id=user.id,
                 message_type=2,
@@ -120,6 +120,16 @@ class AIService:
                 pre_id=insert_user_msg.id if insert_user_msg else None
             )
             await self.chat_service.insert_chat_message(ai_msg)
+
+    def _message_to_dict(self, message: AIMessage) -> dict:
+        """将 AIMessage 转换为可直接 JSON 序列化的字典"""
+        return {
+            "content": message.content,
+            "additional_kwargs": message.additional_kwargs,
+            "response_metadata": message.response_metadata,
+            "id": message.id,
+            "usage_metadata": getattr(message, "usage_metadata", None),
+        }
 
     async def session_topic_generator(self, user_input: str):
         llm = llm_config.get_model()
@@ -131,7 +141,7 @@ class AIService:
         )
         chain = prompt | llm
         response: AIMessage = await chain.ainvoke({"query": user_input})
-        data = message_to_dict(response)
+        data = self._message_to_dict(response)
         return data
 
     async def run_llm_task_session_topic(self, session_id: int, query: str):
@@ -140,7 +150,7 @@ class AIService:
 
         try:
             chat_session = await chat_session_operator.get_chat_session_by_id(session_id)
-            logger.info(f"会话信息{chat_session}")
+            logger.info(f"会话信息: {chat_session}")
             if chat_session.session_topic == "新会话":
                 session_topic = await self.session_topic_generator(query)
                 logger.info(f"会话主题生成成功：{session_topic}")
@@ -150,9 +160,10 @@ class AIService:
 
         except Exception as e:
             logger.error(f"会话主题更新失败：{str(e)}")
+            raise e
 
-    async def run_chat(self, query: str, user: UserModel) -> AsyncGenerator:
-        agent = AgentFactory().abuild_agent()
+    async def run_chat(self, request: ChatRequest, user: UserModel) -> AsyncGenerator:
+        self.agent_factory.abuild_agent()
 
     async def stream(self) -> AsyncGenerator:
         pass
