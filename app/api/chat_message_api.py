@@ -1,5 +1,11 @@
-import time, asyncio
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, BackgroundTasks
+import asyncio
+from fastapi import (
+    APIRouter, 
+    WebSocket, 
+    WebSocketDisconnect, 
+    BackgroundTasks, 
+    Request
+)
 from fastapi.responses import StreamingResponse
 from typing import List
 from uuid import uuid4
@@ -7,8 +13,9 @@ from datetime import datetime
 
 from app.utils.result_response import Result
 from app.utils.result_response import ResultCode
-from app.services.chat_message_service import ChatMessageOperator
+from app.services.chat_message_service import ChatMessageOperator, BuildChatMessage
 from app.schemas.chat_message.chat_message import ChatMessageSchema, ChatMsg
+from app.schemas.error.error_schemas import ValidationError
 from app.services.chat_session_service import ChatSessionOperator
 from app.services.news_detail_service import NewsDetailOperator
 from app.services.ai_service import ai_service
@@ -58,30 +65,29 @@ async def insert_message(
             if news:
                 refer_data.append(news.title)
 
-    user_message = ChatMessage()
-    user_message.task_id = task_id
-    user_message.role = "user"
-    user_message.message_type = 1
-    user_message.content = req.query
-    user_message.user_id = req.user_id
-    user_message.session_id = req.session_id
-    user_message.created_time = now_time
-    user_message.llm_refer_data = refer_data or None
-    user_message.llm_refer_data_id = req.news_ids or None
-    user_message.status = "done"
-    user_msg = await chat_msg.insert_chat_message(user_message)
+    build_msg = BuildChatMessage()
+    user_msg = await chat_msg.insert_chat_message(build_msg.build_msg_data(
+            session_id=req.session_id,
+            role = "user",
+            user_id=req.user_id,
+            task_id=task_id,
+            message_type=1,
+            content=req.query,
+            llm_refer_data=refer_data,
+            llm_refer_data_id=req.news_ids,
+            status = "done"
+        ))
 
-    ai_message = ChatMessage()
-    ai_message.task_id = task_id
-    ai_message.role = "assistant"
-    ai_message.message_type = 2
-    ai_message.content = ""
-    ai_message.user_id = req.user_id
-    ai_message.pre_id = user_msg.id
-    ai_message.session_id = req.session_id
-    ai_message.status = "streaming"
-    ai_message.created_time = now_time
-    ai_msg = await chat_msg.insert_chat_message(ai_message)
+    ai_msg = await chat_msg.insert_chat_message(build_msg.build_msg_data(
+        session_id=req.session_id,
+        role = "assistant",
+        user_id=req.user_id,
+        task_id=task_id,
+        message_type=2,
+        content="",
+        pre_id=user_msg.id,
+        status = "streaming"
+    ))
 
     update_time = {"update_time": now_time}
     await chat_session.update_session(req.session_id, update_time)
@@ -150,4 +156,44 @@ async def ws_chat(websocket: WebSocket, task_id: str):
 
     except WebSocketDisconnect as e:
         logger.error(f"/ws/chat/{task_id} 轮询接口出错：{str(e)}")
-        print("客户端断开")
+    finally:
+        await websocket.close()
+
+@chat_message_router.websocket("/ws/chat_with_ai")
+async def ws_chat_with_ai(
+    websocket: WebSocket, 
+):
+    await websocket.accept()
+    try:
+        req = ChatMsg.model_validate(await websocket.receive_json())
+    except (WebSocketDisconnect, ValidationError):
+        await websocket.close(code=1008, reason="invalid ChatMsg")
+        return
+    refer_data = []
+    if req.news_ids:
+        for id in req.news_ids:
+            news = await news_detail.get_news_detail_by_id(id)
+            if news:
+                refer_data.append(news.title)
+
+    build_msg = BuildChatMessage()
+    user_msg = await chat_msg.insert_chat_message(build_msg.build_msg_data(
+            session_id=req.session_id,
+            role = "user",
+            user_id=req.user_id,
+            message_type=1,
+            content=req.query,
+            llm_refer_data=refer_data,
+            llm_refer_data_id=req.news_ids,
+            status = "done"
+        ))
+
+    try:
+        await ai_service.websocket_stream(websocket, req, websocket, user_msg.id)
+    except WebSocketDisconnect as e:
+        logger.error(f"/ws/chat_with_ai 轮询接口出错：{str(e)}")
+    finally:
+        await websocket.close()
+        now_time = datetime.now()
+        update_time = {"update_time": now_time}
+        await chat_session.update_session(req.session_id, update_time)

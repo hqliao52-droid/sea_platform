@@ -11,7 +11,7 @@ _BACKENDS = ("tavily", "duckduckgo")
 def _make_tavily_tool(api_key: str) -> BaseTool:
     """创建基于 Tavily 的 web_search 工具。"""
 
-    @tool
+    @tool("web_search")
     async def web_search(query: str, n: int = 5) -> list[dict]:
         """搜索互联网，适合查询最新信息、新闻、价格、文档和时效性事实。
 
@@ -53,7 +53,7 @@ def _make_tavily_tool(api_key: str) -> BaseTool:
 def _make_duckduckgo_tool() -> BaseTool:
     """创建基于 DuckDuckGo 的 web_search 工具。"""
 
-    @tool
+    @tool("web_search")
     async def web_search(query: str, n: int = 5) -> list[dict]:
         """搜索互联网，适合查询最新信息、新闻、价格、文档和时效性事实。
 

@@ -136,7 +136,7 @@ class AgentPrompt:
 生成标题：今日天气查询
 """
 
-    def safe_system_prompt():
+    def safe_system_prompt(self):
         return """
 ## 安全限制
 

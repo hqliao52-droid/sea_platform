@@ -36,5 +36,6 @@ class ChatMessageSchema(BaseModel):
 class ChatMsg(BaseModel):
     query: str
     user_id: int
-    session_id: int
+    session_id: Optional[int] = None
     news_ids: Optional[List[int]] = None
+    files: Optional[List[str]] = None

@@ -8,7 +8,10 @@ from json_repair import repair_json
 from starlette.responses import StreamingResponse
 from typing import AsyncGenerator, Any, Dict, Optional, List, Set
 
-def generate_id(is_uuid: bool = False, prefix: str | None = None) -> str:
+def generate_id(
+        is_uuid: bool = False, 
+        prefix: str | None = None, 
+        is_32bit: bool = False) -> str:
     """生成一个唯一的ID
     args:
         is_uuid 若为 True，则返回一个 UUID
@@ -22,10 +25,15 @@ def generate_id(is_uuid: bool = False, prefix: str | None = None) -> str:
         ts = format(time.time_ns(), "x")
         rand = uuid.uuid4().hex[:8]
         val = (ts + rand)[:32]
-        # 18d5f3a1  -  b2c3  -  d4e5  -  a1b2  -  c3d4
-        # 时间戳前8   时间戳   时间戳   随机前4   随机后4
-        result = f"{val[0:8]}-{val[8:12]}-{val[12:16]}-{val[16:20]}-{val[20:32]}"
-
+        if is_32bit:
+            if len(val) < 32:
+                val += uuid.uuid4().hex[: 32 - len(val)]
+            result = val[:32]
+        else:
+            # 18d5f3a1  -  b2c3  -  d4e5  -  a1b2  -  c3d4
+            # 时间戳前8   时间戳   时间戳   随机前4   随机后4
+            result = f"{val[0:8]}-{val[8:12]}-{val[12:16]}-{val[16:20]}-{val[20:32]}"
+            
     if prefix:
         result = f"{prefix}-{result}"
         

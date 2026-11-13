@@ -1,4 +1,6 @@
+from datetime import datetime
 from fastapi import APIRouter, Request, Body, Header, Depends
+
 from app.utils.jwt import create_access_token, hash_password, verify_password
 from app.services.user_service import UserService
 from app.utils.result_response import Result
@@ -13,10 +15,9 @@ from app.schemas.user.user_response_schema import UserResponseSchema
 from app.models.user_model import UserModel
 from app.config.redis_config import RedisConfig
 from app.core.user_deps import get_current_user
-from datetime import datetime
+from app.utils.log import logger
 
 router = APIRouter()
-
 redis = RedisConfig()
 
 
@@ -29,30 +30,29 @@ async def login(
     user_service = UserService()
     user_info = await user_service.get_user_by_username(username)
 
-    print(f"用户信息：{user_info}")
+    logger.info(f"用户信息：{user_info}")
 
-    if user_info["status"] == "fail":
+    if user_info is None:
         return Result.error(ResultCode.USER_NOT_EXIST_ERROR)
 
-    stored_user = user_info["user"]
 
-    if not verify_password(password, stored_user.password):
+    if not verify_password(password, user_info.password):
         return Result.error(ResultCode.USER_ACCOUNT_ERROR)
 
     # if password != verify_token(stored_user.password):
     #     return Result.error(ResultCode.USER_ACCOUNT_ERROR)
-    user_id = user_info["user"].id
-    print(f"用户ID：{user_id}")
+    user_id = user_info.id
+    logger.info(f"用户ID：{user_id}")
 
     ip = get_real_ip(request)
     if ip:
         update_data = {"last_login_ip": ip, "last_login_time": datetime.now()}
         await user_service.update_user(user_id, update_data)
-        stored_user.last_login_ip = ip
+        user_info.last_login_ip = ip
 
     token = create_access_token({"sub": str(user_id), "username": username})
 
-    user_response = UserResponseSchema.model_validate(stored_user)
+    user_response = UserResponseSchema.model_validate(user_info)
     return Result.success(
         data={"token": token, "token_type": "bearer", "userInfo": user_response}
     )
@@ -62,7 +62,8 @@ async def login(
 async def register(user: UserSchema, request: Request = None):
     user_service = UserService()
     user_info = await user_service.get_user_by_username(user.username)
-    if user_info["status"] == "success":
+    if user_info:
+        logger.info(f"用户已存在：{user.username}")
         return Result.error(ResultCode.USER_EXIST_ERROR)
 
     hashed_pwd = hash_password(user.password)
@@ -156,7 +157,7 @@ async def verify(req: UserInfoVerifySchema):
 
     if req.username:
         user = await user_service.get_user_by_username(req.username)
-        if user.get("user"):
+        if user:
             return Result.error(ResultCode.PARAM_ERROR, msg="注册账号已存在")
 
     return Result.success(True)

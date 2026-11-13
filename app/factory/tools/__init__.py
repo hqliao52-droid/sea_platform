@@ -31,11 +31,8 @@ def create_tool() -> list[BaseTool]:
         )
     )
 
-    tools.append(
-        _mark_safe_read_tool(image_search_tool)
-        if settings.ENABLED_IMAGES_SEARCH
-        else None
-    )
+    if settings.ENABLED_IMAGES_SEARCH:
+        tools.append(_mark_safe_read_tool(image_search_tool))
     
     tools.append(
         _mark_safe_read_tool(web_fetch)

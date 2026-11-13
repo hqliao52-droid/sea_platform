@@ -134,5 +134,33 @@ class RedisConfig:
         """
         return await self.client.exists(key_id) > 0
 
+    async def set_trace_id(
+            self, 
+            user_id: str | int | None, 
+            session_id: str | int | None, 
+            trace_id: str
+        ):
+        """设置 trace_id
+
+        Args：
+            session_id: session_id
+            trace_id: trace_id
+        """
+        return await self.set_key(f"trace_id:{user_id}:{session_id}", trace_id)
+
+    async def get_trace_id(
+            self, 
+            user_id: str | int | None, 
+            session_id: str | int | None
+        ):
+        """获取 trace_id
+
+        Args：
+            session_id: session_id
+        Returns：
+            str: trace_id
+        """
+        return await self.get_key(f"trace_id:{user_id}:{session_id}")
+
 
 redis_client = RedisConfig()

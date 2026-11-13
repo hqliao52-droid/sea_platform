@@ -116,24 +116,22 @@ class AgentFactory(BaseFactory):
         return ChatOpenAI(**kwargs)
 
 
-    async def abuild_agent(
+    def abuild_agent(
         self,
         *,
         chat_mode: str = "chat",
+        system_prompt: str | None = None,
         checkpointer: BaseCheckpointSaver | AsyncPostgresSaver | None = None,
     ) -> CompiledStateGraph:
         model = self.create()
         tools = self.tools_factory.create()
-        system_prompt = f"""
-            {agent_prompt.safe_system_prompt()}\n
-            {system_prompt}\n
-        """
+        final_prompt = f"{agent_prompt.safe_system_prompt()} \n" + system_prompt
 
         if chat_mode == "chat":
             return create_agent(
                 model=model,
                 tools=tools,
-                system_prompt=system_prompt,
+                system_prompt=final_prompt,
                 checkpointer=checkpointer,
             ).with_config({"recursion_limit": 1000})
 
