@@ -48,7 +48,7 @@ class NewsOperator:
     async def is_news_exits(self, url: str, published_at) -> dict:
         async with AsyncSessionLocal() as db:
             try:
-                result = self.news_crud.is_news_exits(db, url, published_at)
+                result = await self.news_crud.is_news_exits(db, url, published_at)
 
                 if result:
                     return {"id": result[0], "status": "exists"}
