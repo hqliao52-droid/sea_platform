@@ -140,8 +140,8 @@ class UserPushConfigCRUD(BaseCRUD):
             # 加入 relationship 集合
             config.weights.append(weight)
 
-        # 4. 加入 Session
-        await db.add(config)
+        # 4. 加入 Session（AsyncSession.add 是同步方法，不能 await）
+        db.add(config)
 
         # 5. flush:
         #    立即执行 INSERT，

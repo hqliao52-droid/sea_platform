@@ -21,7 +21,11 @@ async def crawl_all_rss_sources(url):
         news = {
             "title": title,
             "url": entry.get("link", ""),
-            "published_at": parse_rss_date(entry.get("published_at")),
+            # feedparser 里没有 published_at 这个键，取 published/updated，
+            # 否则永远拿到 None，发布时间会被兜底成“当前时间”
+            "published_at": parse_rss_date(
+                entry.get("published") or entry.get("updated")
+            ),
             "content": safe_content,
             "origin_msg": entry,
             "source": url,

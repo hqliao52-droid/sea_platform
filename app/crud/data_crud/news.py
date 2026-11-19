@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 
 from app.crud.sea_data_base import BaseCRUD
 from app.models.news_model import News
+from app.utils.time_convert import to_datetime
 
 
 class NewsCRUD(BaseCRUD):
@@ -54,14 +55,26 @@ class NewsCRUD(BaseCRUD):
             print(f"[根据id获取news失败]: {str(e)}")
             return None
 
-    async def is_news_exits(self, db: AsyncSession, url: str, published_at) -> bool:
+    async def is_news_exits(
+        self, db: AsyncSession, url: str, published_at
+    ) -> Optional[News]:
+        """
+        按 url + 发布时间判断 news 是否已存在
+
+        published_at 必须是 datetime：传字符串时 SQLAlchemy 会按 VARCHAR 绑定，
+        PostgreSQL 会报 operator does not exist: timestamp ... = character varying。
+        解析不出时间时退化为只按 url 去重。
+        """
         try:
-            stmt = select(News).filter(
-                News.url == url, News.published_at == published_at
-            )
+            filters = [News.url == url]
+
+            published_at = to_datetime(published_at)
+            if published_at is not None:
+                filters.append(News.published_at == published_at)
+
+            stmt = select(News).filter(*filters)
             result = await db.execute(stmt)
-            news = result.scalars().first()
-            return news is not None
+            return result.scalars().first()
         except Exception as e:
             print(f"[判断news是否存在失败]: {str(e)}")
-            return False
+            return None

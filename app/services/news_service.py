@@ -37,12 +37,15 @@ class NewsOperator:
     async def insert_news(self, news: News):
         async with AsyncSessionLocal() as db:
             try:
-                await db.add(news)
+                # AsyncSession.add 是同步方法，不能 await（await None 会报
+                # "object NoneType can't be used in 'await' expression"）
+                db.add(news)
                 await db.commit()
                 await db.refresh(news)
                 return {"id": news.id, "status": "success"}
             except Exception as e:
                 await db.rollback()
+                logger.error(f"news 插入失败:{e}")
                 return {"id": None, "status": "fail", "error": str(e)}
 
     async def is_news_exits(self, url: str, published_at) -> dict:
@@ -51,7 +54,7 @@ class NewsOperator:
                 result = await self.news_crud.is_news_exits(db, url, published_at)
 
                 if result:
-                    return {"id": result[0], "status": "exists"}
+                    return {"id": result.id, "status": "exists"}
 
                 return {"id": None, "status": "NotExists"}
             except Exception as e:

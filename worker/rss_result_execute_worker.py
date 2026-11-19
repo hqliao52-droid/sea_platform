@@ -12,6 +12,7 @@ from app.services.news_service import NewsOperator
 from app.services.news_detail_service import NewsDetailOperator
 from app.services.category_service import CategoryOperator
 from app.services.article_storage_service import ArticleStorageService
+from app.utils.time_convert import to_datetime
 from app.models.news_model import News
 from app.models.news_details_model import NewsDetail
 from app.models.article_storage import ArticleStorage as ArticleStorageModel
@@ -22,6 +23,10 @@ news_detail_operator = NewsDetailOperator()
 async def news_execute(entry: dict, llm_result, llm_json):
     logger.info(f"是否政策：{llm_result}")
     logger.info(f"AI 输出：{llm_json}")
+
+    # LLM 输出可能带换行/空格，也可能是 int 1，统一归一化后再判断，
+    # 避免 is_policy 标记与“是否插入详情”的判断口径不一致
+    is_policy = str(llm_result).strip() == "1"
 
     news = News()
     news_operator = NewsOperator()
@@ -36,14 +41,17 @@ async def news_execute(entry: dict, llm_result, llm_json):
     tags = [categoryBase(**tag.__dict__) for tag in categories]
     logger.info(f"当前有效分类：{tags}")
     result = None
+    article_result = None
 
     try:
         if entry:
             news.title = entry.get("title", "")
             news.url = entry.get("url") or entry.get("link")
             news.source = entry.get("source", "")
-            news.published_at = entry.get("published_at", "")
-            news.is_policy = 1 if llm_result == "1" else 0
+            # MQ 里的 published_at 是字符串（可能是 ISO 的 "2026-11-19T12:13:51.708549"），
+            # 入库前必须转成 datetime，否则 timestamp 字段会按 VARCHAR 比较/写入而报错
+            news.published_at = to_datetime(entry.get("published_at"))
+            news.is_policy = 1 if is_policy else 0
 
             # 默认值
             news.category_name = "其他"
@@ -56,7 +64,7 @@ async def news_execute(entry: dict, llm_result, llm_json):
 
             if industry:
                 for tag in tags:
-                    if industry in tag.tag_name or industry in tag.example:
+                    if industry in tag.tag_name or industry in (tag.example or ""):
                         logger.info(f"匹配成功：{tag}, 匹配对象：{industry}")
 
                         news.category_id = tag.id
@@ -84,9 +92,9 @@ async def news_execute(entry: dict, llm_result, llm_json):
             return
 
         if (
-            (llm_result == "1" or llm_result == 1)
+            is_policy
             and result is not None
-            and result["status"] == "success"
+            and result.get("status") == "success"
         ):
             logger.info("需求类数据，详情插入...")
             news_detail.news_id = result.get("id")
@@ -99,7 +107,7 @@ async def news_execute(entry: dict, llm_result, llm_json):
             news_detail.ai_origin_output = llm_json
             news_detail.summary = entry.get("summary", "")
             news_detail.origin_entry = entry
-            news_detail.published_at = entry.get("published_at", "")
+            news_detail.published_at = to_datetime(entry.get("published_at"))
 
             full_context = await fetch_full_text(entry.get("url") or entry.get("link"))
             news_detail.in_full_page = (
@@ -110,18 +118,24 @@ async def news_execute(entry: dict, llm_result, llm_json):
 
             obj = await news_detail_operator.insert_news_detail(news_detail)
 
-        if result["status"] == "success":
+        if result and result.get("status") == "success":
             logger.info(
                 {
                     "status": 200,
                     "msg": "插入成功",
                     "news_id": result["id"],
                     "news_detail": obj if obj else None,
-                    "article_id": article_result["id"],
+                    "article_id": article_result.get("id") if article_result else None,
                 }
             )
         else:
-            logger.error({"status": 500, "msg": "插入失败", "error": result["error"]})
+            logger.error(
+                {
+                    "status": 500,
+                    "msg": "插入失败",
+                    "error": (result or {}).get("error"),
+                }
+            )
 
     except Exception as e:
         logger.error({"status": 500, "msg": f"插入失败:{str(e)}"})
@@ -130,26 +144,36 @@ async def news_execute(entry: dict, llm_result, llm_json):
 async def handle_message(message):
     try:
         news_operator = NewsOperator()
-        status = await news_operator.is_news_exits(
-            message["url"], message["published_at"]
-        )
+
+        url = message.get("url") or message.get("link")
+        if not url:
+            logger.error({"status": 400, "msg": "消息缺少 url，丢弃", "message": message})
+            return
+
         logger.info(f"处理的数据 {message}")
+        status = await news_operator.is_news_exits(url, message.get("published_at"))
+
         if status["status"] == "exists":
             logger.info("数据已存在，跳过...")
             return
+        if status["status"] == "fail":
+            # 去重查询本身失败（如数据库不可用）时不要盲目插入，否则会产生重复数据
+            logger.error(f"去重查询失败，跳过本条消息: {status.get('error')}")
+            return
 
-        result = await llm_check_outreach_news(message["title"], message["content"])
+        title = message.get("title", "")
+        content = message.get("content", "")
+
+        result = await llm_check_outreach_news(title, content)
         ai_json = None
 
-        if result == "1" or result == 1:
+        if str(result).strip() == "1":
             category_operator = CategoryOperator()
             tags = await category_operator.get_category_is_active()
 
             tags_description = "\n".join(f"{t.tag_name}: {t.example}" for t in tags)
 
-            ai_json = await llm_analyze_news(
-                message["title"], message["content"], tags_description
-            )
+            ai_json = await llm_analyze_news(title, content, tags_description)
 
         await news_execute(message, result, ai_json)
     except Exception as e:
