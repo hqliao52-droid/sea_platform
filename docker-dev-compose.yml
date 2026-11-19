@@ -136,34 +136,34 @@ services:
       replicas: 1
     restart: always
 
-  celery_worker:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    container_name: sea_ai_celery
-    command: celery -A app.tasks.celery_app worker -l info
-    volumes:
-      - .:/app
-      - /app/.venv
-      - ./logs:/app/logs
-    depends_on:
-      - postgres
-      - rabbitmq
-      - redis
-    env_file:
-      - .env
-    environment:
-      TZ: Asia/Shanghai
-      PG_HOST: postgres
-      PG_PORT: 5432
-      PG_USER: ${PG_USER:-postgres}
-      PG_PASSWORD: ${PG_PASSWORD:-postgres}
-      PG_DB: ${PG_DB:-postgres}
-      REDIS_HOST: redis
-      RABBITMQ_HOST: rabbitmq
-      RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASSWORD}
-    restart: unless-stopped
+  # celery_worker:
+  #   build:
+  #     context: .
+  #     dockerfile: docker/Dockerfile
+  #   container_name: sea_ai_celery
+  #   command: celery -A app.tasks.celery_app worker -l info
+  #   volumes:
+  #     - .:/app
+  #     - /app/.venv
+  #     - ./logs:/app/logs
+  #   depends_on:
+  #     - postgres
+  #     - rabbitmq
+  #     - redis
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     TZ: Asia/Shanghai
+  #     PG_HOST: postgres
+  #     PG_PORT: 5432
+  #     PG_USER: ${PG_USER:-postgres}
+  #     PG_PASSWORD: ${PG_PASSWORD:-postgres}
+  #     PG_DB: ${PG_DB:-postgres}
+  #     REDIS_HOST: redis
+  #     RABBITMQ_HOST: rabbitmq
+  #     RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
+  #     RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASSWORD}
+  #   restart: unless-stopped
 
 volumes:
   pg_data_dev:

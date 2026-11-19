@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
@@ -7,9 +9,13 @@ from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from contextlib import asynccontextmanager
 
 from app.config.settings import settings
+from app.config.pg_config import init_db, close_db
+from app.config.langgraph_postgres import test_langgraph_postgres
+from app.config.langgraph_postgres import DATABASE_URL
+from app.config.redis_config import redis_client
+from app.utils.log import logger
 from app.api.news_api import router as news_router
 from app.api.rss_api import router as rss_router
-from app.tasks.scheduler import scheduler_task
 from app.api.news_detail_api import router as news_detail_router
 from app.api.catrgory_api import router as category_router
 from app.api.user_api import router as user_router
@@ -19,14 +25,30 @@ from app.api.chat_message_api import chat_message_router
 from app.api.user_config_api import router as user_config_router
 from app.api.email_api import router as email_router
 from app.api.llm_api import router as llm_router
-from app.config.pg_config import init_db, close_db
-from app.config.langgraph_postgres import test_langgraph_postgres
-from app.config.langgraph_postgres import DATABASE_URL
-from app.config.redis_config import redis_client
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    scheduler = None
+    if settings.RSS_SCHEDULER_ENABLED:
+        try:
+            logger.info("正在初始化定时任务...")
+            from app.core.scheduler import scheduler
+            from app.tasks.crwal_task import spider_rss
+            
+            if not scheduler.running:
+                scheduler.start()
+            asyncio.create_task(spider_rss())
+            scheduler.add_job(
+                spider_rss, 
+                'interval', 
+                minutes=30, 
+                id="sync_rss_sources_job",
+                replace_existing=True
+            )
+            logger.info("定时任务已启动")
+        except Exception as e:
+            logger.error(f"定时任务启动失败：{e}")
     try:
         async with AsyncPostgresSaver.from_conn_string(
             DATABASE_URL
@@ -35,10 +57,20 @@ async def lifespan(app: FastAPI):
             app.state.checkpointer = checkpointer
             yield
     finally:
+        logger.info("应用正在关闭，开始清理资源...")
+        if settings.RSS_SCHEDULER_ENABLED:
+            from app.core.scheduler import scheduler
+            if scheduler.running:
+                scheduler.shutdown(wait=False)
+                logger.info("调度器已安全关闭！")
         try:
             await close_db()
         finally:
             await redis_client.close()
+        logger.info("资源清理完毕。")
+
+    
+
 
 app = FastAPI(
     title=settings.APP_NAME, 
@@ -60,7 +92,6 @@ app.include_router(user_config_router, prefix="/userConfig", tags=["用户配置
 app.include_router(email_router, prefix="/email", tags=["邮件接口"])
 app.include_router(llm_router, prefix="/llm", tags=["AI对话"])
 
-app.include_router(scheduler_task, tags=["定时任务"])
 
 
 @app.get("/health")

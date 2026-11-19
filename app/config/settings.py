@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     QDRANT_PORT: int = 6333
     QDRANT_API_KEY: str | None = None
 
+    RSS_SCHEDULER_ENABLED: bool | bool = False
+
     #  ==================
     #  通用 agent 配置
     #  ==================

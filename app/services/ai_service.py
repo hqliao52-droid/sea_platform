@@ -22,8 +22,10 @@ from app.schemas.enum.ai_status import AIStatus, Role
 from app.schemas.chat_message.chat_message import ChatMsg
 from app.services.chat_message_service import ChatMessageOperator, BuildChatMessage
 from app.services.chat_session_service import ChatSessionOperator
+from app.services.news_detail_service import NewsDetailOperator
 from app.models.chat_message import ChatMessage
 from app.models.user_model import UserModel
+from app.models.news_details_model import NewsDetail
 from app.utils.log import logger
 from app.utils.utils import extract_content_stream, generate_id, SSEEvent
 
@@ -169,12 +171,20 @@ class AIService:
             raise e
 
     async def websocket_stream(self, websocket: WebSocket, request: ChatMsg, app: Request, user_id: int) -> None:
+        news_detail = NewsDetailOperator()
         if request.session_id:
             await self.run_llm_task_session_topic(request.session_id, request.query)
         else:
             session = await self.chat_session_operator.new_session(request.user_id)
             self.trace_id = generate_id(is_32bit=True)
             await redis_client.set_trace_id(request.user_id, session.id, self.trace_id)
+        refer_data: list[NewsDetail] = []
+        if request.news_ids:
+            for id in request.news_ids:
+                news = await news_detail.get_news_detail_by_id(id)
+                logger.info(f"用户当前引用的文章{news.title}")
+                refer_data.append(news)
+                
         history_msgs = await self.build_history(request.session_id, request.files)
         system_prompt = agent_prompt.base_service_system_prompt()
         history_msgs.append(HumanMessage(content=request.query))
@@ -187,22 +197,23 @@ class AIService:
             async def generator() -> AsyncGenerator[dict, None]:
                 async for chunk in self.run_chat(messages, system_prompt, app.app.state.checkpointer):
                     yield chunk
+
             async for ev in generator():
                 json_chunk = json.dumps(ev, ensure_ascii=False)
-                if json_chunk["status"] == "streaming":
+                if json_chunk["status"] == "[STREAMING]":
                     await websocket.send_json(json_chunk)
-                elif json_chunk["status"] == "done":
+                elif json_chunk["status"] == "[DONE]":
                     await chat_msg.insert_chat_message(build_msg.build_msg_data(
                         session_id=request.session_id,
-                        role = "assistant",
+                        role="assistant",
                         user_id=user_id,
                         message_type=2,
-                        content="",
+                        content=json_chunk["content"],
                         pre_id=user_id,
-                        status = "streaming"
+                        status="streaming"
                     ))
         except Exception as e:
-            logger.exception(e)
+            logger.exception(str(e))
         
 
     async def test_chat(self, request: ChatMsg, app: Request):
@@ -224,10 +235,10 @@ class AIService:
                 async for chunk in self.run_chat(messages, system_prompt, app.app.state.checkpointer):
                     yield chunk
             except Exception as e:
-                logger.exception(e)
+                logger.exception(str(e))
                 yield SSEEvent.error(code="500", message="Agent 异常")
         except Exception as e:
-            logger.exception(e)
+            logger.exception(str(e))
             await self.run_llm_task_session_topic(request.session_id, request.query)
             yield SSEEvent.error(code="500", message="Agent 异常")
 
@@ -286,26 +297,26 @@ class AIService:
                             "content": content,
                             "trace_id": self.trace_id,
                             "usage_metadata": usage_data,
-                            "status": "streaming"
+                            "status": "[STREAMING]"
                         }
                         yield result
                     except Exception as e:
-                        logger.exception(e)
+                        logger.exception(str(e))
                 logger.info({
                     "final_content": final_content,
                     "usage_metadata": usage_data,
                     "trace_id": self.trace_id
                 })
         except Exception as e:
-            logger.exception(e)
+            logger.exception(str(e))
             yield {
-                "status": "error",
+                "status": "[ERROR]",
                 "content": final_content,
                 "trace_id": self.trace_id
             }
         finally:
             yield {
-                "status": "done",
+                "status": "[DONE]",
                 "content": final_content,
                 "trace_id": self.trace_id
             }

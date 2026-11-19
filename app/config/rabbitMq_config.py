@@ -1,11 +1,17 @@
 import json
 import aio_pika
 import asyncio
+from datetime import datetime, date
 
 from aio_pika import Message, connect_robust
 
 from app.config.settings import settings
 
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        return super().default(obj)
 
 class MQClient:
     _instance = None
@@ -49,7 +55,7 @@ class MQClient:
         if self.channel is None or self.channel.is_closed:
             await self.connect()
 
-        body = json.dumps(message, ensure_ascii=False).encode()
+        body = json.dumps(message, ensure_ascii=False, cls=DateTimeEncoder).encode()
         # 消息持久化
         msg = Message(body,delivery_mode=aio_pika.DeliveryMode.PERSISTENT)
 
@@ -66,7 +72,7 @@ class MQClient:
         queue = await self.channel.declare_queue(self.queue_name, durable=True)
 
         async def _handler(message: aio_pika.IncomingMessage):
-            async with message.process(requeue_on_error=True):
+            async with message.process(requeue=True, reject_on_redelivered=True):
                 try:
                     body = message.body.decode()
                     msg_dict = json.loads(body)

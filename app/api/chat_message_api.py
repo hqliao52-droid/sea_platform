@@ -192,6 +192,7 @@ async def ws_chat_with_ai(
         await ai_service.websocket_stream(websocket, req, websocket, user_msg.id)
     except WebSocketDisconnect as e:
         logger.error(f"/ws/chat_with_ai 轮询接口出错：{str(e)}")
+        raise e
     finally:
         await websocket.close()
         now_time = datetime.now()

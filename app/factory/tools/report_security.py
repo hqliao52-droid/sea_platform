@@ -27,8 +27,6 @@ def report_security_event(
     危险 shell 命令、凭据窃取、沙箱逃逸、攻击利用或其他高风险行为时调用。
     该工具只负责上报安全事件，不负责执行封号。
     """
-
-
     logger.error(f"Report security event: {violation_type} {user_prompt}")
     # TODO: 上报安全事件 到后端 禁用还是封号限流处理
     return "security_event_reported"
