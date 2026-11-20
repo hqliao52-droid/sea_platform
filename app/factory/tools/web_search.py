@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 
 from langchain_core.tools import BaseTool, tool
 
@@ -29,9 +30,14 @@ def _make_tavily_tool(api_key: str) -> BaseTool:
             ) from exc
 
         logger.debug('Tavily search: "{}" (n={})', query, n)
+        # 注意：TavilySearchAPIRetriever 的字段名是 api_key（不是 tavily_api_key），
+        # 而 LangChain 的 BaseModel 配置为 extra="ignore"，写成 tavily_api_key 会被
+        # 静默丢弃，导致回落到 os.environ["TAVILY_API_KEY"] 并抛 KeyError。
+        # .env 只被 pydantic-settings 读进 Settings，不会写入 os.environ，故这里兜底一次。
+        os.environ.setdefault("TAVILY_API_KEY", api_key)
         retriever = TavilySearchAPIRetriever(
             k=n,
-            tavily_api_key=api_key,
+            api_key=api_key,
         )
         loop = asyncio.get_running_loop()
         docs = await loop.run_in_executor(None, retriever.invoke, query)

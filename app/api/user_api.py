@@ -130,9 +130,7 @@ async def update_password(
     if not result:
         return Result.error(ResultCode.SYSTEM_ERROR)
 
-    """
-    密码修改成功后，将当前Token加入黑名单
-    """
+    # 密码修改成功后，将当前Token加入黑名单
     if authorization:
         token = authorization.replace("Bearer ", "")
         await redis.add_black_list_token(token)

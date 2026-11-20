@@ -53,6 +53,7 @@ dependencies = [
     "redis==5.0.8",
     "sqlalchemy==2.0.35",
     "sse-starlette==3.0.3",
+    "tavily-python>=0.8.5",
     "tqdm==4.66.5",
     "uvicorn[standard]==0.30.6",
 ]

@@ -5,7 +5,6 @@ from langchain.messages import (
     AIMessage,
     HumanMessage,
     SystemMessage,
-    ToolMessage,
     AIMessageChunk
 )
 from fastapi import WebSocket, Request
@@ -14,6 +13,7 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from app.factory.agent.agent_factory import AgentFactory
 from app.factory.callback.langfuse_callback import set_langfuse_client, get_trace_id, set_trace_id
+from app.factory.tools.saved_news import search_saved_news, check_news_length_or_summary
 from app.config.llm_config import llm_config
 from app.config.redis_config import redis_client
 from app.rag.prompt.agent_prompt import prompt as agent_prompt
@@ -171,23 +171,18 @@ class AIService:
             raise e
 
     async def websocket_stream(self, websocket: WebSocket, request: ChatMsg, app: Request, user_id: int) -> None:
-        news_detail = NewsDetailOperator()
         if request.session_id:
             await self.run_llm_task_session_topic(request.session_id, request.query)
         else:
             session = await self.chat_session_operator.new_session(request.user_id)
             self.trace_id = generate_id(is_32bit=True)
             await redis_client.set_trace_id(request.user_id, session.id, self.trace_id)
-        refer_data: list[NewsDetail] = []
+        user_query = request.query
         if request.news_ids:
-            for id in request.news_ids:
-                news = await news_detail.get_news_detail_by_id(id)
-                logger.info(f"用户当前引用的文章{news.title}")
-                refer_data.append(news)
-                
+            user_query += f"【引用了几篇材料：ids={request.news_ids}】"
         history_msgs = await self.build_history(request.session_id, request.files)
         system_prompt = agent_prompt.base_service_system_prompt()
-        history_msgs.append(HumanMessage(content=request.query))
+        history_msgs.append(HumanMessage(content=user_query))
         messages = {
             "messages": history_msgs
         }
@@ -195,14 +190,14 @@ class AIService:
         chat_msg = ChatMessageOperator()
         try:
             async def generator() -> AsyncGenerator[dict, None]:
-                async for chunk in self.run_chat(messages, system_prompt, app.app.state.checkpointer):
+                async for chunk in self.run_chat(messages, system_prompt, app.app.state.checkpointer, has_other_tools=True):
                     yield chunk
 
             async for ev in generator():
                 json_chunk = json.dumps(ev, ensure_ascii=False)
-                if json_chunk["status"] == "[STREAMING]":
+                if json_chunk["status"] == AIStatus.GENERATING.value:
                     await websocket.send_json(json_chunk)
-                elif json_chunk["status"] == "[DONE]":
+                elif json_chunk["status"] in (AIStatus.DONE.value, AIStatus.EXCEPTION.value):
                     await chat_msg.insert_chat_message(build_msg.build_msg_data(
                         session_id=request.session_id,
                         role="assistant",
@@ -210,21 +205,21 @@ class AIService:
                         message_type=2,
                         content=json_chunk["content"],
                         pre_id=user_id,
-                        status="streaming"
+                        status=AIStatus.DONE.value if json_chunk["status"] == AIStatus.DONE.value else AIStatus.EXCEPTION.value
                     ))
         except Exception as e:
             logger.exception(str(e))
         
 
-    async def test_chat(self, request: ChatMsg, app: Request):
+    async def test_chat(self, request: ChatMsg, app: Request, user: UserModel):
         try:
             if request.session_id:
-                self.trace_id = await get_trace_id(request.user_id, request.session_id)
+                self.trace_id = await get_trace_id(user.id, request.session_id)
             else:
-                session = await self.chat_session_operator.new_session(request.user_id)
+                session = await self.chat_session_operator.new_session(user.id)
                 self.trace_id = generate_id(is_32bit=True)
                 request.session_id = session.id
-                await redis_client.set_trace_id(request.user_id, session.id, self.trace_id)
+                await redis_client.set_trace_id(user.id, session.id, self.trace_id)
             history_msgs = await self.build_history(request.session_id, request.files)
             system_prompt = agent_prompt.base_service_system_prompt()
             history_msgs.append(HumanMessage(content=request.query))
@@ -232,7 +227,7 @@ class AIService:
                 "messages": history_msgs
             }
             try:
-                async for chunk in self.run_chat(messages, system_prompt, app.app.state.checkpointer):
+                async for chunk in self.run_chat(messages, system_prompt, app.app.state.checkpointer, has_other_tools=True):
                     yield chunk
             except Exception as e:
                 logger.exception(str(e))
@@ -246,13 +241,16 @@ class AIService:
             self, 
             messages: dict, 
             system_prompt: str, 
-            checkpointer: BaseCheckpointSaver | AsyncPostgresSaver | None = None
+            checkpointer: BaseCheckpointSaver | AsyncPostgresSaver | None = None,
+            has_other_tools: bool = False
         ) -> AsyncGenerator:
         try:
+            additional_tools = [search_saved_news, check_news_length_or_summary]
             agent = self.agent_factory.abuild_agent(
                 chat_mode="chat", 
                 system_prompt=system_prompt, 
-                checkpointer=checkpointer
+                checkpointer=checkpointer,
+                additional_tools=additional_tools if has_other_tools else []
             )
             agent_config: dict[str, Any] = {
                 "callbacks": self.langfuse_handler,
@@ -265,58 +263,70 @@ class AIService:
             }
             final_content = ""
             usage_data = {}
+            tool_acc: AIMessageChunk | None = None
+            tool_acc_id: str | None = None
             async for stream_mode, chunk in agent.astream(
                 messages, 
                 config=agent_config,
                 stream_mode=["messages", "custom"]
             ):
-                if chunk and isinstance(chunk, tuple):
-                    chunk_msg = chunk[0]
-                    if stream_mode == "custom":
-                        role = "custom"
-                    else:
-                        match chunk_msg:
-                            case AIMessageChunk():
-                                role = "assistant"
-                            case ToolMessage():
-                                role = "tools"
-                            case _:
-                                role = "unknown"
-                    try:
+                if not (chunk and isinstance(chunk, tuple)):
+                    continue
+
+                chunk_msg = chunk[0]
+                match chunk_msg:
+                    case AIMessageChunk():
+                        if tool_acc_id != chunk_msg.id:
+                            tool_acc, tool_acc_id = chunk_msg, chunk_msg.id
+                        else:
+                            tool_acc = tool_acc + chunk_msg
+                        role = Role.ASSISTANT.value
+                        reasoning = chunk_msg.additional_kwargs.get("reasoning_content")
+                        if reasoning:
+                            yield {
+                                "role": role,
+                                "content": chunk_msg.additional_kwargs.get("reasoning_content"),
+                                "trace_id": self.trace_id,
+                                "usage_metadata": usage_data,
+                                "status": AIStatus.ANALYZING.value
+                            }
+                            continue
+                        if chunk_msg.chunk_position == "last" and tool_acc.tool_calls:
+                            for tc in tool_acc.tool_calls:
+                                yield {
+                                    "role": Role.TOOLS.value,
+                                    "content": "",
+                                    "tool_calls": [{"id": tc["id"], "name": tc["name"], "args": tc["args"]}],
+                                    "trace_id": self.trace_id,
+                                    "usage_metadata": usage_data,
+                                    "status": AIStatus.RETRIEVING.value
+                                }
+                            continue
                         content = chunk_msg.content
                         usage_data = getattr(chunk_msg, "usage_metadata", {})
                         
                         if role == "assistant":
                             final_content += content
-                        elif role == "tools":
-                            pass
-                        else:
-                            pass
                         result = {
                             "role": role,
                             "content": content,
                             "trace_id": self.trace_id,
                             "usage_metadata": usage_data,
-                            "status": "[STREAMING]"
+                            "status": AIStatus.GENERATING.value
                         }
                         yield result
-                    except Exception as e:
-                        logger.exception(str(e))
-                logger.info({
-                    "final_content": final_content,
-                    "usage_metadata": usage_data,
-                    "trace_id": self.trace_id
-                })
+                    case _:
+                        role = "unknown"
         except Exception as e:
             logger.exception(str(e))
             yield {
-                "status": "[ERROR]",
+                "status": AIStatus.EXCEPTION.value,
                 "content": final_content,
                 "trace_id": self.trace_id
             }
         finally:
             yield {
-                "status": "[DONE]",
+                "status": AIStatus.DONE.value,
                 "content": final_content,
                 "trace_id": self.trace_id
             }

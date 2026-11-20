@@ -27,7 +27,7 @@ async def stream_response(
         if session is not None:
             request.session_id = session.id
 
-    llm = ai_service.test_chat(request, app)
+    llm = ai_service.test_chat(request, app, user)
     return SSEStream.create_response(llm)
 
 

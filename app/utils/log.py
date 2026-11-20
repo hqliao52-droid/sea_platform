@@ -55,7 +55,7 @@ class LoguruLoggerManager:
         )
 
         self.logger.add(
-            sys.stdout, 
+            access_log_dir / f"{self.set_file_name("debug")}.log",
             format=color_format, 
             level="DEBUG", 
             colorize=None,

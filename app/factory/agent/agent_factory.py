@@ -122,9 +122,12 @@ class AgentFactory(BaseFactory):
         chat_mode: str = "chat",
         system_prompt: str | None = None,
         checkpointer: BaseCheckpointSaver | AsyncPostgresSaver | None = None,
+        additional_tools: list[Any] | None = None,
     ) -> CompiledStateGraph:
         model = self.create()
         tools = self.tools_factory.create()
+        if additional_tools:
+            tools.extend(additional_tools)
         final_prompt = f"{agent_prompt.safe_system_prompt()} \n" + system_prompt
 
         if chat_mode == "chat":
@@ -146,7 +149,7 @@ class AgentFactory(BaseFactory):
         kwargs: dict = {
             "model": model,
             "tools": tools,
-            "system_prompt": system_prompt,
+            "system_prompt": final_prompt,
             "subagents": subagents,
             "middleware": middlewares,
             "checkpointer": checkpointer,
