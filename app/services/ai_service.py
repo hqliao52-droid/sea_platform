@@ -210,6 +210,7 @@ class AIService:
             has_other_tools: bool = False,
             trace_id: str | None = None,
         ) -> AsyncGenerator:
+        final_content = ""
         try:
             additional_tools = [search_saved_news, check_news_length_or_summary]
             agent = self.agent_factory.abuild_agent(
@@ -227,7 +228,6 @@ class AIService:
                     "thread_id": trace_id
                 }
             }
-            final_content = ""
             usage_data = {}
             tool_acc: AIMessageChunk | None = None
             tool_acc_id: str | None = None
