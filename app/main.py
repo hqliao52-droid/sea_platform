@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,6 +10,7 @@ from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from contextlib import asynccontextmanager
 
 from app.config.settings import settings
+from app.config.file_config import file_config
 from app.config.pg_config import init_db, close_db
 from app.config.langgraph_postgres import test_langgraph_postgres
 from app.config.langgraph_postgres import DATABASE_URL
@@ -104,8 +106,22 @@ async def health_check():
         }
 
 # FastAPI 默认是不能访问本地文件的，需要加上静态文件访问
-app.mount("/attach", StaticFiles(directory="attach"), name="attach")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# git 不跟踪空目录，新克隆/新部署的环境里 attach 可能不存在，StaticFiles 会直接抛
+# RuntimeError: Directory 'attach' does not exist，导致进程启动即崩溃，所以这里先建好目录
+for _dir in (
+    file_config.ATTACH_DIR,
+    file_config.IMAGE_DIR,
+    file_config.DOC_DIR,
+    file_config.VIDEO_DIR,
+    file_config.AUDIO_DIR,
+    file_config.OTHER_DIR,
+    file_config.APP_DIR,
+    file_config.BASE_DIR / "static",
+):
+    Path(_dir).mkdir(parents=True, exist_ok=True)
+
+app.mount("/attach", StaticFiles(directory=str(file_config.ATTACH_DIR)), name="attach")
+app.mount("/static", StaticFiles(directory=str(file_config.BASE_DIR / "static")), name="static")
 
 @app.get("/docs-cn", include_in_schema=False)
 async def custom_swagger_ui_html():
