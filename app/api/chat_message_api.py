@@ -166,8 +166,10 @@ async def ws_chat_with_ai(
     await websocket.accept()
     try:
         req = ChatMsg.model_validate(await websocket.receive_json())
+        logger.info(f"当前({datetime.now()}), 用户请求：{req}")
     except (WebSocketDisconnect, ValidationError):
         await websocket.close(code=1008, reason="invalid ChatMsg")
+        logger.error(f"当前({datetime.now()}), 用户请求失败：{req}")
         return
 
     try:
