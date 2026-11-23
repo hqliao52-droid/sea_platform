@@ -42,6 +42,11 @@ def generate_id(
 def load_json(content):
     if content is None:
         return None
+    # 已经是 dict / list 等结构化数据时直接返回。
+    # json5.loads / repair_json 只接受 str，传入 Python 对象会抛
+    # KeyError(0) 或 JSONDecodeError，导致调用方在解析"已经解析好的数据"时崩溃。
+    if not isinstance(content, (str, bytes, bytearray)):
+        return content
     try:
         if "```json" in content:
             r_content = content.replace("```json", "```")
