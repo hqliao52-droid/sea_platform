@@ -138,7 +138,11 @@ class AIService:
 
             async for ev in generator():
                 json_chunk = load_json(ev)
-                if json_chunk.get("status") == AIStatus.GENERATING.value:
+                if json_chunk.get("status") in (
+                    AIStatus.GENERATING.value, 
+                    AIStatus.ANALYZING.value, 
+                    AIStatus.RETRIEVING.value
+                ):
                     await websocket.send_json(json_chunk)
                 elif json_chunk.get("status") == AIStatus.DONE.value:
                     final_content = json_chunk.get("final_content", "") 
