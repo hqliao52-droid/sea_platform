@@ -169,27 +169,9 @@ async def ws_chat_with_ai(
     except (WebSocketDisconnect, ValidationError):
         await websocket.close(code=1008, reason="invalid ChatMsg")
         return
-    refer_data = []
-    if req.news_ids:
-        for id in req.news_ids:
-            news = await news_detail.get_news_detail_by_id(id)
-            if news:
-                refer_data.append(news.title)
-
-    build_msg = BuildChatMessage()
-    user_msg = await chat_msg.insert_chat_message(build_msg.build_msg_data(
-            session_id=req.session_id,
-            role = "user",
-            user_id=req.user_id,
-            message_type=1,
-            content=req.query,
-            llm_refer_data=refer_data,
-            llm_refer_data_id=req.news_ids,
-            status = "done"
-        ))
 
     try:
-        await ai_service.websocket_stream(websocket, req, websocket, user_msg.id)
+        await ai_service.websocket_stream(websocket, req, websocket)
     except WebSocketDisconnect as e:
         logger.error(f"/ws/chat_with_ai 轮询接口出错：{str(e)}")
         raise e

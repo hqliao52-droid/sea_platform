@@ -89,7 +89,7 @@ class AIService:
             logger.error(f"会话主题更新失败：{str(e)}")
             raise e
 
-    async def websocket_stream(self, websocket: WebSocket, request: ChatMsg, app: Request, user_id: int) -> None:
+    async def websocket_stream(self, websocket: WebSocket, request: ChatMsg, app: Request) -> None:
         build_msg = BuildChatMessage()
         chat_msg = ChatMessageOperator()
         session_id = ""
@@ -159,7 +159,7 @@ class AIService:
                 build_msg.build_msg_data(
                     session_id=session_id,
                     role=Role.ASSISTANT.value,
-                    user_id=user_id,
+                    user_id=user_msg.user_id,
                     message_type=MsgType.ASSISTANT.value,
                     content=final_content,
                     pre_id=user_msg.id,
