@@ -153,12 +153,8 @@ async def handle_message(message):
         logger.info(f"处理的数据 {message}")
         status = await news_operator.is_news_exits(url, message.get("published_at"))
 
-        if status["status"] == "exists":
+        if status:
             logger.info("数据已存在，跳过...")
-            return
-        if status["status"] == "fail":
-            # 去重查询本身失败（如数据库不可用）时不要盲目插入，否则会产生重复数据
-            logger.error(f"去重查询失败，跳过本条消息: {status.get('error')}")
             return
 
         title = message.get("title", "")

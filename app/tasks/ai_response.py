@@ -9,7 +9,10 @@ async def llm_check_outreach_news(title: str, content: str) -> dict:
     llm_prompt = AgentPrompt.system_prompt_polic_judge()
     # Prompt
     prompt = ChatPromptTemplate.from_messages(
-        [("system", llm_prompt), ("user", "标题：{title}\n内容：{content}")]
+        [
+            ("system", llm_prompt), 
+            ("user", "标题：{title}\n内容：{content}")
+        ]
     )
 
     # 组装流水线
@@ -19,7 +22,7 @@ async def llm_check_outreach_news(title: str, content: str) -> dict:
     return await chain.ainvoke({"title": title, "content": content})
 
 
-async def llm_analyze_news(title: str, content: str, tags_description) -> dict:
+async def llm_analyze_news(title: str, content: str, tags_description: str) -> dict:
     parser = JsonOutputParser(pydantic_object=NewsAnalysis)
     llm_prompt = AgentPrompt.system_prompt_news_summarize()
     prompt = ChatPromptTemplate.from_messages(

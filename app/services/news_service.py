@@ -48,15 +48,15 @@ class NewsOperator:
                 logger.error(f"news 插入失败:{e}")
                 return {"id": None, "status": "fail", "error": str(e)}
 
-    async def is_news_exits(self, url: str, published_at) -> dict:
+    async def is_news_exits(self, url: str, published_at) -> bool:
         async with AsyncSessionLocal() as db:
             try:
                 result = await self.news_crud.is_news_exits(db, url, published_at)
 
                 if result:
-                    return {"id": result.id, "status": "exists"}
+                    return True
 
-                return {"id": None, "status": "NotExists"}
+                return False
             except Exception as e:
                 logger.error(f"查询失败:{e}")
-                return {"id": None, "status": "fail", "error": str(e)}
+                return False

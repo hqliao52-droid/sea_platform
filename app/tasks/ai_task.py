@@ -10,7 +10,6 @@ from app.utils.log import logger
 from app.rag.status_node.chat_node import ChatNode
 
 
-
 @celery_app.task(bind=True, name="ai.run_llm_task")
 async def run_llm_task(self, task_id: str, ai_msg_id: str, user_dialog_id, req: dict):
     """

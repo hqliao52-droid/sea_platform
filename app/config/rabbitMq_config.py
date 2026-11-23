@@ -6,6 +6,7 @@ from datetime import datetime, date
 from aio_pika import Message, connect_robust
 
 from app.config.settings import settings
+from app.utils.log import logger
 
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -78,15 +79,15 @@ class MQClient:
                     msg_dict = json.loads(body)
                     await callback(msg_dict)
                 except Exception as e:
-                    print(f"Error processing message: {e}")
+                    logger.info(f"Error processing message: {e}")
                     # 重新入队
                     raise
 
         await queue.consume(_handler)
-        print("MQ consumer started...")
+        logger.info("MQ consumer started...")
 
         try:
             await asyncio.Future()
         except Exception as e:
-            print(f"Error closing connection: {e}")
+            logger.info(f"Error closing connection: {e}")
             await self.connection.close()

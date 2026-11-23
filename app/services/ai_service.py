@@ -12,13 +12,14 @@ from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from app.factory.agent.agent_factory import AgentFactory
-from app.factory.callback.langfuse_callback import set_langfuse_client, get_trace_id, set_trace_id
+from app.factory.callback.langfuse_callback import set_langfuse_client, get_trace_id
 from app.factory.tools.saved_news import search_saved_news, check_news_length_or_summary
+from app.utils.utils import load_json
 from app.config.llm_config import llm_config
 from app.config.redis_config import redis_client
 from app.rag.prompt.agent_prompt import prompt as agent_prompt
 from app.schemas.request.chat_request import ChatRequest
-from app.schemas.enum.ai_status import AIStatus, Role
+from app.schemas.enum.ai_status import AIStatus, Role, MsgType
 from app.schemas.chat_message.chat_message import ChatMsg
 from app.services.chat_message_service import ChatMessageOperator, BuildChatMessage
 from app.services.chat_session_service import ChatSessionOperator
@@ -36,27 +37,11 @@ class AIService:
         self.agent_factory = AgentFactory()
         self.chat_session_operator = ChatSessionOperator()
         self.langfuse_handler = [set_langfuse_client()]
-        self.trace_id = None
 
-    async def build_history(self, session_id: int, files: list[str]) -> list:
+    async def build_history(self, user_query: str | None, files: list[str] | None) -> list:
         history_messages = []
-        msgs = await self.chat_service.get_chat_message_by_session_id(session_id)
-        for item in msgs:
-            msg = item.content
-            role = item.role
-
-            if not msg:
-                continue
-            match role:
-                case "user":
-                    history_messages.append(HumanMessage(msg))
-                case "assistant":
-                    history_messages.append(AIMessage(msg))
-                case "system":
-                    history_messages.append(SystemMessage(msg))
-                case _:
-                    continue
-
+        if user_query:
+            history_messages.append(HumanMessage(content=user_query))
         file_urls = []
         for file in (files or []):
             if not file.startswith(("http://", "https://")):
@@ -65,72 +50,6 @@ class AIService:
         if file_urls:
             history_messages.append(HumanMessage(content=file_urls))
         return history_messages
-
-    async def chat_ai_test(self, request: ChatRequest, user: UserModel) -> AsyncGenerator[str, None]:
-        ai_done = False
-        buffer = ""
-        reasoning_content = ""
-        try:
-            yield SSEEvent.metadata(field="session_id", content=request.session_id)
-            user_msg = ChatMessage(
-                session_id=request.session_id,
-                content=request.query,
-                role=Role.USER.value,
-                user_id=user.id,
-                message_type=1,
-                status=AIStatus.DONE.value,
-            )
-            msgs = await self.build_history(request.session_id, request.files)
-            # 先入库用户消息
-            insert_user_msg: ChatMessage = await self.chat_service.insert_chat_message(user_msg)
-            msgs.append(SystemMessage(content=agent_prompt.base_service_system_prompt()))
-            msgs.append(HumanMessage(content=request.query))
-            prompt = ChatPromptTemplate.from_messages(msgs)
-
-            chain = prompt | self.llm_normal
-
-            async def text_generator() -> AsyncGenerator[str, None]:
-                nonlocal buffer, reasoning_content
-                async for chunk in chain.astream({"query": request.query}):
-                    if chunk.additional_kwargs.get("reasoning_content", ""):
-                        # 思考内容存档
-                        reasoning = chunk.additional_kwargs.get("reasoning_content", "")
-                        reasoning_content += reasoning
-                    if chunk.content:
-                        buffer += chunk.content
-                        result = json.dumps(
-                            {
-                                "content": chunk.content,
-                            },
-                            ensure_ascii=False,
-                        )
-                        yield result
-
-            async for ev in extract_content_stream(
-                text_generator(),
-            ):
-                yield SSEEvent.delta(field="content", content=ev)
-
-            logger.info(f"chat ai推理内容: {reasoning_content}")
-            logger.info(f"chat ai返回：{buffer}")
-            ai_done = True
-        except Exception as e:
-            logger.exception(e)
-            ai_done = False
-            yield SSEEvent.error(code="500", message="Agent 调用异常")
-        finally:
-            # 持久化AI消息
-            ai_msg = ChatMessage(
-                session_id=request.session_id,
-                content=buffer,
-                reasoning_content=reasoning_content,
-                role=Role.ASSISTANT.value,
-                user_id=user.id,
-                message_type=2,
-                status=AIStatus.DONE.value if ai_done else AIStatus.EXCEPTION.value,
-                pre_id=insert_user_msg.id if insert_user_msg else None
-            )
-            await self.chat_service.insert_chat_message(ai_msg)
 
     def _message_to_dict(self, message: AIMessage) -> dict:
         """将 AIMessage 转换为可直接 JSON 序列化的字典"""
@@ -171,63 +90,105 @@ class AIService:
             raise e
 
     async def websocket_stream(self, websocket: WebSocket, request: ChatMsg, app: Request, user_id: int) -> None:
+        build_msg = BuildChatMessage()
+        chat_msg = ChatMessageOperator()
+        session_id = ""
+        trace_id = None
         if request.session_id:
-            await self.run_llm_task_session_topic(request.session_id, request.query)
+            session_id = request.session_id
+            trace_id = await get_trace_id(request.user_id, request.session_id)
         else:
             session = await self.chat_session_operator.new_session(request.user_id)
-            self.trace_id = generate_id(is_32bit=True)
-            await redis_client.set_trace_id(request.user_id, session.id, self.trace_id)
+            session_id = session.id
+            trace_id = generate_id(is_32bit=True)
+            await redis_client.set_trace_id(request.user_id, session.id, trace_id)
+
+        user_msg = await chat_msg.insert_chat_message(
+            build_msg.build_msg_data(
+                session_id=session_id,
+                role=Role.USER.value,
+                user_id=request.user_id,
+                message_type=MsgType.USER.value,
+                content=request.query,
+                llm_refer_data_id=request.news_ids,
+                status=AIStatus.DONE.value
+            )
+        )
         user_query = request.query
         if request.news_ids:
             user_query += f"【引用了几篇材料：ids={request.news_ids}】"
-        history_msgs = await self.build_history(request.session_id, request.files)
+        history_msgs = await self.build_history(user_query, request.files)
         system_prompt = agent_prompt.base_service_system_prompt()
-        history_msgs.append(HumanMessage(content=user_query))
         messages = {
             "messages": history_msgs
         }
-        build_msg = BuildChatMessage()
-        chat_msg = ChatMessageOperator()
+        
+        final_content = ""
+        status = ""
         try:
             async def generator() -> AsyncGenerator[dict, None]:
-                async for chunk in self.run_chat(messages, system_prompt, app.app.state.checkpointer, has_other_tools=True):
+                async for chunk in self.run_chat(
+                    messages, 
+                    system_prompt, 
+                    app.app.state.checkpointer, 
+                    has_other_tools=True,
+                    trace_id=trace_id
+                ):
                     yield chunk
 
             async for ev in generator():
-                json_chunk = json.dumps(ev, ensure_ascii=False)
-                if json_chunk["status"] == AIStatus.GENERATING.value:
+                json_chunk = load_json(ev)
+                if json_chunk.get("status") == AIStatus.GENERATING.value:
                     await websocket.send_json(json_chunk)
-                elif json_chunk["status"] in (AIStatus.DONE.value, AIStatus.EXCEPTION.value):
-                    await chat_msg.insert_chat_message(build_msg.build_msg_data(
-                        session_id=request.session_id,
-                        role="assistant",
-                        user_id=user_id,
-                        message_type=2,
-                        content=json_chunk["content"],
-                        pre_id=user_id,
-                        status=AIStatus.DONE.value if json_chunk["status"] == AIStatus.DONE.value else AIStatus.EXCEPTION.value
-                    ))
+                elif json_chunk.get("status") == AIStatus.DONE.value:
+                    final_content = json_chunk.get("final_content", "") 
+                    status = json_chunk.get("status")
+                else:
+                    final_content = json_chunk.get("error_content", "")
+                    status = json_chunk.get("status")
+                    
         except Exception as e:
             logger.exception(str(e))
+        finally:
+            # 持久化AI消息
+            await chat_msg.insert_chat_message(
+                build_msg.build_msg_data(
+                    session_id=session_id,
+                    role=Role.ASSISTANT.value,
+                    user_id=user_id,
+                    message_type=MsgType.ASSISTANT.value,
+                    content=final_content,
+                    pre_id=user_msg.id,
+                    status=status
+                )
+            )
+            # 更新会话标题
+            await self.run_llm_task_session_topic(session_id, request.query)
         
 
     async def test_chat(self, request: ChatMsg, app: Request, user: UserModel):
+        trace_id = None
         try:
             if request.session_id:
-                self.trace_id = await get_trace_id(user.id, request.session_id)
+                trace_id = await get_trace_id(user.id, request.session_id)
             else:
                 session = await self.chat_session_operator.new_session(user.id)
-                self.trace_id = generate_id(is_32bit=True)
+                trace_id = generate_id(is_32bit=True)
                 request.session_id = session.id
-                await redis_client.set_trace_id(user.id, session.id, self.trace_id)
-            history_msgs = await self.build_history(request.session_id, request.files)
+                await redis_client.set_trace_id(user.id, session.id, trace_id)
+            history_msgs = await self.build_history(request.query, request.files)
             system_prompt = agent_prompt.base_service_system_prompt()
-            history_msgs.append(HumanMessage(content=request.query))
             messages = {
                 "messages": history_msgs
             }
             try:
-                async for chunk in self.run_chat(messages, system_prompt, app.app.state.checkpointer, has_other_tools=True):
+                async for chunk in self.run_chat(
+                    messages, 
+                    system_prompt, 
+                    app.app.state.checkpointer, 
+                    has_other_tools=True,
+                    trace_id=trace_id
+                ):
                     yield chunk
             except Exception as e:
                 logger.exception(str(e))
@@ -242,7 +203,8 @@ class AIService:
             messages: dict, 
             system_prompt: str, 
             checkpointer: BaseCheckpointSaver | AsyncPostgresSaver | None = None,
-            has_other_tools: bool = False
+            has_other_tools: bool = False,
+            trace_id: str | None = None,
         ) -> AsyncGenerator:
         try:
             additional_tools = [search_saved_news, check_news_length_or_summary]
@@ -255,10 +217,10 @@ class AIService:
             agent_config: dict[str, Any] = {
                 "callbacks": self.langfuse_handler,
                 "metadata": {
-                    "langfuse_session_id": self.trace_id,
+                    "langfuse_session_id": trace_id,
                 },
                 "configurable": {
-                    "thread_id": self.trace_id
+                    "thread_id": trace_id
                 }
             }
             final_content = ""
@@ -286,7 +248,7 @@ class AIService:
                             yield {
                                 "role": role,
                                 "content": chunk_msg.additional_kwargs.get("reasoning_content"),
-                                "trace_id": self.trace_id,
+                                "trace_id": trace_id,
                                 "usage_metadata": usage_data,
                                 "status": AIStatus.ANALYZING.value
                             }
@@ -297,7 +259,7 @@ class AIService:
                                     "role": Role.TOOLS.value,
                                     "content": "",
                                     "tool_calls": [{"id": tc["id"], "name": tc["name"], "args": tc["args"]}],
-                                    "trace_id": self.trace_id,
+                                    "trace_id": trace_id,
                                     "usage_metadata": usage_data,
                                     "status": AIStatus.RETRIEVING.value
                                 }
@@ -310,7 +272,7 @@ class AIService:
                         result = {
                             "role": role,
                             "content": content,
-                            "trace_id": self.trace_id,
+                            "trace_id": trace_id,
                             "usage_metadata": usage_data,
                             "status": AIStatus.GENERATING.value
                         }
@@ -321,14 +283,14 @@ class AIService:
             logger.exception(str(e))
             yield {
                 "status": AIStatus.EXCEPTION.value,
-                "content": final_content,
-                "trace_id": self.trace_id
+                "error_content": str(e),
+                "trace_id": trace_id
             }
         finally:
             yield {
                 "status": AIStatus.DONE.value,
-                "content": final_content,
-                "trace_id": self.trace_id
+                "final_content": final_content,
+                "trace_id": trace_id
             }
 
     async def stream(self) -> AsyncGenerator:
