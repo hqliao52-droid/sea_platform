@@ -1,8 +1,9 @@
 from fastapi import UploadFile
 from pathlib import Path
+
 from app.utils.file_utils import FileUtils
 from app.utils.qrcode_utils import QRCodeUtils
-
+from app.utils.log import logger
 
 class FileService:
     """文件上传"""
@@ -12,9 +13,12 @@ class FileService:
     @staticmethod
     async def upload_file(file: UploadFile) -> str:
         """上传文件"""
-        url = await FileUtils.save_file(file)
-
-        return {"filename": file.filename, "url": url}
+        try:
+            url = await FileUtils.save_file(file)
+            return {"filename": file.filename, "url": url}
+        except Exception as e:
+            logger.error(e)
+            return {"filename": None, "url": None, "message": str(e) or "上传失败"}
 
     @classmethod
     def get_android_download_url(cls) -> str:

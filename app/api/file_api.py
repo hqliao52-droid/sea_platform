@@ -1,13 +1,21 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, Depends
+
 from app.services.file_service import FileService
+from app.models.user_model import UserModel
 from app.utils.result_response import Result
 from app.utils.result_response import ResultCode
+from app.utils.log import logger
+from app.core.user_deps import get_current_user
 
 router = APIRouter()
 
 
 @router.post("/upload_file")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(
+    file: UploadFile = File(...),
+    user_info: UserModel = Depends(get_current_user),
+):
+    logger.info(f"用户{user_info.username}上传文件：{file.filename}")
     result = await FileService().upload_file(file)
     return Result.success(result)
 
