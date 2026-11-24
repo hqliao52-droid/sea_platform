@@ -8,6 +8,20 @@ from app.config.settings import BASE_DIR, settings
 __all__ = ["logger"]
 
 
+def _console_sink():
+    """控制台输出流。
+
+    Windows 控制台默认是 cp936，直接输出中文/emoji 会抛 UnicodeEncodeError，
+    这里尽量把 stderr 切成 utf-8；切不动（不是 TextIOWrapper 等）就退回原流。
+    """
+    stream = sys.stderr
+    try:
+        stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
+    return stream
+
+
 class LoguruLoggerManager:
     """Loguru日志管理器"""
 
@@ -52,6 +66,23 @@ class LoguruLoggerManager:
             "{level: <8} | "
             "{name}:{function}:{line} | "
             "{message:." + str(self.LONG_LOG_LIMIT) + "}"
+        )
+
+        # 用 patcher 全局注入 app_id：{app_id} 是格式化串里的占位符，
+        # 只要某个 sink 忘了挂 all_log_filter，就会在 emit 时抛 KeyError: 'app_id'
+        # 并吞掉整条日志。放这里统一注入，新加 sink 不会踩这个坑。
+        self.logger.configure(patcher=self._add_trace_context)
+
+        # 控制台输出：loguru 自带的 stderr handler 已被上面的 remove() 移除，
+        # 必须在这里显式补回来，否则服务端出错时控制台一条日志都看不到，
+        # 只能去 logs/ 目录翻文件（排查 500 时非常致命）。
+        self.logger.add(
+            _console_sink(),
+            format=color_format,
+            level=settings.LOG_CONSOLE_LEVEL,
+            colorize=None,
+            backtrace=True,
+            diagnose=settings.LOG_DIAGNOSE,
         )
 
         self.logger.add(

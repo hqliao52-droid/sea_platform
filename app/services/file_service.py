@@ -11,14 +11,20 @@ class FileService:
     ANDROID_APK_NAME = "sea_platform_latest.apk"
 
     @staticmethod
-    async def upload_file(file: UploadFile) -> str:
+    async def upload_file(file: UploadFile) -> dict:
         """上传文件"""
         try:
             url = await FileUtils.save_file(file)
-            return {"filename": file.filename, "url": url}
         except Exception as e:
-            logger.error(e)
+            # 用 opt(exception=True) 而不是 logger.error(e)：
+            # 前者保留完整堆栈，后者只剩一行错误字符串，线上根本定位不到位置
+            logger.opt(exception=True).error(
+                "保存文件失败 | filename={!r} | content_type={}",
+                file.filename,
+                file.content_type,
+            )
             return {"filename": None, "url": None, "message": str(e) or "上传失败"}
+        return {"filename": file.filename, "url": url}
 
     @classmethod
     def get_android_download_url(cls) -> str:

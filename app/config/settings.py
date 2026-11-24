@@ -126,6 +126,11 @@ class Settings(BaseSettings):
 
     # 相对路径会以项目根目录为基准解析；也可配置绝对路径
     LOG_DIR: str | None = "logs"
+    # 控制台日志级别（DEBUG/INFO/WARNING/ERROR），设成 CRITICAL 可关闭控制台输出
+    LOG_CONSOLE_LEVEL: str = "INFO"
+    # 是否在异常堆栈里展开局部变量值。
+    # 默认关闭：diagnose=True 会把 token、密码、请求体等敏感变量打进日志
+    LOG_DIAGNOSE: bool = False
 
     """邮箱配置 SMTP配置"""
     SMTP_HOST: str = "smtp.126.com"

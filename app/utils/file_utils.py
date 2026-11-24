@@ -8,6 +8,7 @@ from contextlib import suppress
 
 from app.config.file_config import file_config
 from app.config.settings import settings
+from app.utils.log import logger
 
 
 class FileUtils:
@@ -46,6 +47,9 @@ class FileUtils:
     @staticmethod
     async def save_file(file: UploadFile) -> str:
         file_type = FileUtils.get_file_type(file.filename)
+        logger.debug(
+            "文件类型判定 | filename={!r} | type={}", file.filename, file_type
+        )
         save_dir = FileUtils.get_save_dir(file_type)
         os.makedirs(save_dir, exist_ok=True)
 
@@ -53,15 +57,22 @@ class FileUtils:
         new_filename = f"{uuid.uuid4().hex}{ext}"
         file_path = save_dir / new_filename
 
+        total = 0
         try:
             async with aiofiles.open(file_path, "wb") as out:
                 # 用 UploadFile.read 的异步接口 + 分块，避免整文件入内存
                 while chunk := await file.read(1024 * 1024):
                     await out.write(chunk)
+                    total += len(chunk)
         except Exception:
             with suppress(FileNotFoundError):
                 file_path.unlink()
+            logger.opt(exception=True).error(
+                "写入文件失败 | path={} | 已写入 {} bytes", file_path, total
+            )
             raise
+
+        logger.debug("文件写入完成 | path={} | size={} bytes", file_path, total)
 
         relative_path = f"attach/{file_type}/{new_filename}"
         return f"{file_config.FILE_HOST}/{relative_path}"

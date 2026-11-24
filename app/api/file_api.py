@@ -1,3 +1,5 @@
+import time
+
 from fastapi import APIRouter, UploadFile, File, Depends
 
 from app.services.file_service import FileService
@@ -15,8 +17,36 @@ async def upload_file(
     file: UploadFile = File(...),
     user_info: UserModel = Depends(get_current_user),
 ):
-    logger.info(f"用户{user_info.username}上传文件：{file.filename}")
+    # filename 用 {!r} 输出，避免文件名里的换行符伪造日志行
+    logger.info(
+        "上传开始 | user={} | filename={!r} | content_type={}",
+        user_info.username,
+        file.filename,
+        file.content_type,
+    )
+
+    start = time.perf_counter()
     result = await FileService().upload_file(file)
+    cost_ms = (time.perf_counter() - start) * 1000
+
+    # FileService 内部会把异常吞成 {"url": None, "message": ...} 并原样返回，
+    # 这里必须显式把失败打成 WARNING，否则接口看起来永远是成功的
+    if not result.get("url"):
+        logger.warning(
+            "上传失败 | user={} | filename={!r} | 耗时 {:.1f}ms | reason={}",
+            user_info.username,
+            file.filename,
+            cost_ms,
+            result.get("message"),
+        )
+    else:
+        logger.info(
+            "上传完成 | user={} | filename={!r} | 耗时 {:.1f}ms | url={}",
+            user_info.username,
+            file.filename,
+            cost_ms,
+            result.get("url"),
+        )
     return Result.success(result)
 
 

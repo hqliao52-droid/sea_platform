@@ -1,9 +1,10 @@
 import asyncio
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
@@ -15,7 +16,9 @@ from app.config.pg_config import init_db, close_db
 from app.config.langgraph_postgres import test_langgraph_postgres
 from app.config.langgraph_postgres import DATABASE_URL
 from app.config.redis_config import redis_client
+from app.middlewares.request_log_middleware import RequestLogMiddleware
 from app.utils.log import logger
+from app.utils.result_response import Result, ResultCode
 from app.api.news_api import router as news_router
 from app.api.rss_api import router as rss_router
 from app.api.news_detail_api import router as news_detail_router
@@ -93,6 +96,29 @@ app.include_router(chat_message_router, prefix="/chatMessage", tags=["用户消�
 app.include_router(user_config_router, prefix="/userConfig", tags=["用户配置接口"])
 app.include_router(email_router, prefix="/email", tags=["邮件接口"])
 app.include_router(llm_router, prefix="/llm", tags=["AI对话"])
+
+
+app.add_middleware(RequestLogMiddleware)
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    """兜底异常处理：任何未处理异常都写一条 ERROR 日志，并返回统一响应结构。
+
+    完整堆栈由 RequestLogMiddleware 打印（带 request_id），这里只补一行摘要，
+    避免同一个异常在控制台刷两遍 traceback。
+    """
+    logger.error(
+        "[{}] 系统异常：500 | {} {} | {}: {}",
+        getattr(request.state, "request_id", "-"),
+        request.method,
+        request.url.path,
+        type(exc).__name__,
+        exc,
+    )
+    return JSONResponse(
+        status_code=500,
+        content=Result.error(ResultCode.SYSTEM_ERROR).model_dump(),
+    )
 
 
 
