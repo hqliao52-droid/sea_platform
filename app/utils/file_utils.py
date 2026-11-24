@@ -1,6 +1,11 @@
-import os, uuid
+import os
+import uuid
+import aiofiles
 from pathlib import Path
+
 from fastapi import UploadFile
+from contextlib import suppress
+
 from app.config.file_config import file_config
 from app.config.settings import settings
 
@@ -40,27 +45,26 @@ class FileUtils:
 
     @staticmethod
     async def save_file(file: UploadFile) -> str:
-        """保存文件 返回访问URL"""
         file_type = FileUtils.get_file_type(file.filename)
         save_dir = FileUtils.get_save_dir(file_type)
+        os.makedirs(save_dir, exist_ok=True)
 
-        # 创建目录
-        await os.makedirs(save_dir, exist_ok=True)
-
-        # 生成唯一文件名
-        ext = file.filename.split(".")[-1]
-        new_filename = f"{uuid.uuid4().hex}.{ext}"
-
+        ext = Path(file.filename).suffix
+        new_filename = f"{uuid.uuid4().hex}{ext}"
         file_path = save_dir / new_filename
 
-        with open(file_path, "wb") as f:
-            await f.write(file.file.read())
+        try:
+            async with aiofiles.open(file_path, "wb") as out:
+                # 用 UploadFile.read 的异步接口 + 分块，避免整文件入内存
+                while chunk := await file.read(1024 * 1024):
+                    await out.write(chunk)
+        except Exception:
+            with suppress(FileNotFoundError):
+                file_path.unlink()
+            raise
 
-        # 返回URL
         relative_path = f"attach/{file_type}/{new_filename}"
-        url = f"{file_config.FILE_HOST}/{relative_path}"
-
-        return url
+        return f"{file_config.FILE_HOST}/{relative_path}"
 
     @staticmethod
     def get_android_download_url() -> str:
