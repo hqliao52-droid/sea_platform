@@ -98,7 +98,6 @@ app.include_router(email_router, prefix="/email", tags=["邮件接口"])
 app.include_router(llm_router, prefix="/llm", tags=["AI对话"])
 
 
-app.add_middleware(RequestLogMiddleware)
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception):
@@ -175,3 +174,4 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(RequestLogMiddleware)

@@ -140,8 +140,11 @@ async def update_password(
 
 @router.post("/logout")
 async def logout(authorization: str = Header(None)):
-    token = authorization.replace("Bearer ", "")
-    await redis.init_black_list_token(token)
+    if not authorization:
+        return Result.success()
+    token = authorization.replace("Bearer ", "").strip()
+    if token:
+        await redis.init_black_list_token(token)
     return Result.success()
 
 
