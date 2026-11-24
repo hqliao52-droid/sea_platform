@@ -30,3 +30,7 @@ htmlcov/
 # 其他
 *.log
 .DS_Store
+
+# 用户上传/运行时产物：目录保留（.gitkeep 占位），内容一律不追踪
+attach/*
+!attach/.gitkeep
