@@ -132,12 +132,16 @@ class Settings(BaseSettings):
     # 默认关闭：diagnose=True 会把 token、密码、请求体等敏感变量打进日志
     LOG_DIAGNOSE: bool = False
 
-    """邮箱配置 SMTP配置"""
+    # 邮箱配置 SMTP配置
     SMTP_HOST: str = "smtp.126.com"
     SMTP_PORT: int = 465
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
     SMTP_FROM: str = ""
+
+    # 百度翻译
+    BAIDU_TRANSLATE_APP_ID: str | None = None
+    BAIDU_TRANSLATE_SECURITY_KEY: str | None = None
 
     APK_PATH: str = ""
 

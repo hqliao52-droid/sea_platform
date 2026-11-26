@@ -23,7 +23,7 @@ class ChatSessionOperator:
                 chat_session_result = ChatSessionSchema.model_validate(chat_session)
                 return chat_session_result
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
                 return None
 
     async def get_chat_session_by_llm_id(
@@ -40,7 +40,7 @@ class ChatSessionOperator:
                 ]
                 return chat_session_result
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
                 return None
 
     async def get_session_by_id(self, session_id: int) -> Optional[ChatSession]:
@@ -49,7 +49,7 @@ class ChatSessionOperator:
                 session = await self.chat_session_curd.get(db = db, obj_id = session_id)
                 return session
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
                 return None
 
     async def get_chat_session_by_user_id(
@@ -66,7 +66,7 @@ class ChatSessionOperator:
                 ]
                 return chat_session_result
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
                 return None
 
     async def new_session(self, user_id: int) -> Optional[ChatSessionSchema]:
@@ -87,7 +87,7 @@ class ChatSessionOperator:
                 logger.info(f"新的会话创建成功：{chat_session_result}")
                 return ChatSessionSchema.model_validate(chat_session_result)
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
                 return None
 
     async def new_chat_session_by_user_id(self, user_id: int) -> Optional[ChatSessionSchema]:
@@ -119,7 +119,7 @@ class ChatSessionOperator:
                 return ChatSessionSchema.model_validate(chat_session_result)
             except Exception as e:
                 await db.rollback()
-                logger.error(e)
+                logger.exception(e)
                 return None
 
     async def update_session(self, session_id: int, session_data: dict):
@@ -134,4 +134,25 @@ class ChatSessionOperator:
                 return result
             except Exception as e:
                 await db.rollback()
-                logger.error(f"更新失败：{str(e)}")
+                logger.exception(f"更新失败：{str(e)}")
+
+    async def delete_sessions(self, session_ids: list[int], user_id: int) -> int:
+        if not session_ids:
+            return 0
+
+        async with AsyncSessionLocal() as db:
+            try:
+                result = await self.chat_session_curd.delete_by_session_id(
+                    db, session_ids, user_id
+                )
+                await db.commit()
+                logger.info(
+                    f"删除会话成功 user_id={user_id}, ids={session_ids}, affected={result}"
+                )
+                return result
+            except Exception:
+                await db.rollback()
+                logger.exception(
+                    f"删除会话失败 user_id={user_id}, ids={session_ids}"
+                )
+                raise

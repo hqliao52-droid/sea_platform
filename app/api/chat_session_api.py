@@ -56,3 +56,12 @@ async def new_session_thread(user: UserModel = Depends(get_current_user)):
     except Exception as e:
         logger.error(e)
         return Result.error(ResultCode.SYSTEM_ERROR)
+
+@chat_session_router.put("/delete_sessions")
+async def delete_sessions(session_id: int, user: UserModel = Depends(get_current_user)):
+    try:
+        session = await chat_session_operator.delete_sessions(session_id, user.id)
+        return Result.success(session)
+    except Exception as e:
+        logger.error(e)
+        return Result.error(ResultCode.SYSTEM_ERROR)

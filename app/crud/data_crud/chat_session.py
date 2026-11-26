@@ -30,7 +30,7 @@ class ChatSessionCRUD(BaseCRUD):
     ) -> Optional[List[ChatSession]]:
         stmt = (
             select(ChatSession)
-            .where(ChatSession.llm_id == llm_id)
+            .where(ChatSession.llm_id == llm_id, ChatSession.is_deleted == 0)
             .order_by(desc(ChatSession.update_time))
         )
         result = await db.execute(stmt)
@@ -64,3 +64,21 @@ class ChatSessionCRUD(BaseCRUD):
 
         update_stmt = await self.update(db, chat_session.id, session_data)
         return update_stmt
+
+    async def delete_by_session_id(
+        self, db: AsyncSession, session_ids: list[int], user_id: int
+    ) -> int:
+        if not session_ids:
+            return 0
+
+        stmt = (
+            update(ChatSession)
+            .where(
+                ChatSession.id.in_(session_ids),
+                ChatSession.user_id == user_id,
+            )
+            .values(is_deleted=1)
+        )
+        result = await db.execute(stmt)
+        await db.flush()
+        return result.rowcount
