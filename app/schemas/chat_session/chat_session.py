@@ -18,3 +18,11 @@ class ChatSessionSchema(BaseModel):
     update_time: Optional[datetime] = Field(None, description="更新时间")
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class DeleteSessions(BaseModel):
+    """删除会话模型"""
+
+    session_ids: list[int] = Field(None, description="会话ID列表")
+
+    model_config = ConfigDict(from_attributes=True)

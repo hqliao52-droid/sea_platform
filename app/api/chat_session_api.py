@@ -5,7 +5,7 @@ from app.utils.result_response import Result
 from app.utils.result_response import ResultCode
 from app.utils.ip_util import get_real_ip
 from app.services.chat_session_service import ChatSessionOperator
-from app.schemas.chat_session.chat_session import ChatSessionSchema
+from app.schemas.chat_session.chat_session import ChatSessionSchema, DeleteSessions
 from app.core.user_deps import get_current_user
 from app.models.user_model import UserModel
 from app.utils.log import logger
@@ -58,7 +58,7 @@ async def new_session_thread(user: UserModel = Depends(get_current_user)):
         return Result.error(ResultCode.SYSTEM_ERROR)
 
 @chat_session_router.delete("/delete_sessions")
-async def delete_sessions(session_ids: list[int], user: UserModel = Depends(get_current_user)):
+async def delete_sessions(session_ids: list[DeleteSessions], user: UserModel = Depends(get_current_user)):
     try:
         session_count = await chat_session_operator.delete_sessions(session_ids, user.id)
         return Result.success(session_count)
