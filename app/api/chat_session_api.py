@@ -16,19 +16,19 @@ chat_session_operator = ChatSessionOperator()
 
 
 @chat_session_router.get(
-    "/get_sessions", 
+    "/get_sessions",
     response_model=Result[List[ChatSessionSchema]]
 )
-async def get_chat_session_by_llm_id(user_id: int):
-    """通过userID获取会话列表"""
-    session = await chat_session_operator.get_chat_session_by_user_id(user_id)
-    if session is not None:
-        return Result.success(session)
-    else:
+async def get_chat_sessions(user: UserModel = Depends(get_current_user)):
+    try:
+        sessions = await chat_session_operator.get_chat_session_by_user_id(user.id)
+        return Result.success(sessions or [])
+    except Exception:
+        logger.exception("获取会话列表失败")
         return Result.error(ResultCode.SYSTEM_ERROR)
 
 
-@chat_session_router.put("/new_session")
+@chat_session_router.put("/new_session", response_model=Result[ChatSessionSchema])
 async def new_session(user: UserModel = Depends(get_current_user)):
     try:
         select_session = await chat_session_operator.new_chat_session_by_user_id(
@@ -44,24 +44,24 @@ async def new_session(user: UserModel = Depends(get_current_user)):
         logger.error(e)
         return Result.error(ResultCode.SYSTEM_ERROR)
 
-@chat_session_router.put("/new_session_thread")
+@chat_session_router.put("/new_session_thread", response_model=Result[ChatSessionSchema])
 async def new_session_thread(user: UserModel = Depends(get_current_user)):
     try:
         session = await chat_session_operator.new_session(user.id)
-        logger.info(f"用户:{user.username} 新建会话, thread_id:{session.thread_id}")
-        if session is not None:
-            return Result.success(session)
-        else:
+        if session is None:
             return Result.error(ResultCode.SYSTEM_ERROR)
+
+        logger.info(f"用户:{user.username} 新建会话, thread_id:{session.thread_id}")
+        return Result.success(session)
     except Exception as e:
         logger.error(e)
         return Result.error(ResultCode.SYSTEM_ERROR)
 
-@chat_session_router.put("/delete_sessions")
+@chat_session_router.delete("/delete_sessions")
 async def delete_sessions(session_id: int, user: UserModel = Depends(get_current_user)):
     try:
-        session = await chat_session_operator.delete_sessions(session_id, user.id)
-        return Result.success(session)
+        session_count = await chat_session_operator.delete_sessions(session_id, user.id)
+        return Result.success(session_count)
     except Exception as e:
         logger.error(e)
         return Result.error(ResultCode.SYSTEM_ERROR)
