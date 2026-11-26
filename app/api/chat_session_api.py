@@ -58,9 +58,9 @@ async def new_session_thread(user: UserModel = Depends(get_current_user)):
         return Result.error(ResultCode.SYSTEM_ERROR)
 
 @chat_session_router.delete("/delete_sessions")
-async def delete_sessions(session_ids: DeleteSessions, user: UserModel = Depends(get_current_user)):
+async def delete_sessions(request: DeleteSessions, user: UserModel = Depends(get_current_user)):
     try:
-        session_count = await chat_session_operator.delete_sessions(session_ids, user.id)
+        session_count = await chat_session_operator.delete_sessions(request.session_ids, user.id)
         return Result.success(session_count)
     except Exception as e:
         logger.error(e)
